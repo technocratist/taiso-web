@@ -1,0 +1,66 @@
+package com.taiso.bike_api.config;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
+
+import lombok.RequiredArgsConstructor;
+
+
+@Configuration
+@EnableWebSecurity  
+@RequiredArgsConstructor
+public class SecurityConfig {
+    
+    /**
+     * SecurityFilterChain 빈을 등록하여 스프링 시큐리티 설정을 구성합니다.
+     *
+     * - CSRF : REST API를 사용할 경우 stateless 하게 구성하기 위해 비활성화
+     * - SessionManagement : 세션을 사용하지 않고, stateless 방식 적용 (예, JWT 기반)
+     * - URL 권한 설정 : 인증 없이 접근할 수 있는 엔드포인트와 인증이 필요한 엔드포인트를 분리
+     * - H2 Console 접근 : 개발 시 H2 콘솔을 iframe 내에서 볼 수 있도록 설정
+     */
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http
+            // CSRF 비활성화 (REST API인 경우, 상태 비저장 방식 사용 시 주의)
+            .csrf(csrf -> csrf.disable())
+            
+            // Stateless 세션 정책 설정
+            .sessionManagement(session -> 
+                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            )
+            
+            // URL 접근 권한 설정
+            .authorizeHttpRequests(auth -> auth
+                // 인증 없이 접근 가능한 URL (예: 인증 관련 엔드포인트, H2 콘솔)
+                .requestMatchers("/**", "/h2-console/**").permitAll()
+                // 그 외 모든 요청은 인증 필요
+                .anyRequest().authenticated()
+            )
+            
+            // 예시로 기본 HTTP Basic 인증 설정 (todo: 필요에 따라 JWT 필터 등 추가)
+            .httpBasic(withDefaults -> {});
+
+        // H2 콘솔 사용을 위한 추가 설정 (iframe 내 접근 허용)
+        http.headers(headers -> 
+            headers.frameOptions(frameOptions -> frameOptions.sameOrigin())
+        );
+
+        return http.build();
+    }
+
+    /**
+     * 패스워드 암호화용 PasswordEncoder 빈 등록 (BCrypt 사용)
+     */
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
+}

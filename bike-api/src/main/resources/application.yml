@@ -1,0 +1,46 @@
+spring:
+  application:
+    name: bike-api
+  profiles:
+    active: dev
+
+# ----------------------------
+# 개발 환경(dev) 설정
+# ----------------------------
+---
+spring:
+  config:
+    activate:
+      # 프로파일 설정
+      on-profile: dev
+
+  datasource:
+    driverClassName: org.h2.Driver
+    # H2 인메모리 DB URL (DB_CLOSE_DELAY=-1 옵션은 애플리케이션 종료 시까지 DB를 유지)
+    url: "jdbc:h2:mem:db;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE"
+    username: sa
+    password:
+
+  # JPA 설정
+  jpa:
+    hibernate:
+      # DDL 자동 생성
+      ddl-auto: update
+    # SQL 출력
+    show-sql: true
+
+  h2:
+    # H2 콘솔 활성화
+    console:
+      enabled: true
+      path: /h2-console
+
+server:
+  # 포트 설정
+  port: 8080
+
+logging:
+  # 로깅 레벨 설정
+  level:
+    "[root]": INFO
+    "[org.springframework]": INFO

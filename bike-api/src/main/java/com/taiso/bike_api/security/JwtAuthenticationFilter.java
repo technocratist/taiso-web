@@ -42,7 +42,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String email = jwtTokenProvider.getUsernameFromJWT(jwt);
             Authentication auth = new UsernamePasswordAuthenticationToken(email, null, Collections.emptyList());
             SecurityContextHolder.getContext().setAuthentication(auth);
-
         }
         //다음 필터로 요청 전달: 인증 토큰이 설정되었으면 다음 필터로 요청을 전달합니다.
         filterChain.doFilter(request, response);

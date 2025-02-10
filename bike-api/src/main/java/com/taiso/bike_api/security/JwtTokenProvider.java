@@ -7,7 +7,10 @@ import java.util.Date;
 import org.springframework.stereotype.Component;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.security.Keys;
 
 @Component
@@ -17,7 +20,7 @@ public class JwtTokenProvider {
     private final String JWT_SECRET = "jkajvdlavjsdjiasjvijdovajiojvisvasovnsvnadjfdsoiajfsodjo";
 
     // 토큰 유효시간 (예: 7일)
-    private final long JWT_EXPIRATION = 1000L * 60 * 60 * 24 * 7; // 7일
+    private final long JWT_EXPIRATION = 1000L * 10; // 10초
 
     // 비밀키 객체 생성 (JWT_SECRET 문자열을 바이트 배열로 변환 후 키 객체 생성)
     private final Key key;
@@ -59,9 +62,18 @@ public class JwtTokenProvider {
                 .build()
                 .parseSignedClaims(token);
             return true;
-        } catch (Exception ex) {
-            // 토큰이 만료되었거나 변조되었을 경우 예외가 발생합니다.
-            // 필요에 따라 로깅 처리를 추가할 수 있습니다.
+        } catch (SecurityException | MalformedJwtException e) {
+            // 토큰 서명 검증 실패
+            System.out.println("Invalid JWT signature.");
+        } catch (ExpiredJwtException e) {
+            // 토큰 만료
+            System.out.println("Expired JWT token.");
+        } catch (UnsupportedJwtException e) {
+            // 지원하지 않는 토큰
+            System.out.println("Unsupported JWT token.");
+        } catch (IllegalArgumentException e) {
+            // 토큰 클레임이 비어있음
+            System.out.println("JWT claims string is empty.");
         }
         return false;
     }

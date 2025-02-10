@@ -1,13 +1,20 @@
 package com.taiso.bike_api.config;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import com.taiso.bike_api.security.JwtAuthenticationFilter;
+import com.taiso.bike_api.security.JwtTokenProvider;
 
 import lombok.RequiredArgsConstructor;
 
@@ -16,6 +23,11 @@ import lombok.RequiredArgsConstructor;
 @EnableWebSecurity  
 @RequiredArgsConstructor
 public class SecurityConfig {
+
+        // JwtTokenProvider 주입
+    @Autowired
+    private JwtTokenProvider jwtTokenProvider;
+
     
     /**
      * SecurityFilterChain 빈을 등록하여 스프링 시큐리티 설정을 구성합니다.
@@ -25,6 +37,13 @@ public class SecurityConfig {
      * - URL 권한 설정 : 인증 없이 접근할 수 있는 엔드포인트와 인증이 필요한 엔드포인트를 분리
      * - H2 Console 접근 : 개발 시 H2 콘솔을 iframe 내에서 볼 수 있도록 설정
      */
+
+         @Bean
+         public JwtAuthenticationFilter jwtAuthenticationFilter() {
+             return new JwtAuthenticationFilter(jwtTokenProvider);
+         }
+    
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -39,13 +58,12 @@ public class SecurityConfig {
             // URL 접근 권한 설정
             .authorizeHttpRequests(auth -> auth
                 // 인증 없이 접근 가능한 URL (예: 인증 관련 엔드포인트, H2 콘솔)
-                .requestMatchers("/**", "/h2-console/**").permitAll()
+                .requestMatchers("/api/auth/**", "/h2-console/**").permitAll()
                 // 그 외 모든 요청은 인증 필요
                 .anyRequest().authenticated()
-            )
+            );
             
-            // 예시로 기본 HTTP Basic 인증 설정 (todo: 필요에 따라 JWT 필터 등 추가)
-            .httpBasic(withDefaults -> {});
+         http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 
         // H2 콘솔 사용을 위한 추가 설정 (iframe 내 접근 허용)
         http.headers(headers -> 
@@ -61,6 +79,14 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    /**
+     * 인증 관리자 빈 등록
+     */
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfiguration) throws Exception {
+        return authConfiguration.getAuthenticationManager();
     }
 
 }

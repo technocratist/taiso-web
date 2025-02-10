@@ -35,11 +35,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         @NonNull HttpServletResponse response, 
         @NonNull FilterChain filterChain)
             throws ServletException, IOException {
-        // 쿠키에서 accessToken 가져오기
-        String accessToken = extractAccessTokenFromCookie(request.getCookies());
-        if (accessToken != null && jwtTokenProvider.validateToken(accessToken)) {
-            String userId = jwtTokenProvider.getUsernameFromJWT(accessToken);
-            Authentication auth = new UsernamePasswordAuthenticationToken(userId, null, Collections.emptyList());
+        // 쿠키에서 jwt 가져오기
+        String jwt = extractJwtFromCookie(request.getCookies());
+        System.out.println("jwt: " + jwt);
+        if (jwt != null && jwtTokenProvider.validateToken(jwt)) {
+            String email = jwtTokenProvider.getUsernameFromJWT(jwt);
+            Authentication auth = new UsernamePasswordAuthenticationToken(email, null, Collections.emptyList());
             SecurityContextHolder.getContext().setAuthentication(auth);
 
         }
@@ -47,10 +48,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
     
-    private String extractAccessTokenFromCookie(Cookie[] cookies) {
+    private String extractJwtFromCookie(Cookie[] cookies) {
     if (cookies == null) return null;
         for (Cookie c : cookies) {
-            if ("accessToken".equals(c.getName())) {
+            if ("jwt".equals(c.getName())) {
                 return c.getValue();
             }
         }

@@ -58,12 +58,11 @@ public class SecurityConfig {
             // URL 접근 권한 설정
             .authorizeHttpRequests(auth -> auth
                 // 인증 없이 접근 가능한 URL (예: 인증 관련 엔드포인트, H2 콘솔)
-                .requestMatchers("/**", "/h2-console/**").permitAll()
+                .requestMatchers("/api/auth/**", "/h2-console/**").permitAll()
                 // 그 외 모든 요청은 인증 필요
                 .anyRequest().authenticated()
             );
             
-            // 예시로 기본 HTTP Basic 인증 설정 (todo: 필요에 따라 JWT 필터 등 추가)
          http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 
         // H2 콘솔 사용을 위한 추가 설정 (iframe 내 접근 허용)

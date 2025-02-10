@@ -13,6 +13,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import com.taiso.bike_api.security.JwtAccessDeniedHandler;
+import com.taiso.bike_api.security.JwtAuthenticationEntryPoint;
 import com.taiso.bike_api.security.JwtAuthenticationFilter;
 import com.taiso.bike_api.security.JwtTokenProvider;
 
@@ -24,9 +26,15 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-        // JwtTokenProvider 주입
+    // JwtTokenProvider 주입
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
+
+    @Autowired
+    private JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+
+    @Autowired
+    private JwtAccessDeniedHandler jwtAccessDeniedHandler;
 
     
     /**
@@ -65,6 +73,12 @@ public class SecurityConfig {
             
          http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 
+        // 인증 예외 처리
+        http.exceptionHandling(exceptionHandling -> exceptionHandling
+            .authenticationEntryPoint(jwtAuthenticationEntryPoint)
+            .accessDeniedHandler(jwtAccessDeniedHandler)
+        );
+         
         // H2 콘솔 사용을 위한 추가 설정 (iframe 내 접근 허용)
         http.headers(headers -> 
             headers.frameOptions(frameOptions -> frameOptions.sameOrigin())

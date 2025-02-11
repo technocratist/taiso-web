@@ -59,5 +59,8 @@ public class MemberEntity {
     public void onPreUpdate() {
         this.updatedAt = LocalDateTime.now();
     }
+    
+    //빌더 패턴 적용
+        
 }
 

@@ -35,6 +35,9 @@ spring:
       enabled: true
       path: /h2-console
 
+jwt:
+  secret: abcdefghijklmnsdfghnkuwbnvuijbvouiwbowuouvouwrbouoopqrstuvwxyz123456 # 기본값 제공 (개발용)
+
 server:
   # 포트 설정
   port: 8080

@@ -12,10 +12,6 @@ import lombok.ToString;
 @NoArgsConstructor
 @AllArgsConstructor
 public class LoginRequestDTO {
-    
-    //이메일
     private String email;
-
-    //비밀번호
     private String password;
 }

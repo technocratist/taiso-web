@@ -12,21 +12,27 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.security.Keys;
-
+import org.springframework.beans.factory.annotation.Value;
 @Component
 public class JwtTokenProvider {
 
-    // JWT 서명에 사용할 비밀키 (실제 운영 환경에서는 안전하게 보관)
-    private final String JWT_SECRET = "jkajvdlavjsdjiasjvijdovajiojvisvasovnsvnadjfdsoiajfsodjo";
-
-    // 토큰 유효시간 (예: 7일)
-    private final long JWT_EXPIRATION = 1000L * 10; // 10초
+    // 토큰 유효시간 (예: 7일) - 10분
+    private final long JWT_EXPIRATION = 1000L * 60 * 10; // 10분
 
     // 비밀키 객체 생성 (JWT_SECRET 문자열을 바이트 배열로 변환 후 키 객체 생성)
     private final Key key;
 
-    public JwtTokenProvider() {
-        this.key = Keys.hmacShaKeyFor(JWT_SECRET.getBytes(StandardCharsets.UTF_8));
+    // 생성자 주입을 사용하여 환경 변수 또는 외부 구성으로부터 주입받음
+    public JwtTokenProvider(@Value("${jwt.secret}") String jwtSecret) {
+        // jwtSecret 검증 (비어있거나 256bit 미만이면 예외 발생)
+        if (jwtSecret == null || jwtSecret.trim().isEmpty()) {
+            throw new IllegalArgumentException("JWT secret must not be empty.");
+        }
+        if (jwtSecret.getBytes(StandardCharsets.UTF_8).length < 32) {
+            throw new IllegalArgumentException("JWT secret must be at least 256 bits (32 bytes) for HS256.");
+        }
+        // Create the signing key and omit storing the secret
+        this.key = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
     }
 
     // JWT 토큰 생성 (jjwt 0.12.0 이상 방식 사용)
@@ -40,7 +46,7 @@ public class JwtTokenProvider {
                 .and()
                 .expiration(expiryDate)
                 .subject(email)                             // (3) JSON Claims, or
-                .signWith(key)                       // (4) if signing, or
+                .signWith(key)                     // (4) if signing, or
                 .compact();                                 // (5)
     }
 

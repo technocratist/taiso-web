@@ -7,10 +7,14 @@ import org.springframework.http.HttpStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+
 //에러 응답 DTO
 @Getter
 @Setter
+@NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class ErrorResponseDTO {

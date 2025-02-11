@@ -37,7 +37,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
         // 쿠키에서 jwt 가져오기
         String jwt = extractJwtFromCookie(request.getCookies());
-        System.out.println("jwt: " + jwt);
         if (jwt != null && jwtTokenProvider.validateToken(jwt)) {
             String email = jwtTokenProvider.getUsernameFromJWT(jwt);
             Authentication auth = new UsernamePasswordAuthenticationToken(email, null, Collections.emptyList());

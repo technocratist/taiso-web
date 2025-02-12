@@ -8,22 +8,21 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.taiso.bike_api.dto.LoginRequestDTO;
 import com.taiso.bike_api.dto.LoginResponseDTO;
 import com.taiso.bike_api.dto.RegisterRequestDTO;
 import com.taiso.bike_api.dto.RegisterResponseDTO;
 import com.taiso.bike_api.security.JwtTokenProvider;
-import com.taiso.bike_api.service.MemberService;
-
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletResponse;
-import lombok.extern.slf4j.Slf4j;
+import com.taiso.bike_api.service.UserService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 
 
 
@@ -41,7 +40,7 @@ public class AuthController {
     
     // 주입된 MemberService를 통해 회원가입을 처리
     @Autowired
-    private MemberService memberService;        
+    private UserService userService;        
     
     // 로그인
     @PostMapping("/login")
@@ -75,7 +74,7 @@ public class AuthController {
     @Operation(summary = "회원가입", description = "사용자 회원가입 및 JWT 토큰 발급")
     public ResponseEntity<RegisterResponseDTO> register(@RequestBody RegisterRequestDTO registerRequestDTO, HttpServletResponse httpServletResponse) {
         // 회원가입 처리
-        RegisterResponseDTO registerResponseDTO = memberService.register(registerRequestDTO);
+        RegisterResponseDTO registerResponseDTO = userService.register(registerRequestDTO);
 
         // 가입된 사용자의 이메일을 기반으로 JWT 토큰 발급
         String jwt = jwtTokenProvider.generateToken(registerResponseDTO.getEmail());

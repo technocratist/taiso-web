@@ -8,8 +8,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import com.taiso.bike_api.domain.UserEntity;
-import com.taiso.bike_api.domain.UserRoleEntity;
-import com.taiso.bike_api.domain.UserStatusEntity;
 import com.taiso.bike_api.repository.UserRepository;
 import com.taiso.bike_api.repository.UserRoleRepository;
 import com.taiso.bike_api.repository.UserStatusRepository;
@@ -32,21 +30,22 @@ public class InitLoader implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        // role 추가
-        UserRoleEntity role = UserRoleEntity.builder()
-            .roleName("USER")
-            .createdAt(LocalDateTime.now())
-            .updatedAt(LocalDateTime.now())
-            .build();
-        userRoleRepository.save(role);
+        // // role 추가
+        // UserRoleEntity role = UserRoleEntity.builder()
+        //     .roleName("USER")
+        //     .createdAt(LocalDateTime.now())
+        //     .updatedAt(LocalDateTime.now())
+        //     .build();
+        // userRoleRepository.save(role);
 
-        // status 추가
-        UserStatusEntity status = UserStatusEntity.builder()
-            .statusName("ACTIVE")
-            .createdAt(LocalDateTime.now())
-            .updatedAt(LocalDateTime.now())
-            .build();
-        userStatusRepository.save(status);
+        // // status 추가
+        // UserStatusEntity status = UserStatusEntity.builder()
+        //     .statusName("ACTIVE")
+        //     .createdAt(LocalDateTime.now())
+        //     .updatedAt(LocalDateTime.now())
+        //     .build();
+        // userStatusRepository.save(status);
+
 
         //테스트 아이디 추가
         UserEntity user = UserEntity.builder()
@@ -58,6 +57,8 @@ public class InitLoader implements CommandLineRunner {
             .updatedAt(LocalDateTime.now())
             .build();
         userRepository.save(user);
+
+        
 
     }
 }

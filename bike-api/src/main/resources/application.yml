@@ -11,39 +11,39 @@ spring:
 spring:
   config:
     activate:
-      # 프로파일 설정
       on-profile: dev
 
   datasource:
     driverClassName: org.h2.Driver
-    # H2 인메모리 DB URL 변경: Using testdb to match default H2 console settings
+    # H2 인메모리 DB URL (H2 콘솔과 맞추기 위해 testdb 사용)
     url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;MODE=MySQL
     username: sa
     password:
 
-  # JPA 설정
   jpa:
     hibernate:
-      # DDL 자동 생성
       ddl-auto: update
-    # SQL 출력
     show-sql: true
+    # 스키마 생성 후에 data.sql 스크립트 실행
+    defer-datasource-initialization: true
 
   h2:
-    # H2 콘솔 활성화
     console:
       enabled: true
       path: /h2-console
 
+  sql:
+    init:
+      mode: always
+      data-locations: classpath:data.sql
+
 jwt:
-  secret: abcdefghijklmnsdfghnkuwbnvuijbvouiwbowuouvouwrbouoopqrstuvwxyz123456 # 기본값 제공 (개발용)
+  secret: abcdefghijklmnsdfghnkuwbnvuijbvouiwbowuouvouwrbouoopqrstuvwxyz123456
 
 server:
-  # 포트 설정
   port: 8080
 
 logging:
-  # 로깅 레벨 설정
   level:
     "[root]": INFO
     "[org.springframework]": INFO

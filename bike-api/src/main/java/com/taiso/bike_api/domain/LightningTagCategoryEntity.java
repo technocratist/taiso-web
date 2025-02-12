@@ -48,4 +48,8 @@ public class LightningTagCategoryEntity {
     @ManyToMany(mappedBy = "tags")
     @Builder.Default
     private Set<LightningEntity> lightning = new HashSet<>();
+
+    @ManyToMany(mappedBy = "tags")
+    @Builder.Default
+    private Set<ClubEntity> clubs = new HashSet<>();
 }

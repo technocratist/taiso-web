@@ -7,14 +7,14 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import com.taiso.bike_api.domain.MemberEntity;
+import com.taiso.bike_api.domain.UserEntity;
 
 public class CustomUserDetails implements UserDetails {
 
-    private final MemberEntity member;
+    private final UserEntity user;
 
-    public CustomUserDetails(MemberEntity member) {
-        this.member = member;
+    public CustomUserDetails(UserEntity user) {
+        this.user = user;
     }
 
     // Provide a default role. Adjust as needed based on your MemberEntity.
@@ -25,12 +25,12 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public String getPassword() {
-        return member.getPassword(); // Ensure MemberEntity has a getPassword() method.
+        return user.getPassword(); // Ensure MemberEntity has a getPassword() method.
     }
 
     @Override
     public String getUsername() {
-        return member.getEmail(); // Ensure MemberEntity has a getUsername() method.
+        return user.getEmail(); // Ensure MemberEntity has a getUsername() method.
     }
 
     @Override

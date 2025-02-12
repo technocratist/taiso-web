@@ -4,9 +4,12 @@ import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
@@ -19,11 +22,11 @@ import lombok.Setter;
 @Entity
 @Getter
 @Setter
-@Table(name = "member")
+@Table(name = "users")
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class MemberEntity {
+public class UserEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -36,11 +39,14 @@ public class MemberEntity {
     @Column(nullable = false, unique = true)
     private String email; // 이메일 주소, 로그인 시 INDEX
 
-    @Column(name = "role_id", nullable = false)
-    private Integer roleId; // 사용자 역할
+    // 롤과 상태는 ManyToOne 관계로 설정합니다.
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "role_id", nullable = false)
+    private UserRoleEntity role;
 
-    @Column(name = "status_id", nullable = false)
-    private Integer statusId; // 계정 상태
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "status_id", nullable = false)
+    private UserStatusEntity status;
 
     @Column(name = "created_at", nullable = false, updatable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     private LocalDateTime createdAt; // 계정 생성 시간

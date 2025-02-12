@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-
 import com.taiso.bike_api.dto.LoginRequestDTO;
 import com.taiso.bike_api.dto.LoginResponseDTO;
 import com.taiso.bike_api.dto.RegisterRequestDTO;
@@ -42,8 +41,8 @@ public class AuthController {
     
     // 주입된 MemberService를 통해 회원가입을 처리
     @Autowired
-    private MemberService memberService;
-
+    private MemberService memberService;        
+    
     // 로그인
     @PostMapping("/login")
     @Operation(summary = "로그인", description = "사용자 인증 및 JWT 토큰 발급")
@@ -108,4 +107,5 @@ public class AuthController {
         log.info("User logged out: JWT cookie cleared");
         return ResponseEntity.noContent().build(); // 204 No Content 반환
     }
+
 }

@@ -9,8 +9,10 @@ import org.springframework.stereotype.Component;
 
 import com.taiso.bike_api.domain.UserEntity;
 import com.taiso.bike_api.domain.UserRoleEntity;
+import com.taiso.bike_api.domain.UserStatusEntity;
 import com.taiso.bike_api.repository.UserRepository;
 import com.taiso.bike_api.repository.UserRoleRepository;
+import com.taiso.bike_api.repository.UserStatusRepository;
     
 
 @Component
@@ -25,19 +27,11 @@ public class InitLoader implements CommandLineRunner {
     @Autowired
     private UserRoleRepository userRoleRepository;
 
+    @Autowired
+    private UserStatusRepository userStatusRepository;
+
     @Override
     public void run(String... args) throws Exception {
-        //테스트 아이디 추가
-        UserEntity user = UserEntity.builder()
-            .email("test@test.com")
-            .password(passwordEncoder.encode("test"))
-            .roleId(1)
-            .statusId(1)
-            .createdAt(LocalDateTime.now())
-            .updatedAt(LocalDateTime.now())
-            .build();
-        userRepository.save(user);
-
         // role 추가
         UserRoleEntity role = UserRoleEntity.builder()
             .roleName("USER")
@@ -45,5 +39,25 @@ public class InitLoader implements CommandLineRunner {
             .updatedAt(LocalDateTime.now())
             .build();
         userRoleRepository.save(role);
+
+        // status 추가
+        UserStatusEntity status = UserStatusEntity.builder()
+            .statusName("ACTIVE")
+            .createdAt(LocalDateTime.now())
+            .updatedAt(LocalDateTime.now())
+            .build();
+        userStatusRepository.save(status);
+
+        //테스트 아이디 추가
+        UserEntity user = UserEntity.builder()
+            .email("test@test.com")
+            .password(passwordEncoder.encode("test"))
+            .role(userRoleRepository.findByRoleName("USER").get())
+            .status(userStatusRepository.findByStatusName("ACTIVE").get())
+            .createdAt(LocalDateTime.now())
+            .updatedAt(LocalDateTime.now())
+            .build();
+        userRepository.save(user);
+
     }
 }

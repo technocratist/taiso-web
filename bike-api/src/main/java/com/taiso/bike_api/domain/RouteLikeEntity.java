@@ -33,19 +33,31 @@ import lombok.Setter;
 @Builder
 public class RouteLikeEntity {
 
+    /**
+     * 루트 좋아요 ID
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "route_like_id")
     private Long routeLikeId;
 
+    /**
+     * 루트 엔티티
+     */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "route_id", nullable = false)
     private RouteEntity route;
 
+    /**
+     * 유저 엔티티
+     */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private UserEntity user;
 
+    /**
+     * 좋아요 일시
+     */
     @CreationTimestamp
     @Column(name = "liked_at", nullable = false, updatable = false)
     private LocalDateTime likedAt;

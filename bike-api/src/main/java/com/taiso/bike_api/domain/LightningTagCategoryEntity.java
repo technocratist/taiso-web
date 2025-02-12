@@ -20,14 +20,14 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Entity
-@Table(name = "route_tag_category")
 @Getter
 @Setter
 @Builder
+@Entity
+@Table(name = "lightning_tag_category")
 @NoArgsConstructor
 @AllArgsConstructor
-public class RouteTagCategoryEntity {
+public class LightningTagCategoryEntity {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -54,12 +54,14 @@ public class RouteTagCategoryEntity {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
-    // 양방향 관계 설정 (필요 시)
+    /**
+     * 번개 엔티티와 양방향 관계 설정
+     */
     @ManyToMany(mappedBy = "tags")
-    private Set<RouteEntity> routes = new HashSet<>();
+    private Set<LightningEntity> lightning = new HashSet<>();
 
     //빌더
-    public static RouteTagCategoryEntityBuilder builder() {
-        return new RouteTagCategoryEntityBuilder();
+    public static LightningTagCategoryEntityBuilder builder() {
+        return new LightningTagCategoryEntityBuilder();
     }
 }

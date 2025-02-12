@@ -7,16 +7,15 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
-import com.taiso.bike_api.domain.MemberEntity;
-import com.taiso.bike_api.repository.MemberRepository;
+import com.taiso.bike_api.domain.UserEntity;
+import com.taiso.bike_api.repository.UserRepository;
     
 
 @Component
 public class InitLoader implements CommandLineRunner {
 
-
     @Autowired
-    private MemberRepository memberRepository;
+    private UserRepository userRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -24,7 +23,7 @@ public class InitLoader implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         //테스트 아이디 추가
-        MemberEntity member = MemberEntity.builder()
+        UserEntity user = UserEntity.builder()
             .email("test@test.com")
             .password(passwordEncoder.encode("test"))
             .roleId(1)
@@ -32,6 +31,6 @@ public class InitLoader implements CommandLineRunner {
             .createdAt(LocalDateTime.now())
             .updatedAt(LocalDateTime.now())
             .build();
-        memberRepository.save(member);
+        userRepository.save(user);
     }
 }

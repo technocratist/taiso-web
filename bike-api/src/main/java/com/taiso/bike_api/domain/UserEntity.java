@@ -19,11 +19,11 @@ import lombok.Setter;
 @Entity
 @Getter
 @Setter
-@Table(name = "member")
+@Table(name = "users")
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class MemberEntity {
+public class UserEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

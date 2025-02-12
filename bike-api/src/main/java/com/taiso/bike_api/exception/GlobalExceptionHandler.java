@@ -19,15 +19,15 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(RoleNotFoundException.class)
     public ResponseEntity<ErrorResponseDTO> handleRoleNotFoundException(RoleNotFoundException ex, HttpServletRequest request) {
         log.error("RoleNotFoundException: ", ex);
-            
+        
         ErrorResponseDTO errorResponse = ErrorResponseDTO.makeErrorResponse("사용자 role을 찾을 수 없습니다.", HttpStatus.NOT_FOUND, request.getRequestURI());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
-                
     }
 
     @ExceptionHandler(StatusNotFoundException.class)
     public ResponseEntity<ErrorResponseDTO> handleStatusNotFoundException(StatusNotFoundException ex, HttpServletRequest request) {
         log.error("StatusNotFoundException: ", ex);
+
         ErrorResponseDTO errorResponse = ErrorResponseDTO.makeErrorResponse("사용자 status를 찾을 수 없습니다.", HttpStatus.NOT_FOUND, request.getRequestURI());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
     }
@@ -35,6 +35,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(EmailAlreadyExistsException.class)
     public ResponseEntity<ErrorResponseDTO> handleEmailAlreadyExistsException(EmailAlreadyExistsException ex, HttpServletRequest request) {
         log.error("EmailAlreadyExistsException: ", ex);
+
         ErrorResponseDTO errorResponse = ErrorResponseDTO.makeErrorResponse("이미 사용 중인 이메일입니다.", HttpStatus.CONFLICT, request.getRequestURI());
         return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
     }

@@ -47,7 +47,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
     
     private String extractJwtFromCookie(Cookie[] cookies) {
-    if (cookies == null) return null;
+        if (cookies == null)
+            return null;
         for (Cookie c : cookies) {
             if ("jwt".equals(c.getName())) {
                 return c.getValue();
@@ -55,4 +56,5 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
         return null;
     }
+    
 }

@@ -9,6 +9,7 @@ import java.util.Set;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -26,12 +27,11 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-    
 
 @Entity
 @Table(name = "lightning")
-@Setter
 @Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -57,12 +57,10 @@ public class LightningEntity {
     @Column(name = "duration", nullable = false)
     private Integer duration;
 
-    // createdAt은 등록시 자동 세팅되도록 함 (JPA Auditing 또는 @PrePersist 사용)
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    // 수정 시 자동 업데이트되도록 함
     @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
@@ -115,61 +113,37 @@ public class LightningEntity {
     @Column(name = "club_id")
     private Long clubId;
 
-    @ManyToMany
-    @JoinTable(name = "lightning_tag", joinColumns = @JoinColumn(name = "lightning_id"), inverseJoinColumns = @JoinColumn(name = "tag_id"))
+    // many-to-many: cascade persist/merge 적용(단, 삭제 시 태그 자체는 삭제하지 않음)
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinTable(name = "lightning_tag",
+            joinColumns = @JoinColumn(name = "lightning_id"),
+            inverseJoinColumns = @JoinColumn(name = "tag_id"))
+    @Builder.Default
     private Set<LightningTagCategoryEntity> tags = new HashSet<>();
 
-    //빌더
-    public static LightningEntityBuilder builder() {
-        return new LightningEntityBuilder();
-    }
 
+    
     // ENUM 정의
-
-    /**
-     * 번개 상태 ENUM
-     * 값: 모집, 마감, 종료, 취소
-     */
     public enum LightningStatus {
         모집, 마감, 종료, 취소
     }
 
-    /**
-     * 참여자 성별 ENUM
-     * 값: 남, 여, 자유
-     */
     public enum Gender {
         남, 여, 자유
     }
 
-    /**
-     * 번개 수준 ENUM
-     * 값: 초보, 중급, 고급, 자유
-     */
     public enum Level {
         초보, 중급, 고급, 자유
     }
 
-    /**
-     * 모집 방식 ENUM
-     * 값: 참가형, 수락형
-     */
     public enum RecruitType {
         참가형, 수락형
     }
 
-    /**
-     * 자전거 타입 ENUM
-     * 값: 로드, 따릉이, 하이브리드, 자유
-     */
     public enum BikeType {
         로드, 따릉이, 하이브리드, 자유
     }
 
-    /**
-     * 지역 ENUM
-     * 값: 서울, 경기, 대구, 강원
-     */
     public enum Region {
         서울, 경기, 대구, 강원
     }

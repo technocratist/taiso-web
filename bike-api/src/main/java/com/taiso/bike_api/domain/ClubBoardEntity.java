@@ -7,8 +7,6 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -22,49 +20,63 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-
 @Entity
-@Table(name = "user_review")
+@Table(name = "club_board")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class UserReviewEntity {
+public class ClubBoardEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "review_id")
-    private Long reviewId;
+    @Column(name = "post_id")
+    private Long postId;
 
+    /**
+     * 해당 게시글이 속한 클럽 (club 테이블의 club_id를 참조)
+     */
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "reviewer_id", nullable = false)
-    private UserEntity reviewer;
+    @JoinColumn(name = "club_id", nullable = false)
+    private ClubEntity club;
 
+    /**
+     * 게시글 작성자 (users 테이블의 user_id를 참조)
+     */
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "reviewed_id", nullable = false)
-    private UserEntity reviewed;
+    @JoinColumn(name = "post_writer_id", nullable = false)
+    private UserEntity postWriter;
 
-    @Column(name = "review_content", length = 500)
-    private String reviewContent;
+    /**
+     * 게시글 제목
+     */
+    @Column(name = "post_title", nullable = false)
+    private String postTitle;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "lightning_id", nullable = false)
-    private LightningEntity lightning;
+    /**
+     * 게시글 내용 (길이가 길어질 수 있으므로 TEXT 타입 지정)
+     */
+    @Column(name = "post_content", columnDefinition = "TEXT")
+    private String postContent;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "review_tag", nullable = false)
-    private ReviewTag reviewTag;
-
+    /**
+     * 작성일 (자동 설정)
+     */
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    /**
+     * 수정 시각 (자동 업데이트)
+     */
     @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
-    public enum ReviewTag {
-        EXCELLENT, GOOD, AVERAGE, POOR
-    }
+    /**
+     * 공지글 여부
+     */
+    @Column(name = "is_notice", nullable = false)
+    private Boolean isNotice;
 }

@@ -91,19 +91,19 @@ public class UserDetailEntity {
     public static UserDetailEntityBuilder builder() {
         return new UserDetailEntityBuilder();
     }
+    //enum 타입 추가
+    enum Gender {
+        남자,
+        여자,
+        그외;
+    }
+    
+    enum Level {
+        무경력,
+        초보자,
+        입문자,
+        중수,
+        고수;
+    }
 }
     
-//enum 타입 추가
-enum Gender {
-    남자,
-    여자,
-    그외;
-}
-
-enum Level {
-    무경력,
-    초보자,
-    입문자,
-    중수,
-    고수;
-}

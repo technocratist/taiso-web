@@ -106,41 +106,41 @@ public class RouteEntity {
     //빌더
     public static RouteEntityBuilder builder() {
         return new RouteEntityBuilder();
+    }    
+    
+    enum Region {
+        서울,
+        경기,
+        인천,
+        강원,
+        충청,
+        전라,
+        경상,
+        제주;
     }
-}
+    
+    enum DistanceType {
+        킬로미터,
+        마일;
+    }
+    
+    
+    enum AltitudeType {
+        미터,
+        피트;
+    }
+    
+    
+    enum RoadType {
+        평지,
+        산길,
+        고속도로;
+    }
+    
+    
+    enum FileType {
+        GPX,
+        TCX;
+    }
 
-enum Region {
-    서울,
-    경기,
-    인천,
-    강원,
-    충청,
-    전라,
-    경상,
-    제주;
-}
-
-enum DistanceType {
-    킬로미터,
-    마일;
-}
-
-
-enum AltitudeType {
-    미터,
-    피트;
-}
-
-
-enum RoadType {
-    평지,
-    산길,
-    고속도로;
-}
-
-
-enum FileType {
-    GPX,
-    TCX;
-}
-
+}    

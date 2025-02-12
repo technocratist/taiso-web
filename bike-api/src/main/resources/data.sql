@@ -17,3 +17,17 @@ INSERT INTO route_tag_category (name, created_at, updated_at)
 VALUES ('평지 도로', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 INSERT INTO route_tag_category (name, created_at, updated_at)
 VALUES ('위험한 공도', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+
+-- 4. lightning_tag 테이블에 태그 추가
+INSERT INTO lightning_tag_category (name, created_at, updated_at)
+VALUES ('샤방법', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+INSERT INTO lightning_tag_category (name, created_at, updated_at)
+VALUES ('오픈라이딩', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+INSERT INTO lightning_tag_category (name, created_at, updated_at)
+VALUES ('따폭연', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+INSERT INTO lightning_tag_category (name, created_at, updated_at)
+VALUES ('장거리', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+INSERT INTO lightning_tag_category (name, created_at, updated_at)
+VALUES ('따릉이', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+INSERT INTO lightning_tag_category (name, created_at, updated_at)
+VALUES ('친목', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);

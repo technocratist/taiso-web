@@ -23,11 +23,9 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-//번개와 유저 조합으로 유니크 제약조건 추가
-@Table(name = "lightning_user",
-       uniqueConstraints = {
-           @UniqueConstraint(columnNames = {"lightning_id", "user_id"})
-       })
+@Table(name = "lightning_user", uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"lightning_id", "user_id"})
+})
 @Getter
 @Setter
 @NoArgsConstructor
@@ -40,47 +38,26 @@ public class LightningUserEntity {
     @Column(name = "lightning_user_id")
     private Long lightningUserId;
 
-    /**
-     * 참가 상태 ENUM (예: 신청대기, 승인, 탈퇴, 완료)
-     */
     @Enumerated(EnumType.STRING)
     @Column(name = "participant_status", nullable = false)
     private ParticipantStatus participantStatus;
 
-    /**
-     * 참여 신청 일시: 생성 시점에 자동 설정
-     */
     @CreationTimestamp
     @Column(name = "joined_at", nullable = false, updatable = false)
-    private LocalDateTime joinedAt;
+    private LocalDateTime joined_at;
 
-    /**
-     * 역할 ENUM (예: 번개생성자, 참여자)
-     */
     @Enumerated(EnumType.STRING)
     @Column(name = "role")
     private Role role;
 
-    /**
-     * 선택적 연관관계: Lightning 엔티티
-     * 복합 키의 일부이므로 insert, update 시에는 무시
-     */
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "lightning_id", insertable = false, updatable = false)
+    @JoinColumn(name = "lightning_id", nullable = false)
     private LightningEntity lightning;
 
-    /**
-     * 선택적 연관관계: User 엔티티
-     * 복합 키의 일부이므로 insert, update 시에는 무시
-     */
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", insertable = false, updatable = false)
+    @JoinColumn(name = "user_id", nullable = false)
     private UserEntity user;
 
-    /**
-     * 참가 상태 ENUM 정의
-     * 값: 신청대기, 승인, 탈퇴, 완료
-     */
     public enum ParticipantStatus {
         신청대기,
         승인,
@@ -88,10 +65,6 @@ public class LightningUserEntity {
         완료
     }
 
-    /**
-     * 역할 ENUM 정의
-     * 값: 번개생성자, 참여자
-     */
     public enum Role {
         번개생성자,
         참여자

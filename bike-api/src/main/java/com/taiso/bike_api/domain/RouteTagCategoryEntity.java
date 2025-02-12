@@ -34,13 +34,22 @@ public class RouteTagCategoryEntity {
     @Column(name = "tag_id")
     private Long tagId;
 
+    /**
+     * 태그 이름
+     */
     @Column(name = "name", nullable = false, unique = true, length = 255)
     private String name;
 
+    /**
+     * 생성 일시
+     */
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    /**
+     * 수정 일시
+     */
     @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;

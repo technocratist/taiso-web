@@ -16,6 +16,13 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class GlobalExceptionHandler {
 
+    // 루트 예외 처리
+    @ExceptionHandler(RouteNotFoundException.class)
+    public ResponseEntity<ErrorResponseDTO> handleRouteNotFoundException(RouteNotFoundException ex, HttpServletRequest request) {
+        ErrorResponseDTO errorResponse = ErrorResponseDTO.makeErrorResponse(ex.getMessage(), HttpStatus.NOT_FOUND, request.getRequestURI());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+    }
+
 
     // 지원하지 않는 enum 예외 처리
     @ExceptionHandler(UnsupportedEnumException.class)

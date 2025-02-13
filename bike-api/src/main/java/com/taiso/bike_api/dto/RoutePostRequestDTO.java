@@ -7,7 +7,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 @Data
-public class RouteRequestDTO {
+public class RoutePostRequestDTO {
 
     @NotBlank
     private String routeName;

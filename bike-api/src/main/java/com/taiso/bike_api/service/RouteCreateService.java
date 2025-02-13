@@ -45,7 +45,8 @@ import org.w3c.dom.NodeList;
 import com.taiso.bike_api.domain.RouteEntity;
 import com.taiso.bike_api.domain.RoutePointEntity;
 import com.taiso.bike_api.domain.RouteTagCategoryEntity;
-import com.taiso.bike_api.dto.RouteRequestDTO;
+import com.taiso.bike_api.dto.RoutePostRequestDTO;
+import com.taiso.bike_api.dto.RoutePostResponseDTO;
 import com.taiso.bike_api.exception.InvalidFileExtensionException;
 import com.taiso.bike_api.exception.StaticMapImageFetchException;
 import com.taiso.bike_api.exception.UnsupportedEnumException;
@@ -74,7 +75,7 @@ public class RouteCreateService {
 
 
     // 메타데이터(JSON)와 파일(Multipart/form-data)로부터 루트를 생성하는 메서드
-    public RouteEntity createRoute(RouteRequestDTO dto, MultipartFile file) {
+    public RoutePostResponseDTO createRoute(RoutePostRequestDTO dto, MultipartFile file) {
         // 실행 시간 측정을 시작
         long startTime = System.currentTimeMillis();
         
@@ -121,6 +122,7 @@ public class RouteCreateService {
                 .roadType(convertRoadType(dto.getRoadType()))
                 .routeImgId(staticMapImgId)
                 .tags(tags)
+                .likeCount(0l)
                 .build();
 
         RouteEntity savedRoute = routeRepository.save(route);
@@ -132,7 +134,9 @@ public class RouteCreateService {
         System.out.println("createRoute 실행 시간: " + (endTime - startTime) + " ms");
         System.out.println("--------------------------------");
         
-        return savedRoute;
+        RoutePostResponseDTO response = new RoutePostResponseDTO();
+        response.setRouteId(savedRoute.getRouteId());
+        return response;
     }
     
     // 더미 구현: GPX/TCX 파일을 파싱하여 필요한 정보를 추출하는 메서드
@@ -246,7 +250,7 @@ public class RouteCreateService {
      * 네이버 정적 지도 API로부터 지도 이미지를 받아 GPX 경로를 합성한 후,
      * 로컬 파일 시스템에 저장하고 결과 ID(더미)를 반환합니다.
      */
-    Integer generateStaticMapImage(RouteRequestDTO dto, GPXData gpxData) {
+    Integer generateStaticMapImage(RoutePostRequestDTO dto, GPXData gpxData) {
         try {
             // 1. base 지도 이미지 크기 및 scaleFactor 지정
             int baseWidth = 800;

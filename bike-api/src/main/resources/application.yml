@@ -37,6 +37,11 @@ spring:
       mode: always
       data-locations: classpath:data.sql
 
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
 jwt:
   secret: abcdefghijklmnsdfghnkuwbnvuijbvouiwbowuouvouwrbouoopqrstuvwxyz123456
 

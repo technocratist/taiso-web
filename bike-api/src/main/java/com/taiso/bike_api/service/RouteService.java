@@ -1,5 +1,14 @@
 package com.taiso.bike_api.service;
 
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -7,12 +16,24 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import javax.imageio.ImageIO;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
+import org.locationtech.proj4j.CRSFactory;
+import org.locationtech.proj4j.CoordinateReferenceSystem;
+import org.locationtech.proj4j.CoordinateTransform;
+import org.locationtech.proj4j.CoordinateTransformFactory;
+import org.locationtech.proj4j.ProjCoordinate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 import org.w3c.dom.Document;
@@ -28,6 +49,8 @@ import com.taiso.bike_api.repository.RoutePointRepository;
 import com.taiso.bike_api.repository.RouteRepository;
 import com.taiso.bike_api.repository.RouteTagCategoryRepository;
 
+
+
 @Service
 public class RouteService {
 
@@ -39,6 +62,12 @@ public class RouteService {
 
     @Autowired
     private RoutePointRepository routePointRepository;
+
+    @Value("${naver.api.key.id}")
+    private String naverApiKeyId;
+    @Value("${naver.api.key.key}")
+    private String naverApiKey;
+
 
     // 메타데이터(JSON)와 파일(Multipart/form-data)로부터 루트를 생성하는 메서드
     public RouteEntity createRoute(RouteRequestDTO dto, MultipartFile file) {
@@ -200,10 +229,205 @@ public class RouteService {
         return 1; // 더미 파일 ID
     }
     
-    // 더미 메서드: 외부 API (예: 네이버 정적 지도 API)를 호출하여 정적 지도 이미지를 생성하고 클라우드에 저장 (시뮬레이션)
-    private Integer generateStaticMapImage(RouteRequestDTO dto, GPXData gpxData) {
-        // TODO: 외부 API 호출 및 정적 지도 이미지 클라우드 저장 구현
-        return 1; // 더미 이미지 ID
+/**
+ * 네이버 정적 지도 API로부터 지도 이미지를 받아 GPX 경로를 합성한 후,
+ * 로컬 파일 시스템에 저장하고 결과 ID(더미)를 반환합니다.
+ */
+public Integer generateStaticMapImage(RouteRequestDTO dto, GPXData gpxData) {
+    try {
+        // 1. base 지도 이미지 크기 및 scaleFactor 지정
+        int baseWidth = 800 ;
+        int baseHeight = 600;
+        int scaleFactor = 2; // 예: 고해상도 이미지 사용 (scale=2)
+
+        // 2. GPX 경로의 모든 포인트에서 바운딩 박스 계산
+        List<GPXRoutePoint> points = gpxData.getRoutePoints();
+        if (points.isEmpty()) {
+            throw new Exception("경로 포인트가 없습니다.");
+        }
+        double minLat = Double.MAX_VALUE, maxLat = -Double.MAX_VALUE;
+        double minLng = Double.MAX_VALUE, maxLng = -Double.MAX_VALUE;
+        for (GPXRoutePoint pt : points) {
+            double lat = pt.getLatitude().doubleValue();
+            double lng = pt.getLongitude().doubleValue();
+            if (lat < minLat) minLat = lat;
+            if (lat > maxLat) maxLat = lat;
+            if (lng < minLng) minLng = lng;
+            if (lng > maxLng) maxLng = lng;
+        }
+
+        // 3. 바운딩 박스의 중심 좌표 계산
+        double centerLat = (minLat + maxLat) / 2.0;
+        double centerLng = (minLng + maxLng) / 2.0;
+
+        // 4. 바운딩 박스에 맞춰 적절한 zoom 레벨 계산 (baseWidth, baseHeight 사용)
+        int zoom = computeZoom(minLat, minLng, maxLat, maxLng, baseWidth, baseHeight) - 1;
+
+        // 5. 네이버 정적 지도 API URL 구성 (base 크기와 scaleFactor 사용)
+        String url = "https://naveropenapi.apigw.ntruss.com/map-static/v2/raster" +
+                     "?w=" + baseWidth +
+                     "&h=" + baseHeight +
+                     "&center=" + centerLng + "," + centerLat +
+                     "&level=" + zoom +
+                     "&maptype=basic" +
+                     "&format=png" +
+                     "&scale=" + scaleFactor;
+
+        // 6. RestTemplate 및 헤더 설정 (API 키는 실제 값으로 대체)
+        RestTemplate restTemplate = new RestTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("x-ncp-apigw-api-key-id", naverApiKeyId);
+        headers.set("x-ncp-apigw-api-key", naverApiKey);
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+
+        ResponseEntity<byte[]> response = restTemplate.exchange(url, HttpMethod.GET, entity, byte[].class);
+        if (response.getStatusCode() != HttpStatus.OK) {
+            throw new Exception("정적 지도 이미지를 가져오지 못했습니다. (상태 코드: " + response.getStatusCode() + ")");
+        }
+        byte[] imageBytes = response.getBody();
+        if (imageBytes == null) {
+            throw new Exception("받은 이미지 데이터가 없습니다.");
+        }
+
+        // 7. 응답받은 byte[] 데이터를 BufferedImage로 변환
+        BufferedImage baseMapImage = ImageIO.read(new ByteArrayInputStream(imageBytes));
+        // 실제 이미지의 픽셀 크기 (scaleFactor 적용됨)
+        int actualWidth = baseMapImage.getWidth();
+        int actualHeight = baseMapImage.getHeight();
+        int centerX = actualWidth / 2;
+        int centerY = actualHeight / 2;
+
+        // 8. 오버레이를 위한 좌표 계산
+        // convertGeoToPixel()는 static map의 줌(zoom)과 scaleFactor로 계산
+        // 이후, 지도 중앙 기준으로 오프셋에 alpha (< 1) 배율을 적용하여 더 넓은 영역을 표현함
+        double alpha = 2; // 1단계 낮은 줌 효과: (1/2)배. 필요시 값을 조정하세요.
+
+        int n = points.size();
+        int[] xPoints = new int[n];
+        int[] yPoints = new int[n];
+        for (int i = 0; i < n; i++) {
+            GPXRoutePoint pt = points.get(i);
+            java.awt.Point pixel = convertGeoToPixel(
+                    pt.getLatitude().doubleValue(),
+                    pt.getLongitude().doubleValue(),
+                    centerLat, centerLng,
+                    actualWidth, actualHeight, zoom, scaleFactor
+            );
+            // 지도 중앙을 기준으로 오프셋에 alpha를 곱해 축소
+            int adjustedX = centerX + (int) Math.round((pixel.x - centerX) * alpha);
+            int adjustedY = centerY + (int) Math.round((pixel.y - centerY) * alpha);
+            xPoints[i] = adjustedX;
+            yPoints[i] = adjustedY;
+        }
+
+        Graphics2D g2d = baseMapImage.createGraphics();
+        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g2d.setStroke(new BasicStroke(5));
+        g2d.setColor(Color.RED);
+        g2d.drawPolyline(xPoints, yPoints, n);
+        g2d.dispose();
+
+        // 9. 합성된 이미지를 바이트 배열로 변환 후 로컬에 저장
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ImageIO.write(baseMapImage, "png", baos);
+        byte[] compositeImageBytes = baos.toByteArray();
+
+        return uploadCompositeImage(compositeImageBytes);
+    } catch (Exception e) {
+        throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "정적 지도 이미지 생성 중 오류: " + e.getMessage(), e);
+    }
+}
+
+    /**
+     * GPX 경로의 바운딩 박스를 기반으로, Web Mercator 방식을 활용해 적절한 zoom 레벨을 계산합니다.
+     */
+    private int computeZoom(double minLat, double minLng, double maxLat, double maxLng, int imageWidth, int imageHeight) {
+        double tileSize = 256;
+
+        // 경도 차이 계산 (국제 날짜 변경선 보정)
+        double lngDelta = Math.abs(maxLng - minLng);
+        if (lngDelta > 180) {
+            lngDelta = 360 - lngDelta;
+        }
+        double diffX = lngDelta / 360.0;
+
+        // 위도는 Web Mercator 변환 적용
+        double latRadMin = Math.toRadians(minLat);
+        double latRadMax = Math.toRadians(maxLat);
+        double minY = (1 - Math.log(Math.tan(latRadMin) + 1 / Math.cos(latRadMin)) / Math.PI) / 2;
+        double maxY = (1 - Math.log(Math.tan(latRadMax) + 1 / Math.cos(latRadMax)) / Math.PI) / 2;
+        double diffY = Math.abs(maxY - minY);
+
+        if (diffX == 0 || diffY == 0) {
+            return 16;
+        }
+
+        double zoomX = Math.log(imageWidth / (tileSize * diffX)) / Math.log(2);
+        double zoomY = Math.log(imageHeight / (tileSize * diffY)) / Math.log(2);
+
+        int zoom = (int) Math.floor(Math.min(zoomX, zoomY));
+        zoom = Math.max(0, Math.min(zoom, 19)) ;
+        return zoom;
+    }
+
+/**
+ * Proj4j를 사용하여 WGS84(EPSG:4326) 좌표를 Web Mercator(EPSG:3857) 좌표로 변환한 후,
+ * 지도 이미지 내의 픽셀 좌표로 환산합니다.
+ * imageWidth와 imageHeight는 실제 반환된 이미지의 픽셀 크기이고,
+ * zoom과 scaleFactor는 static map API 요청 시 사용한 값입니다.
+ */
+private java.awt.Point convertGeoToPixel(double lat, double lng, double centerLat, double centerLng,
+                                           int imageWidth, int imageHeight, int zoom, int scaleFactor) {
+    CRSFactory crsFactory = new CRSFactory();
+    CoordinateReferenceSystem crsWGS84 = crsFactory.createFromName("EPSG:4326");
+    CoordinateReferenceSystem crs3857 = crsFactory.createFromName("EPSG:3857");
+
+    CoordinateTransformFactory ctFactory = new CoordinateTransformFactory();
+    CoordinateTransform transform = ctFactory.createTransform(crsWGS84, crs3857);
+
+    ProjCoordinate srcCoord = new ProjCoordinate(lng, lat);
+    ProjCoordinate dstCoord = new ProjCoordinate();
+    transform.transform(srcCoord, dstCoord);
+
+    ProjCoordinate srcCenter = new ProjCoordinate(centerLng, centerLat);
+    ProjCoordinate dstCenter = new ProjCoordinate();
+    transform.transform(srcCenter, dstCenter);
+
+    // 해상도 계산: zoom 0에서의 해상도 약 156543.03392804062 m/px, scaleFactor 반영
+    double resolution = (156543.03392804062 / Math.pow(2, zoom)) / scaleFactor;
+
+    int pixelX = (int) Math.round(imageWidth / 2.0 + (dstCoord.x - dstCenter.x) / resolution);
+    int pixelY = (int) Math.round(imageHeight / 2.0 - (dstCoord.y - dstCenter.y) / resolution);
+
+    return new java.awt.Point(pixelX, pixelY);
+}
+    /**
+     * 합성된 이미지를 로컬 파일 시스템에 저장하는 더미 메서드.
+     */
+    private Integer uploadCompositeImage(byte[] imageBytes) {
+        try {
+            // 저장할 디렉토리 (없으면 생성)
+            File outputDir = new File("saved_images");
+            if (!outputDir.exists()) {
+                outputDir.mkdirs();
+            }
+
+            // 파일 이름 생성 (타임스탬프 기반)
+            String filename = "saved_images/composite_" + System.currentTimeMillis() + ".png";
+            File outputFile = new File(filename);
+
+            // 파일에 이미지 데이터 저장
+            try (FileOutputStream fos = new FileOutputStream(outputFile)) {
+                fos.write(imageBytes);
+            }
+
+            System.out.println("Composite image saved to: " + outputFile.getAbsolutePath());
+
+            // 실제 시스템에서는 파일 경로나 ID를 반환할 수 있음. 여기서는 더미 값 2 반환.
+            return 2;
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "이미지 로컬 저장 중 오류: " + e.getMessage(), e);
+        }
     }
     
     // enum 타입 변환 도우미 메서드 (예시 매핑 로직 포함)

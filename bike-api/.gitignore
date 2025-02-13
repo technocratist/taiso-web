@@ -41,3 +41,6 @@ src/main/resources/application-prod.yml
 
 # 빌드 파일
 build/
+
+#이미지 저장 경로
+saved_images/

@@ -1,0 +1,26 @@
+  <svg
+    width={width}
+    height={height}
+    viewBox="0 0 64 64"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    {/* 헬멧 외곽 */}
+    <path
+      d="M20 20 C22 10, 42 10, 44 20 L48 30 C48 38, 40 46, 32 46 C24 46, 16 38, 16 30 Z"
+      fill="#D8D8D8"
+      stroke="#333"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    {/* 헬멧 앞면 장식 */}
+    <path
+      d="M24 20 C26 14, 38 14, 40 20"
+      stroke="#333"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      fill="none"
+    />
+  </svg>

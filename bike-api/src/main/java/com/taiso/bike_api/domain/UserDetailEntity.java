@@ -26,6 +26,7 @@ import lombok.Setter;
 @Builder
 @Table(name = "user_detail")
 public class UserDetailEntity {
+
     @Id
     @Column(name = "user_id")
     private Long userId;
@@ -44,6 +45,7 @@ public class UserDetailEntity {
 
     @Column(name = "user_background_img")
     private String userBackgroundImg;
+
 
     @Column(name = "full_name", length = 500)
     private String fullName;
@@ -65,19 +67,6 @@ public class UserDetailEntity {
     @Column(name = "level", length = 20)
     private Level level;
 
-    // // SET 타입 컬럼: H2의 MySQL 모드 사용 시 native SET 자료형 지정
-    // @Column(name = "activity_time", columnDefinition = "SET('morning','afternoon','evening')")
-    // private String activityTime;
-
-    // @Column(name = "activity_day", columnDefinition = "SET('Mon','Tue','Wed','Thu','Fri','Sat','Sun')")
-    // private String activityDay;
-
-    // @Column(name = "activity_location", columnDefinition = "SET('서울','경기','대구','강원')")
-    // private String activityLocation;
-
-    // @Column(name = "bike_type", columnDefinition = "SET('로드','따릉이','하이브리드','자유')")
-    // private String bikeType;
-
     @Column(name = "FTP")
     private Integer FTP;
 
@@ -87,23 +76,11 @@ public class UserDetailEntity {
     @Column(name = "weight")
     private Integer weight;
 
-    //빌더
-    public static UserDetailEntityBuilder builder() {
-        return new UserDetailEntityBuilder();
+    public enum Gender {
+        남자, 여자, 그외
     }
-}
-    
-//enum 타입 추가
-enum Gender {
-    남자,
-    여자,
-    그외;
-}
 
-enum Level {
-    무경력,
-    초보자,
-    입문자,
-    중수,
-    고수;
+    public enum Level {
+        무경력, 초보자, 입문자, 중수, 고수
+    }
 }

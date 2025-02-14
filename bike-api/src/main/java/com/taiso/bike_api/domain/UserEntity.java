@@ -19,27 +19,27 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+
 @Entity
-@Getter
-@Setter
 @Table(name = "users")
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Getter
+@Setter
 public class UserEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id")
-    private Long userId; // 고유 회원 PK
+    private Long userId;
 
     @Column(nullable = false)
-    private String password; // Bcrypt 해시 처리
+    private String password;
 
     @Column(nullable = false, unique = true)
-    private String email; // 이메일 주소, 로그인 시 INDEX
+    private String email;
 
-    // 롤과 상태는 ManyToOne 관계로 설정합니다.
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "role_id", nullable = false)
     private UserRoleEntity role;
@@ -48,11 +48,11 @@ public class UserEntity {
     @JoinColumn(name = "status_id", nullable = false)
     private UserStatusEntity status;
 
-    @Column(name = "created_at", nullable = false, updatable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
-    private LocalDateTime createdAt; // 계정 생성 시간
+    @Column(name = "created_at", nullable = false)
+    private LocalDateTime createdAt;
 
-    @Column(name = "updated_at", nullable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP")
-    private LocalDateTime updatedAt; // 마지막 수정 시간
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt;
 
     @PrePersist
     public void onPrePersist() {
@@ -65,8 +65,4 @@ public class UserEntity {
     public void onPreUpdate() {
         this.updatedAt = LocalDateTime.now();
     }
-    
-    //빌더 패턴 적용
-        
 }
-

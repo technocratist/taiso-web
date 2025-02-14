@@ -38,6 +38,7 @@ out/
 
 # 프로덕션 환경 설정 파일
 src/main/resources/application-prod.yml
+src/main/resources/application-dev.yml
 
 # 빌드 파일
 build/

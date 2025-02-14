@@ -1,12 +1,16 @@
 package com.taiso.bike_api.service;
 
-import org.springframework.web.multipart.MultipartFile;
-import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-
 import java.io.IOException;
 import java.util.UUID;
 
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+
+
+@Service
 public class S3Service {
 
     //S3버킷 파일관리 관련 클래스

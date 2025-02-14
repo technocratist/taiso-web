@@ -3,6 +3,10 @@ spring:
     name: bike-api
   profiles:
     active: dev
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
 
 # ----------------------------
 # 개발 환경(dev) 설정

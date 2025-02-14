@@ -38,12 +38,12 @@ public class UserDetailEntity {
     @Column(name = "user_nickname", length = 50, unique = true)
     private String userNickname;
 
-    // 이미지 번호는 별도의 AUTO_INCREMENT 없이 기본값 0으로 관리
+    // 이미지 번호는 별도의 AUTO_INCREMENT 없이 기본값 null로 관리
     @Column(name = "user_profile_img")
-    private Long userProfileImg = 0L;
+    private String userProfileImg;
 
     @Column(name = "user_background_img")
-    private Long userBackgroundImg = 0L;
+    private String userBackgroundImg;
 
     @Column(name = "full_name", length = 500)
     private String fullName;

@@ -1,17 +1,16 @@
 package com.taiso.bike_api.service;
 
-import com.taiso.bike_api.domain.UserDetailEntity;
-import com.taiso.bike_api.dto.UserDetailRequestDTO;
-import com.taiso.bike_api.dto.UserDetailResponseDTO;
-import com.taiso.bike_api.repository.UserDetailRepository;
-import jakarta.transaction.Transactional;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.security.PrivateKey;
+import com.taiso.bike_api.domain.UserDetailEntity;
+import com.taiso.bike_api.dto.UserDetailRequestDTO;
+import com.taiso.bike_api.repository.UserDetailRepository;
+
+import jakarta.transaction.Transactional;
+import lombok.extern.slf4j.Slf4j;
+
 
 @Slf4j
 @Service

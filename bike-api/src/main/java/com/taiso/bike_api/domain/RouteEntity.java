@@ -48,8 +48,8 @@ public class RouteEntity {
     @Column(name = "description", length = 1000)
     private String description;
 
-    @Column(name = "route_img_id")
-    private Integer routeImgId;
+    @Column(name = "route_img_id", length = 1000)
+    private String routeImgId;
 
     // route의 소유자(작성자)의 user_id(외래키)는 단순 값으로 관리하거나 별도의 연관관계를 설정할 수 있습니다.
     @Column(name = "user_id", nullable = false)

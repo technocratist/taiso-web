@@ -1,14 +1,17 @@
 package com.taiso.bike_api.service;
 
-import java.io.IOException;
-import java.util.UUID;
-
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
+import software.amazon.awssdk.core.ResponseInputStream;
+import java.io.IOException;
+import java.util.UUID;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-
+import software.amazon.awssdk.services.s3.model.S3Object;
 
 @Service
 public class S3Service {
@@ -46,12 +49,28 @@ public class S3Service {
         }
     }
 
+    // 파일 불러오기(다운로드)
+    public byte[] getFile(String fileName) {
+        try {
+            // S3에서 파일 다운로드 요청 생성
+            GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+                    .bucket("1")  // 버킷 이름
+                    .key(fileName)   // S3에서 다운로드할 파일 이름
+                    .build();
 
+            // S3에서 파일 읽기 (바이트 배열로 반환) v2사용
+            ResponseInputStream<GetObjectResponse> s3Object = s3Client.getObject(getObjectRequest);
+
+            // 파일을 byte[] 형식으로 반환
+            return s3Object.readAllBytes();
+
+        } catch (IOException e) {
+            throw new RuntimeException("파일 다운로드 실패", e);
+        }
+    }
+
+    // S3client 종료하기
     public void close() {
         s3Client.close();
     }
-
-//    public String getFileUrl(String fileKey) {
-//        return "https://" + bucket + ".s3.amazonaws.com/" + fileKey;
-//    }
 }

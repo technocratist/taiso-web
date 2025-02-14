@@ -26,9 +26,6 @@ public class RouteDeleteService {
         // routeId에 해당하는 RouteEntity 조회
         RouteEntity routeEntity = routeRepository.findById(routeId)
                 .orElseThrow(() -> new RouteNotFoundException(routeId + "번 루트를 찾을 수 없음"));
-
-        // 루트 포인트 삭제
-        routePointRepository.deleteById(routeId);
        
         // 대상 루트 삭제
         routeRepository.delete(routeEntity);

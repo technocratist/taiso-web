@@ -39,13 +39,17 @@ public class UserController {
 
     }
 
-//    @GetMapping("/me/details")
-//    @Operation(summary = "내 페이지 정보 조회", description = "회원 프로필 페이지 정보 조회")
-//    public ResponseEntity<UserDetailResponseDTO> getUserDetail(@RequestParam Long userId
-//                                                             , HttpServletResponse httpServletResponse) {
-//        UserDetailResponseDTO userDetailResponseDTO = userDetailService.getUserDetail(userId);
-//
-//        return ResponseEntity.status(HttpStatus.CREATED).body(userDetailResponseDTO);
-//    }
+    @GetMapping("/me/details")
+    @Operation(summary = "내 페이지 정보 조회", description = "회원 프로필 페이지 정보 조회")
+    public ResponseEntity<UserDetailResponseDTO> getUserDetail(@RequestParam Long userId
+                                                             , HttpServletResponse httpServletResponse) {
+
+        // 찾아온 데이터를 담기
+        UserDetailResponseDTO userDetailResponseDTO = userDetailService.getUserDetail(userId);
+
+        log.info(userDetailResponseDTO.toString());
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(userDetailResponseDTO);
+    }
 
 }

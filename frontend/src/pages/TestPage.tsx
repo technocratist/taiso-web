@@ -91,7 +91,7 @@ const TestPage: React.FC = () => {
       new naver.maps.Polyline({
         map: mapInstance.current,
         path: path,
-        strokeColor: "#5347AA",
+        strokeColor: "#ff2a2a",
         strokeOpacity: 0.8,
         strokeWeight: 4,
       });

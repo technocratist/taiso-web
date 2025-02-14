@@ -60,7 +60,7 @@ public class RouteController {
     }
 
     @DeleteMapping("/{routeId}")
-    public ResponseEntity<Void> deleteRoute(@PathVariable Long routeId) {
+    public ResponseEntity<Void> deleteRoute(@PathVariable("routeId") Long routeId) {
 
         routeDeleteService.deleteRoute(routeId);
 

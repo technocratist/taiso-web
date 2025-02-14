@@ -4,6 +4,7 @@ package com.taiso.bike_api.domain;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.hibernate.annotations.CreationTimestamp;
@@ -21,6 +22,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -104,6 +106,9 @@ public class RouteEntity {
             inverseJoinColumns = @JoinColumn(name = "tag_id"))
     @Builder.Default
     private Set<RouteTagCategoryEntity> tags = new HashSet<>();
+
+    @OneToMany(mappedBy = "route", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<RoutePointEntity> routePoints;
 
     public enum Region {
         서울,

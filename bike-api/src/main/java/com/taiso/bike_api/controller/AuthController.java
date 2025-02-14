@@ -76,6 +76,8 @@ public class AuthController {
         // 회원가입 처리
         RegisterResponseDTO registerResponseDTO = userService.register(registerRequestDTO);
 
+
+
         // 가입된 사용자의 이메일을 기반으로 JWT 토큰 발급
         String jwt = jwtTokenProvider.generateToken(registerResponseDTO.getEmail());
 

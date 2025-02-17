@@ -108,19 +108,19 @@ public class S3Service {
     // Method to generate pre-signed URL for a specific S3 object
     public String generatePresignedUrl(String objectKey, Duration duration) {
         S3Presigner presigner = S3Presigner.builder()
-                .region(Region.of(awsRegion))
-                .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create(accessKey, secretKey)))
-                .build();
+            .region(Region.of(awsRegion))
+            .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create(accessKey, secretKey)))
+            .build();
 
         GetObjectRequest getObjectRequest = GetObjectRequest.builder()
-                .bucket(bucket)
-                .key(objectKey)
-                .build();
+            .bucket(bucket)
+            .key(objectKey)
+            .build();
 
         GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
-                .signatureDuration(duration)
-                .getObjectRequest(getObjectRequest)
-                .build();
+            .signatureDuration(duration)
+            .getObjectRequest(getObjectRequest)
+            .build();
 
         String presignedUrl = presigner.presignGetObject(presignRequest).url().toString();
         presigner.close();

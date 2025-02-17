@@ -7,10 +7,9 @@ import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -68,6 +67,9 @@ public class RouteCreateService {
     @Autowired
     private RoutePointRepository routePointRepository;
 
+    @Autowired
+    private S3Service s3Service;
+
     @Value("${naver.api.key.id}")
     private String naverApiKeyId;
     @Value("${naver.api.key.key}")
@@ -94,12 +96,15 @@ public class RouteCreateService {
             throw new InvalidFileExtensionException("파일 파싱 중 오류가 발생하였습니다. 파일이 손상되었거나 올바른 형식이 아닙니다");
         }
         
-        // 파일을 클라우드 버킷에 업로드 (시뮬레이션)
-        Integer uploadedFileId = uploadFileToCloud(file);
-        
-        // 외부 API를 호출하여 정적 지도 이미지를 생성하고 클라우드에 저장 (시뮬레이션)
-        Integer staticMapImgId = generateStaticMapImage(dto, gpxData);
-        
+        // GPX 파일 S3 업로드
+        String gpxFileKey = s3Service.uploadFile(file, dto.getUserId());
+        System.out.println("GPX 파일 S3 업로드 완료, Key: " + gpxFileKey);
+        String gpxFileUrl = s3Service.generatePresignedUrl(gpxFileKey, Duration.ofMinutes(10));
+        System.out.println("GPX 파일 프리사인 URL: " + gpxFileUrl);
+
+        // 네이버 정적 지도 API를 호출하여 지도 이미지를 생성하고 S3에 업로드
+        String staticMapImgKey = generateStaticMapImage(dto, gpxData);
+        System.out.println("staticMapImgKey: " + staticMapImgKey);
         // 태그 문자열을 태그 엔티티로 처리 (기존 태그가 있으면 사용, 없으면 새로 생성)
         Set<RouteTagCategoryEntity> tags = dto.getTag().stream().map(tagName -> {
             return routeTagCategoryRepository.findByName(tagName)
@@ -109,7 +114,7 @@ public class RouteCreateService {
                 });
         }).collect(Collectors.toSet());
         
-        // DTO의 필드와 파싱한 파일 데이터를 이용하여 RouteEntity 객체로 매핑
+        // DTO의 필드 및 생성된 이미지 S3 키를 이용하여 RouteEntity 객체로 매핑
         RouteEntity route = RouteEntity.builder()
                 .routeName(dto.getRouteName())
                 .description(dto.getDescription())
@@ -120,7 +125,7 @@ public class RouteCreateService {
                 .distanceType(convertDistanceType(dto.getDistanceType()))
                 .altitudeType(convertAltitudeType(dto.getAltitudeType()))
                 .roadType(convertRoadType(dto.getRoadType()))
-                .routeImgId(staticMapImgId)
+                .routeImgId(staticMapImgKey)
                 .tags(tags)
                 .likeCount(0l)
                 .build();
@@ -240,24 +245,16 @@ public class RouteCreateService {
         return new GPXData(totalDistance, totalAltitude, points);
     }
     
-    // 더미 메서드: 파일 업로드를 시뮬레이션하고 파일 식별자를 반환
-    private Integer uploadFileToCloud(MultipartFile file) {
-        // TODO: 클라우드 버킷으로 파일 업로드 구현
-        return 1; // 더미 파일 ID
-    }
-    
     /**
      * 네이버 정적 지도 API로부터 지도 이미지를 받아 GPX 경로를 합성한 후,
-     * 로컬 파일 시스템에 저장하고 결과 ID(더미)를 반환합니다.
+     * S3에 저장하고 S3에 저장된 이미지의 파일 키를 반환합니다.
      */
-    Integer generateStaticMapImage(RoutePostRequestDTO dto, GPXData gpxData) {
+    String generateStaticMapImage(RoutePostRequestDTO dto, GPXData gpxData) {
         try {
-            // 1. base 지도 이미지 크기 및 scaleFactor 지정
             int baseWidth = 800;
             int baseHeight = 600;
-            int scaleFactor = 2; // 예: 고해상도 이미지 사용 (scale=2)
+            int scaleFactor = 2;
 
-            // 2. GPX 경로의 모든 포인트에서 바운딩 박스 계산
             List<GPXRoutePoint> points = gpxData.getRoutePoints();
             if (points.isEmpty()) {
                 throw new InvalidFileExtensionException("파일에 경로 포인트가 없습니다.");
@@ -273,14 +270,10 @@ public class RouteCreateService {
                 if (lng > maxLng) maxLng = lng;
             }
 
-            // 3. 바운딩 박스의 중심 좌표 계산
             double centerLat = (minLat + maxLat) / 2.0;
             double centerLng = (minLng + maxLng) / 2.0;
-
-            // 4. 바운딩 박스에 맞춰 적절한 zoom 레벨 계산 (baseWidth, baseHeight 사용)
             int zoom = computeZoom(minLat, minLng, maxLat, maxLng, baseWidth, baseHeight) - 1;
 
-            // 5. 네이버 정적 지도 API URL 구성 (base 크기와 scaleFactor 사용)
             String url = "https://naveropenapi.apigw.ntruss.com/map-static/v2/raster" +
                          "?w=" + baseWidth +
                          "&h=" + baseHeight +
@@ -290,7 +283,6 @@ public class RouteCreateService {
                          "&format=png" +
                          "&scale=" + scaleFactor;
 
-            // 6. RestTemplate 및 헤더 설정 (API 키는 실제 값으로 대체)
             RestTemplate restTemplate = new RestTemplate();
             HttpHeaders headers = new HttpHeaders();
             headers.set("x-ncp-apigw-api-key-id", naverApiKeyId);
@@ -306,18 +298,13 @@ public class RouteCreateService {
                 throw new StaticMapImageFetchException("받은 이미지 데이터가 없습니다.");
             }
 
-            // 7. 응답받은 byte[] 데이터를 BufferedImage로 변환
             BufferedImage baseMapImage = ImageIO.read(new ByteArrayInputStream(imageBytes));
-            // 실제 이미지의 픽셀 크기 (scaleFactor 적용됨)
             int actualWidth = baseMapImage.getWidth();
             int actualHeight = baseMapImage.getHeight();
             int centerX = actualWidth / 2;
             int centerY = actualHeight / 2;
 
-            // 8. 오버레이를 위한 좌표 계산
-            // convertGeoToPixel()는 static map의 줌(zoom)과 scaleFactor로 계산
-            // 이후, 지도 중앙 기준으로 오프셋에 alpha (< 1) 배율을 적용하여 더 넓은 영역을 표현함
-            double alpha = 2; // 1단계 낮은 줌 효과: (1/2)배. 필요시 값을 조정하세요.
+            double alpha = 2; 
 
             int n = points.size();
             int[] xPoints = new int[n];
@@ -330,7 +317,6 @@ public class RouteCreateService {
                         centerLat, centerLng,
                         actualWidth, actualHeight, zoom, scaleFactor
                 );
-                // 지도 중앙을 기준으로 오프셋에 alpha를 곱해 축소
                 int adjustedX = centerX + (int) Math.round((pixel.x - centerX) * alpha);
                 int adjustedY = centerY + (int) Math.round((pixel.y - centerY) * alpha);
                 xPoints[i] = adjustedX;
@@ -344,12 +330,15 @@ public class RouteCreateService {
             g2d.drawPolyline(xPoints, yPoints, n);
             g2d.dispose();
 
-            // 9. 합성된 이미지를 바이트 배열로 변환 후 로컬에 저장
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             ImageIO.write(baseMapImage, "png", baos);
             byte[] compositeImageBytes = baos.toByteArray();
 
-            return uploadCompositeImage(compositeImageBytes);
+            // S3에 composite 이미지 업로드 후, 프리사인 URL 생성 (예: 10분 유효)
+            String compositeKey = "static-maps/composite_" + System.currentTimeMillis() + ".png";
+            s3Service.uploadFile(compositeImageBytes, compositeKey, "image/png");
+            
+            return s3Service.generatePresignedUrl(compositeKey, Duration.ofMinutes(10));
         } catch (IOException | RestClientException e) {
             throw new StaticMapImageFetchException("정적 지도 이미지 생성 중 오류: " + e.getMessage());
         }
@@ -417,34 +406,6 @@ public class RouteCreateService {
         int pixelY = (int) Math.round(imageHeight / 2.0 - (dstCoord.y - dstCenter.y) / resolution);
 
         return new java.awt.Point(pixelX, pixelY);
-    }
-    /**
-     * 합성된 이미지를 로컬 파일 시스템에 저장하는 더미 메서드.
-     */
-    private Integer uploadCompositeImage(byte[] imageBytes) {
-        try {
-            // 저장할 디렉토리 (없으면 생성)
-            File outputDir = new File("saved_images");
-            if (!outputDir.exists()) {
-                outputDir.mkdirs();
-            }
-
-            // 파일 이름 생성 (타임스탬프 기반)
-            String filename = "saved_images/composite_" + System.currentTimeMillis() + ".png";
-            File outputFile = new File(filename);
-
-            // 파일에 이미지 데이터 저장
-            try (FileOutputStream fos = new FileOutputStream(outputFile)) {
-                fos.write(imageBytes);
-            }
-
-            System.out.println("Composite image saved to: " + outputFile.getAbsolutePath());
-
-            // 실제 시스템에서는 파일 경로나 ID를 반환할 수 있음. 여기서는 더미 값 2 반환.
-            return 2;
-        } catch (IOException e) {
-            throw new StaticMapImageFetchException("이미지 로컬 저장 중 오류: " + e.getMessage());
-        }
     }
     
     // enum 타입 변환 도우미 메서드 (예시 매핑 로직 포함)

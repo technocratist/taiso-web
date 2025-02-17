@@ -3,12 +3,14 @@ package com.taiso.bike_api.service;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.Point;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.math.MathContext;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -17,8 +19,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.imageio.ImageIO;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
 
 import org.locationtech.proj4j.CRSFactory;
 import org.locationtech.proj4j.CoordinateReferenceSystem;
@@ -34,13 +36,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
+import org.xml.sax.Attributes;
+import org.xml.sax.SAXException;
+import org.xml.sax.helpers.DefaultHandler;
 
 import com.taiso.bike_api.domain.RouteEntity;
 import com.taiso.bike_api.domain.RoutePointEntity;
@@ -53,8 +55,6 @@ import com.taiso.bike_api.exception.UnsupportedEnumException;
 import com.taiso.bike_api.repository.RoutePointRepository;
 import com.taiso.bike_api.repository.RouteRepository;
 import com.taiso.bike_api.repository.RouteTagCategoryRepository;
-
-
 
 @Service
 public class RouteCreateService {
@@ -78,292 +78,235 @@ public class RouteCreateService {
     private String naverApiKeyId;
     @Value("${naver.api.key.key}")
     private String naverApiKey;
+    
+    // Douglas-Peucker 알고리즘에 사용할 기본 허용 오차 (위/경도 단위, 약 11m 정도)
+    private static final double DEFAULT_SIMPLIFICATION_TOLERANCE = 0.0001;
 
+    /**
+     * 전체 루트 생성 로직: 파일 파싱, DB 저장, S3 업로드를 하나의 트랜잭션 내에서 처리합니다.
+     */
+    @Transactional
+public RoutePostResponseDTO createRoute(RoutePostRequestDTO dto, MultipartFile file, Authentication authentication) {
+    long overallStart = System.nanoTime();
+    Long userId = userService.getUserIdByEmail(authentication.getName());
+    
+    // Step 1: 파일 확장자 검증
+    long step1Start = System.nanoTime();
+    validateFileExtension(file);
+    long step1Time = System.nanoTime() - step1Start;
+    System.out.println("Step 1 (validateFileExtension): " + step1Time / 1_000_000.0 + " ms");
 
-    // 메타데이터(JSON)와 파일(Multipart/form-data)로부터 루트를 생성하는 메서드
-    public RoutePostResponseDTO createRoute(RoutePostRequestDTO dto, MultipartFile file, Authentication authentication) {
-        // 실행 시간 측정을 시작
-        long startTime = System.currentTimeMillis();
+    // Step 2: GPX 파일 파싱 및 Douglas-Peucker 알고리즘 적용
+    long step2Start = System.nanoTime();
+    GPXData gpxData;
+    try {
+        gpxData = parseGPXFile(file);
+    } catch(Exception e) {
+        throw new InvalidFileExtensionException("파일 파싱 중 오류가 발생하였습니다. 파일이 손상되었거나 올바른 형식이 아닙니다");
+    }
+    long step2Time = System.nanoTime() - step2Start;
+    System.out.println("Step 2 (parseGPXFile): " + step2Time / 1_000_000.0 + " ms");
 
-        Long userId = userService.getUserIdByEmail(authentication.getName());
-        
-        // 파일 확장자 검증: gpx 또는 tcx 파일만 지원
+    // Step 3: 네이버 정적 지도 API 호출 및 이미지 합성
+    long step3Start = System.nanoTime();
+    byte[] staticMapImageBytes = generateStaticMapImageBytes(dto, gpxData);
+    long step3Time = System.nanoTime() - step3Start;
+    System.out.println("Step 3 (generateStaticMapImageBytes): " + step3Time / 1_000_000.0 + " ms");
+
+    // Step 4: 태그 처리 (기존 태그 사용 또는 신규 생성)
+    long step4Start = System.nanoTime();
+    Set<RouteTagCategoryEntity> tags = dto.getTag().stream()
+            .map(tagName -> routeTagCategoryRepository.findByName(tagName)
+                    .orElseGet(() -> routeTagCategoryRepository.save(
+                            RouteTagCategoryEntity.builder().name(tagName).build())))
+            .collect(Collectors.toSet());
+    long step4Time = System.nanoTime() - step4Start;
+    System.out.println("Step 4 (tag processing): " + step4Time / 1_000_000.0 + " ms");
+
+    // Step 5: DB에 루트 엔티티 저장 및 경로 포인트 저장
+    long step5Start = System.nanoTime();
+    RouteEntity route = RouteEntity.builder()
+            .routeName(dto.getRouteName())
+            .description(dto.getDescription())
+            .userId(userId)
+            .region(convertRegion(dto.getRegion()))
+            .distance(gpxData.getDistance())
+            .altitude(gpxData.getAltitude())
+            .distanceType(convertDistanceType(dto.getDistanceType()))
+            .altitudeType(convertAltitudeType(dto.getAltitudeType()))
+            .roadType(convertRoadType(dto.getRoadType()))
+            .tags(tags)
+            .likeCount(0L)
+            .build();
+    RouteEntity savedRoute = routeRepository.save(route);
+    saveRoutePoints(savedRoute, gpxData.getRoutePoints());
+    long step5Time = System.nanoTime() - step5Start;
+    System.out.println("Step 5 (save route and points): " + step5Time / 1_000_000.0 + " ms");
+
+    // Step 6: S3 업로드 (GPX 파일, 정적 지도 이미지) 및 DB 업데이트
+    long step6Start = System.nanoTime();
+    try {
+        // GPX 파일 업로드
+        String gpxFileKey = s3Service.uploadFile(file, userId);
+        String gpxFileUrl = s3Service.generatePresignedUrl(gpxFileKey, Duration.ofMinutes(10));
+        System.out.println("GPX 파일 S3 업로드 완료, Key: " + gpxFileKey);
+        System.out.println("GPX 파일 프리사인 URL: " + gpxFileUrl);
+
+        // 정적 지도 이미지 업로드
+        String compositeKey = "static-maps/composite_" + System.currentTimeMillis() + ".png";
+        s3Service.uploadFile(staticMapImageBytes, compositeKey, "image/png");
+        String staticMapUrl = s3Service.generatePresignedUrl(compositeKey, Duration.ofMinutes(10));
+        System.out.println("정적 지도 이미지 S3 업로드 완료, Key: " + compositeKey);
+        System.out.println("정적 지도 프리사인 URL: " + staticMapUrl);
+
+        // 업로드된 이미지 URL DB 반영
+        savedRoute.setRouteImgId(staticMapUrl);
+        routeRepository.save(savedRoute);
+    } catch (Exception e) {
+        routeRepository.delete(savedRoute);
+        throw new StaticMapImageFetchException("S3 업로드 중 오류");
+    }
+    long step6Time = System.nanoTime() - step6Start;
+    System.out.println("Step 6 (S3 upload): " + step6Time / 1_000_000.0 + " ms");
+
+    long overallTime = System.nanoTime() - overallStart;
+    System.out.println("Total createRoute execution time: " + overallTime / 1_000_000.0 + " ms");
+
+    RoutePostResponseDTO response = new RoutePostResponseDTO();
+    response.setRouteId(savedRoute.getRouteId());
+    return response;
+}
+    /**
+     * 파일 확장자 검증 (GPX 또는 TCX)
+     */
+    private void validateFileExtension(MultipartFile file) {
         String originalFilename = file.getOriginalFilename();
         if (originalFilename == null || 
             (!originalFilename.toLowerCase().endsWith(".gpx") && !originalFilename.toLowerCase().endsWith(".tcx"))) {
             throw new InvalidFileExtensionException("지원하지 않는 파일 타입");
         }
-
-        // 파일 파싱: 경로 포인트, 총 거리, 고도 등 필요한 정보 추출
-        GPXData gpxData;
-        try {
-            gpxData = parseGPXFile(file); // 실제 파싱 로직 구현
-        } catch(Exception e) {
-            throw new InvalidFileExtensionException("파일 파싱 중 오류가 발생하였습니다. 파일이 손상되었거나 올바른 형식이 아닙니다");
-        }
-        
-        // GPX 파일 S3 업로드
-        String gpxFileKey = s3Service.uploadFile(file, userId);
-        System.out.println("GPX 파일 S3 업로드 완료, Key: " + gpxFileKey);
-        String gpxFileUrl = s3Service.generatePresignedUrl(gpxFileKey, Duration.ofMinutes(10));
-        System.out.println("GPX 파일 프리사인 URL: " + gpxFileUrl);
-
-        // 네이버 정적 지도 API를 호출하여 지도 이미지를 생성하고 S3에 업로드
-        String staticMapImgKey = generateStaticMapImage(dto, gpxData);
-        System.out.println("staticMapImgKey: " + staticMapImgKey);
-        // 태그 문자열을 태그 엔티티로 처리 (기존 태그가 있으면 사용, 없으면 새로 생성)
-        Set<RouteTagCategoryEntity> tags = dto.getTag().stream().map(tagName -> {
-            return routeTagCategoryRepository.findByName(tagName)
-                .orElseGet(() -> {
-                    RouteTagCategoryEntity newTag = RouteTagCategoryEntity.builder().name(tagName).build();
-                    return routeTagCategoryRepository.save(newTag);
-                });
-        }).collect(Collectors.toSet());
-        
-        // DTO의 필드 및 생성된 이미지 S3 키를 이용하여 RouteEntity 객체로 매핑
-        RouteEntity route = RouteEntity.builder()
-                .routeName(dto.getRouteName())
-                .description(dto.getDescription())
-                .userId(userId)
-                .region(convertRegion(dto.getRegion()))
-                .distance(gpxData.getDistance())
-                .altitude(gpxData.getAltitude())
-                .distanceType(convertDistanceType(dto.getDistanceType()))
-                .altitudeType(convertAltitudeType(dto.getAltitudeType()))
-                .roadType(convertRoadType(dto.getRoadType()))
-                .routeImgId(staticMapImgKey)
-                .tags(tags)
-                .likeCount(0l)
-                .build();
-
-        RouteEntity savedRoute = routeRepository.save(route);
-        saveRoutePoints(savedRoute, gpxData.getRoutePoints());
-        
-        // 실행 시간 측정 종료 및 출력
-        long endTime = System.currentTimeMillis();
-        System.out.println("--------------------------------");
-        System.out.println("createRoute 실행 시간: " + (endTime - startTime) + " ms");
-        System.out.println("--------------------------------");
-        
-        RoutePostResponseDTO response = new RoutePostResponseDTO();
-        response.setRouteId(savedRoute.getRouteId());
-        return response;
-    }
-    
-    // 더미 구현: GPX/TCX 파일을 파싱하여 필요한 정보를 추출하는 메서드
-    private GPXData parseGPXFile(MultipartFile file) throws Exception {
-        String originalFilename = file.getOriginalFilename();
-        boolean isGPX = originalFilename != null && originalFilename.toLowerCase().endsWith(".gpx");
-        boolean isTCX = originalFilename != null && originalFilename.toLowerCase().endsWith(".tcx");
-        
-        List<GPXRoutePoint> points = new ArrayList<>();
-        
-        // XXE 공격을 방지하기 위한 안전한 XML 파싱 설정
-        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-        factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
-        factory.setFeature("http://xml.org/sax/features/external-general-entities", false);
-        factory.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
-        factory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
-        factory.setXIncludeAware(false);
-        factory.setExpandEntityReferences(false);
-        
-        DocumentBuilder builder = factory.newDocumentBuilder();
-        Document doc = builder.parse(file.getInputStream());
-        doc.getDocumentElement().normalize();
-        
-        if (isGPX) {
-            // GPX 트랙 포인트 파싱: <trkpt lat="..." lon="..."> 태그를 기대
-            NodeList trkptList = doc.getElementsByTagName("trkpt");
-            if (trkptList.getLength() == 0) {
-                throw new InvalidFileExtensionException("GPX 파일에서 트랙 포인트를 찾을 수 없습니다.");
-            }
-            for (int i = 0; i < trkptList.getLength(); i++) {
-                Node node = trkptList.item(i);
-                if (node.getNodeType() == Node.ELEMENT_NODE) {
-                    Element trkptElement = (Element) node;
-                    String latStr = trkptElement.getAttribute("lat");
-                    String lonStr = trkptElement.getAttribute("lon");
-                    BigDecimal lat = new BigDecimal(latStr);
-                    BigDecimal lon = new BigDecimal(lonStr);
-                    
-                    // 고도 정보 파싱 (존재할 경우)
-                    BigDecimal elevation = BigDecimal.ZERO;
-                    NodeList eleList = trkptElement.getElementsByTagName("ele");
-                    if (eleList.getLength() > 0) {
-                        Element eleElement = (Element) eleList.item(0);
-                        String eleStr = eleElement.getTextContent();
-                        elevation = new BigDecimal(eleStr);
-                    }
-                    
-                    // 시간 정보 파싱 (존재할 경우)
-                    LocalDateTime pointTime = LocalDateTime.now();
-                    NodeList timeList = trkptElement.getElementsByTagName("time");
-                    if (timeList.getLength() > 0) {
-                        Element timeElement = (Element) timeList.item(0);
-                        String timeStr = timeElement.getTextContent();
-                        // ISO_LOCAL_DATE_TIME 형식을 가정하여, 끝에 'Z'가 있을 경우 제거 후 파싱
-                        if (timeStr.endsWith("Z")) {
-                            timeStr = timeStr.substring(0, timeStr.length() - 1);
-                        }
-                        pointTime = LocalDateTime.parse(timeStr);
-                    }
-                    
-                    points.add(new GPXRoutePoint(lat, lon, elevation, pointTime));
-                }
-            }
-        } else if (isTCX) {
-            // TCX 파일의 경우, 유사한 파싱 로직을 구현해야 함
-            throw new InvalidFileExtensionException("TCX 파일 파싱은 구현되지 않았습니다.");
-        } else {
-            throw new InvalidFileExtensionException("지원하지 않는 파일 형식");
-        }
-        
-        // 파싱된 경로 포인트를 이용하여 총 거리와 고도 상승량 계산
-        BigDecimal totalDistance = BigDecimal.ZERO;
-        BigDecimal totalAltitude = BigDecimal.ZERO;
-        GPXRoutePoint prev = null;
-        for (GPXRoutePoint point : points) {
-            if (prev != null) {
-                double lat1 = prev.getLatitude().doubleValue();
-                double lon1 = prev.getLongitude().doubleValue();
-                double lat2 = point.getLatitude().doubleValue();
-                double lon2 = point.getLongitude().doubleValue();
-                double earthRadius = 6371e3; // 미터 단위의 지구 반지름
-                double dLat = Math.toRadians(lat2 - lat1);
-                double dLon = Math.toRadians(lon2 - lon1);
-                double a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                           Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) *
-                           Math.sin(dLon / 2) * Math.sin(dLon / 2);
-                double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-                double distanceMeters = earthRadius * c;
-                BigDecimal distanceKm = new BigDecimal(distanceMeters).divide(new BigDecimal(1000));
-                totalDistance = totalDistance.add(distanceKm);
-                
-                // 이전 고도와 비교하여 양수 차이가 있을 때만 고도 상승량에 추가
-                BigDecimal diff = point.getElevation().subtract(prev.getElevation());
-                if (diff.compareTo(BigDecimal.ZERO) > 0) {
-                    totalAltitude = totalAltitude.add(diff);
-                }
-            }
-            prev = point;
-        }
-        
-        return new GPXData(totalDistance, totalAltitude, points);
     }
     
     /**
-     * 네이버 정적 지도 API로부터 지도 이미지를 받아 GPX 경로를 합성한 후,
-     * S3에 저장하고 S3에 저장된 이미지의 파일 키를 반환합니다.
+     * 네이버 정적 지도 API를 호출하여 기본 지도 이미지에 GPX 경로를 합성한 후,
+     * 이미지 바이트 배열을 반환합니다.
      */
-    String generateStaticMapImage(RoutePostRequestDTO dto, GPXData gpxData) {
-        try {
-            int baseWidth = 800;
-            int baseHeight = 600;
-            int scaleFactor = 2;
+    private byte[] generateStaticMapImageBytes(RoutePostRequestDTO dto, GPXData gpxData) {
+    try {
+        int baseWidth = 800;
+        int baseHeight = 600;
+        int scaleFactor = 2;
 
-            List<GPXRoutePoint> points = gpxData.getRoutePoints();
-            if (points.isEmpty()) {
-                throw new InvalidFileExtensionException("파일에 경로 포인트가 없습니다.");
-            }
-            double minLat = Double.MAX_VALUE, maxLat = -Double.MAX_VALUE;
-            double minLng = Double.MAX_VALUE, maxLng = -Double.MAX_VALUE;
-            for (GPXRoutePoint pt : points) {
-                double lat = pt.getLatitude().doubleValue();
-                double lng = pt.getLongitude().doubleValue();
-                if (lat < minLat) minLat = lat;
-                if (lat > maxLat) maxLat = lat;
-                if (lng < minLng) minLng = lng;
-                if (lng > maxLng) maxLng = lng;
-            }
-
-            double centerLat = (minLat + maxLat) / 2.0;
-            double centerLng = (minLng + maxLng) / 2.0;
-            int zoom = computeZoom(minLat, minLng, maxLat, maxLng, baseWidth, baseHeight) - 1;
-
-            String url = "https://naveropenapi.apigw.ntruss.com/map-static/v2/raster" +
-                         "?w=" + baseWidth +
-                         "&h=" + baseHeight +
-                         "&center=" + centerLng + "," + centerLat +
-                         "&level=" + zoom +
-                         "&maptype=basic" +
-                         "&format=png" +
-                         "&scale=" + scaleFactor;
-
-            RestTemplate restTemplate = new RestTemplate();
-            HttpHeaders headers = new HttpHeaders();
-            headers.set("x-ncp-apigw-api-key-id", naverApiKeyId);
-            headers.set("x-ncp-apigw-api-key", naverApiKey);
-            HttpEntity<String> entity = new HttpEntity<>(headers);
-
-            ResponseEntity<byte[]> response = restTemplate.exchange(url, HttpMethod.GET, entity, byte[].class);
-            if (response.getStatusCode() != HttpStatus.OK) {
-                throw new StaticMapImageFetchException("정적 지도 이미지를 가져오지 못했습니다. (상태 코드: " + response.getStatusCode() + ")");
-            }
-            byte[] imageBytes = response.getBody();
-            if (imageBytes == null) {
-                throw new StaticMapImageFetchException("받은 이미지 데이터가 없습니다.");
-            }
-
-            BufferedImage baseMapImage = ImageIO.read(new ByteArrayInputStream(imageBytes));
-            int actualWidth = baseMapImage.getWidth();
-            int actualHeight = baseMapImage.getHeight();
-            int centerX = actualWidth / 2;
-            int centerY = actualHeight / 2;
-
-            double alpha = 2; 
-
-            int n = points.size();
-            int[] xPoints = new int[n];
-            int[] yPoints = new int[n];
-            for (int i = 0; i < n; i++) {
-                GPXRoutePoint pt = points.get(i);
-                java.awt.Point pixel = convertGeoToPixel(
-                        pt.getLatitude().doubleValue(),
-                        pt.getLongitude().doubleValue(),
-                        centerLat, centerLng,
-                        actualWidth, actualHeight, zoom, scaleFactor
-                );
-                int adjustedX = centerX + (int) Math.round((pixel.x - centerX) * alpha);
-                int adjustedY = centerY + (int) Math.round((pixel.y - centerY) * alpha);
-                xPoints[i] = adjustedX;
-                yPoints[i] = adjustedY;
-            }
-
-            Graphics2D g2d = baseMapImage.createGraphics();
-            g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            g2d.setStroke(new BasicStroke(5));
-            g2d.setColor(Color.RED);
-            g2d.drawPolyline(xPoints, yPoints, n);
-            g2d.dispose();
-
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            ImageIO.write(baseMapImage, "png", baos);
-            byte[] compositeImageBytes = baos.toByteArray();
-
-            // S3에 composite 이미지 업로드 후, 프리사인 URL 생성 (예: 10분 유효)
-            String compositeKey = "static-maps/composite_" + System.currentTimeMillis() + ".png";
-            s3Service.uploadFile(compositeImageBytes, compositeKey, "image/png");
-            
-            return s3Service.generatePresignedUrl(compositeKey, Duration.ofMinutes(10));
-        } catch (IOException | RestClientException e) {
-            throw new StaticMapImageFetchException("정적 지도 이미지 생성 중 오류: " + e.getMessage());
+        List<GPXRoutePoint> points = gpxData.getRoutePoints();
+        if (points.isEmpty()) {
+            throw new InvalidFileExtensionException("파일에 경로 포인트가 없습니다.");
         }
-    }
+        // 좌표 범위 계산
+        double minLat = points.stream().mapToDouble(p -> p.getLatitude().doubleValue()).min().orElse(0);
+        double maxLat = points.stream().mapToDouble(p -> p.getLatitude().doubleValue()).max().orElse(0);
+        double minLng = points.stream().mapToDouble(p -> p.getLongitude().doubleValue()).min().orElse(0);
+        double maxLng = points.stream().mapToDouble(p -> p.getLongitude().doubleValue()).max().orElse(0);
+        double centerLat = (minLat + maxLat) / 2.0;
+        double centerLng = (minLng + maxLng) / 2.0;
+        int zoom = computeZoom(minLat, minLng, maxLat, maxLng, baseWidth, baseHeight) - 1;
 
+        String url = "https://naveropenapi.apigw.ntruss.com/map-static/v2/raster" +
+                     "?w=" + baseWidth +
+                     "&h=" + baseHeight +
+                     "&center=" + centerLng + "," + centerLat +
+                     "&level=" + zoom +
+                     "&maptype=basic" +
+                     "&format=png" +
+                     "&scale=" + scaleFactor;
+
+        RestTemplate restTemplate = new RestTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("x-ncp-apigw-api-key-id", naverApiKeyId);
+        headers.set("x-ncp-apigw-api-key", naverApiKey);
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+
+        ResponseEntity<byte[]> response = restTemplate.exchange(url, HttpMethod.GET, entity, byte[].class);
+        if (response.getStatusCode() != HttpStatus.OK || response.getBody() == null) {
+            throw new StaticMapImageFetchException("정적 지도 이미지를 가져오지 못했습니다.");
+        }
+        byte[] imageBytes = response.getBody();
+        BufferedImage baseMapImage = ImageIO.read(new ByteArrayInputStream(imageBytes));
+        int actualWidth = baseMapImage.getWidth();
+        int actualHeight = baseMapImage.getHeight();
+        int centerX = actualWidth / 2;
+        int centerY = actualHeight / 2;
+
+        // 좌표 변환 설정 (Proj4j)
+        CRSFactory crsFactory = new CRSFactory();
+        CoordinateReferenceSystem crsWGS84 = crsFactory.createFromName("EPSG:4326");
+        CoordinateReferenceSystem crs3857 = crsFactory.createFromName("EPSG:3857");
+        CoordinateTransformFactory ctFactory = new CoordinateTransformFactory();
+        CoordinateTransform transform = ctFactory.createTransform(crsWGS84, crs3857);
+        ProjCoordinate centerSrc = new ProjCoordinate(centerLng, centerLat);
+        ProjCoordinate dstCenter = new ProjCoordinate();
+        transform.transform(centerSrc, dstCenter);
+
+        double alpha = 2; // 확대 비율
+
+        // === 성능 개선된 좌표 변환 루프 ===
+        // 1. resolution 계산을 루프 밖에서 한 번 수행
+        double resolution = (156543.03392804062 / Math.pow(2, zoom)) / scaleFactor;
+        int n = points.size();
+        int[] xPoints = new int[n];
+        int[] yPoints = new int[n];
+
+        // 2. 반복문마다 새 객체를 생성하는 대신, 재사용 가능한 객체를 미리 생성
+        ProjCoordinate srcCoord = new ProjCoordinate();
+        ProjCoordinate dstCoord = new ProjCoordinate();
+
+        for (int i = 0; i < n; i++) {
+            GPXRoutePoint pt = points.get(i);
+            // 좌표 값을 재사용 가능한 객체에 설정
+            srcCoord.x = pt.getLongitude().doubleValue();
+            srcCoord.y = pt.getLatitude().doubleValue();
+            // 좌표 변환 (내부에서 객체 생성 없이 재사용)
+            transform.transform(srcCoord, dstCoord);
+
+            // 이미지상의 픽셀 좌표 계산
+            int pixelX = (int) Math.round(actualWidth / 2.0 + (dstCoord.x - dstCenter.x) / resolution);
+            int pixelY = (int) Math.round(actualHeight / 2.0 - (dstCoord.y - dstCenter.y) / resolution);
+
+            // 확대 비율(alpha) 적용
+            int adjustedX = centerX + (int) Math.round((pixelX - centerX) * alpha);
+            int adjustedY = centerY + (int) Math.round((pixelY - centerY) * alpha);
+
+            xPoints[i] = adjustedX;
+            yPoints[i] = adjustedY;
+        }
+        // =====================================
+
+        // 경로를 지도 이미지에 합성 (폴리라인 그리기)
+        Graphics2D g2d = baseMapImage.createGraphics();
+        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g2d.setStroke(new BasicStroke(5));
+        g2d.setColor(Color.RED);
+        g2d.drawPolyline(xPoints, yPoints, n);
+        g2d.dispose();
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ImageIO.write(baseMapImage, "png", baos);
+        return baos.toByteArray();
+    } catch (IOException | RestClientException e) {
+        throw new StaticMapImageFetchException("정적 지도 이미지 생성 중 오류");
+    }
+}
+    
     /**
-     * GPX 경로의 바운딩 박스를 기반으로, Web Mercator 방식을 활용해 적절한 zoom 레벨을 계산합니다.
+     * Web Mercator 방식을 사용하여 적절한 zoom 레벨을 계산합니다.
      */
     private int computeZoom(double minLat, double minLng, double maxLat, double maxLng, int imageWidth, int imageHeight) {
         double tileSize = 256;
-
-        // 경도 차이 계산 (국제 날짜 변경선 보정)
         double lngDelta = Math.abs(maxLng - minLng);
         if (lngDelta > 180) {
             lngDelta = 360 - lngDelta;
         }
         double diffX = lngDelta / 360.0;
 
-        // 위도는 Web Mercator 변환 적용
         double latRadMin = Math.toRadians(minLat);
         double latRadMax = Math.toRadians(maxLat);
         double minY = (1 - Math.log(Math.tan(latRadMin) + 1 / Math.cos(latRadMin)) / Math.PI) / 2;
@@ -373,138 +316,162 @@ public class RouteCreateService {
         if (diffX == 0 || diffY == 0) {
             return 16;
         }
-
         double zoomX = Math.log(imageWidth / (tileSize * diffX)) / Math.log(2);
         double zoomY = Math.log(imageHeight / (tileSize * diffY)) / Math.log(2);
-
         int zoom = (int) Math.floor(Math.min(zoomX, zoomY));
-        zoom = Math.max(0, Math.min(zoom, 19)) ;
-        return zoom;
+        return Math.max(0, Math.min(zoom, 19));
     }
 
     /**
-     * Proj4j를 사용하여 WGS84(EPSG:4326) 좌표를 Web Mercator(EPSG:3857) 좌표로 변환한 후,
-     * 지도 이미지 내의 픽셀 좌표로 환산합니다.
-     * imageWidth와 imageHeight는 실제 반환된 이미지의 픽셀 크기이고,
-     * zoom과 scaleFactor는 static map API 요청 시 사용한 값입니다.
+     * Proj4j를 사용하여 WGS84 좌표를 Web Mercator 좌표로 변환 후,
+     * 지도 이미지상의 픽셀 좌표로 환산합니다.
      */
-    private java.awt.Point convertGeoToPixel(double lat, double lng, double centerLat, double centerLng,
-                                               int imageWidth, int imageHeight, int zoom, int scaleFactor) {
-        CRSFactory crsFactory = new CRSFactory();
-        CoordinateReferenceSystem crsWGS84 = crsFactory.createFromName("EPSG:4326");
-        CoordinateReferenceSystem crs3857 = crsFactory.createFromName("EPSG:3857");
-
-        CoordinateTransformFactory ctFactory = new CoordinateTransformFactory();
-        CoordinateTransform transform = ctFactory.createTransform(crsWGS84, crs3857);
-
+    private Point convertGeoToPixel(double lat, double lng,
+                                    int imageWidth, int imageHeight, int zoom, int scaleFactor,
+                                    CoordinateTransform transform, ProjCoordinate dstCenter) {
         ProjCoordinate srcCoord = new ProjCoordinate(lng, lat);
         ProjCoordinate dstCoord = new ProjCoordinate();
         transform.transform(srcCoord, dstCoord);
-
-        ProjCoordinate srcCenter = new ProjCoordinate(centerLng, centerLat);
-        ProjCoordinate dstCenter = new ProjCoordinate();
-        transform.transform(srcCenter, dstCenter);
-
-        // 해상도 계산: zoom 0에서의 해상도 약 156543.03392804062 m/px, scaleFactor 반영
         double resolution = (156543.03392804062 / Math.pow(2, zoom)) / scaleFactor;
-
         int pixelX = (int) Math.round(imageWidth / 2.0 + (dstCoord.x - dstCenter.x) / resolution);
         int pixelY = (int) Math.round(imageHeight / 2.0 - (dstCoord.y - dstCenter.y) / resolution);
-
-        return new java.awt.Point(pixelX, pixelY);
+        return new Point(pixelX, pixelY);
     }
     
-    // enum 타입 변환 도우미 메서드 (예시 매핑 로직 포함)
-    private RouteEntity.Region convertRegion(String region) {
-        try {
-            return RouteEntity.Region.valueOf(region);
-        } catch (IllegalArgumentException e) {
-            throw new UnsupportedEnumException("지원하지 않는 지역 유형");
+    /**
+     * GPX 파일을 SAX 기반 스트리밍 파서를 사용하여 파싱합니다.
+     * 총 거리 및 고도 상승량을 계산하고, Douglas-Peucker 알고리즘을 적용합니다.
+     */
+    private GPXData parseGPXFile(MultipartFile file) throws Exception {
+        String originalFilename = file.getOriginalFilename();
+        boolean isGPX = originalFilename != null && originalFilename.toLowerCase().endsWith(".gpx");
+        boolean isTCX = originalFilename != null && originalFilename.toLowerCase().endsWith(".tcx");
+
+        if (isTCX) {
+            throw new InvalidFileExtensionException("TCX 파일 파싱은 구현되지 않았습니다.");
         }
+        if (!isGPX) {
+            throw new InvalidFileExtensionException("지원하지 않는 파일 형식");
+        }
+
+        SAXParserFactory factory = SAXParserFactory.newInstance();
+        // XXE 공격 방지 설정
+        factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+        factory.setFeature("http://xml.org/sax/features/external-general-entities", false);
+        factory.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+        factory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+
+        SAXParser saxParser = factory.newSAXParser();
+        GPXHandler handler = new GPXHandler();
+        saxParser.parse(file.getInputStream(), handler);
+
+        List<GPXRoutePoint> points = handler.getPoints();
+        if (points.isEmpty()) {
+            throw new InvalidFileExtensionException("GPX 파일에서 트랙 포인트를 찾을 수 없습니다.");
+        }
+        
+        // 총 거리와 고도 상승량 계산
+        BigDecimal totalDistance = BigDecimal.ZERO;
+        BigDecimal totalAltitude = BigDecimal.ZERO;
+        GPXRoutePoint prev = null;
+        for (GPXRoutePoint point : points) {
+            if (prev != null) {
+                totalDistance = totalDistance.add(calculateHaversineDistance(prev, point));
+                BigDecimal elevationDiff = point.getElevation().subtract(prev.getElevation());
+                if (elevationDiff.compareTo(BigDecimal.ZERO) > 0) {
+                    totalAltitude = totalAltitude.add(elevationDiff);
+                }
+            }
+            prev = point;
+        }
+        // 개선된 Douglas-Peucker 알고리즘 적용 (인덱스 기반 재귀 호출)
+        List<GPXRoutePoint> simplifiedPoints = simplifyPoints(points, DEFAULT_SIMPLIFICATION_TOLERANCE);
+        return new GPXData(totalDistance, totalAltitude, simplifiedPoints);
+    }
+
+    /**
+     * 두 지점 간의 하버사인 거리(킬로미터 단위)를 계산합니다.
+     */
+    private BigDecimal calculateHaversineDistance(GPXRoutePoint p1, GPXRoutePoint p2) {
+        double lat1 = p1.getLatitude().doubleValue();
+        double lon1 = p1.getLongitude().doubleValue();
+        double lat2 = p2.getLatitude().doubleValue();
+        double lon2 = p2.getLongitude().doubleValue();
+        double earthRadius = 6371e3; // 미터 단위
+        double dLat = Math.toRadians(lat2 - lat1);
+        double dLon = Math.toRadians(lon2 - lon1);
+        double a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                   Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) *
+                   Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        double distanceMeters = earthRadius * c;
+        return new BigDecimal(distanceMeters).divide(new BigDecimal(1000), MathContext.DECIMAL128);
     }
     
-    // 예시: 입력이 "단거리"이면 킬로미터, "장거리"이면 마일로 변환
-    private RouteEntity.DistanceType convertDistanceType(String type) {
-        return switch (type) {
-            case "단거리" -> RouteEntity.DistanceType.단거리;
-            case "중거리" -> RouteEntity.DistanceType.중거리;
-            case "장거리" -> RouteEntity.DistanceType.장거리;
-            default -> throw new UnsupportedEnumException("지원하지 않는 거리 유형");
-        };
+    /**
+     * Douglas-Peucker 알고리즘을 이용해 경로 포인트를 단순화합니다.
+     */
+    private List<GPXRoutePoint> simplifyPoints(List<GPXRoutePoint> points, double tolerance) {
+        if (points == null || points.size() < 3) {
+            return points;
+        }
+        return douglasPeucker(points, tolerance);
     }
     
-    // 예시: 입력이 "평지"이면 미터, "고지"이면 피트로 변환
-    private RouteEntity.AltitudeType convertAltitudeType(String type) {
-        return switch (type) {
-            case "낮음" -> RouteEntity.AltitudeType.낮음;
-            case "중간" -> RouteEntity.AltitudeType.중간;
-            case "높음" -> RouteEntity.AltitudeType.높음;
-            default -> throw new UnsupportedEnumException("지원하지 않는 고도 유형");
-        };
+    /**
+     * 인덱스 기반 Douglas-Peucker 알고리즘 재귀 호출 래퍼.
+     */
+    private List<GPXRoutePoint> douglasPeucker(List<GPXRoutePoint> points, double tolerance) {
+        return douglasPeuckerRec(points, 0, points.size() - 1, tolerance);
     }
     
-    // 도로 유형에 대한 예시 변환: 예를 들어 "자전거 도로"는 평지로, "산길"은 산길, "고속도로"는 고속도로로 매핑
-    private RouteEntity.RoadType convertRoadType(String type) {
-        return switch (type) {
-            case "자전거 도로" -> RouteEntity.RoadType.평지;
-            case "산길" -> RouteEntity.RoadType.산길;
-            case "고속도로" -> RouteEntity.RoadType.고속도로;
-            default -> throw new UnsupportedEnumException("지원하지 않는 도로 유형");
-        };
+    /**
+     * [start, end] 구간에 대해 Douglas-Peucker 알고리즘을 재귀적으로 적용합니다.
+     */
+    private List<GPXRoutePoint> douglasPeuckerRec(List<GPXRoutePoint> points, int start, int end, double tolerance) {
+        double maxDistance = 0;
+        int index = start;
+        // 시작점과 끝점 사이의 수직 거리가 가장 큰 점 찾기
+        for (int i = start + 1; i < end; i++) {
+            double distance = perpendicularDistance(points.get(i), points.get(start), points.get(end));
+            if (distance > maxDistance) {
+                maxDistance = distance;
+                index = i;
+            }
+        }
+        List<GPXRoutePoint> result = new ArrayList<>();
+        if (maxDistance > tolerance) {
+            List<GPXRoutePoint> recResults1 = douglasPeuckerRec(points, start, index, tolerance);
+            List<GPXRoutePoint> recResults2 = douglasPeuckerRec(points, index, end, tolerance);
+            // 중복된 경계점 제거
+            result.addAll(recResults1);
+            result.remove(result.size() - 1);
+            result.addAll(recResults2);
+        } else {
+            result.add(points.get(start));
+            result.add(points.get(end));
+        }
+        return result;
     }
     
-    // 내부 더미 클래스: 파싱된 GPX 데이터를 저장하는 클래스
-    private static class GPXData {
-        private final BigDecimal distance;
-        private final BigDecimal altitude;
-        private final List<GPXRoutePoint> routePoints;
-        
-        public GPXData(BigDecimal distance, BigDecimal altitude, List<GPXRoutePoint> routePoints) {
-            this.distance = distance;
-            this.altitude = altitude;
-            this.routePoints = routePoints;
-        }
-        
-        public BigDecimal getDistance() {
-            return distance;
-        }
-        
-        public BigDecimal getAltitude() {
-            return altitude;
-        }
-        
-        public List<GPXRoutePoint> getRoutePoints() {
-            return routePoints;
-        }
+    /**
+     * 시작점과 끝점을 잇는 직선에 대해 p의 수직 거리를 계산합니다.
+     */
+    private double perpendicularDistance(GPXRoutePoint p, GPXRoutePoint p1, GPXRoutePoint p2) {
+        double x0 = p.getLongitude().doubleValue();
+        double y0 = p.getLatitude().doubleValue();
+        double x1 = p1.getLongitude().doubleValue();
+        double y1 = p1.getLatitude().doubleValue();
+        double x2 = p2.getLongitude().doubleValue();
+        double y2 = p2.getLatitude().doubleValue();
+        double numerator = Math.abs((y2 - y1) * x0 - (x2 - x1) * y0 + x2 * y1 - y2 * x1);
+        double denominator = Math.sqrt(Math.pow(y2 - y1, 2) + Math.pow(x2 - x1, 2));
+        return denominator == 0 ? Math.hypot(x0 - x1, y0 - y1) : numerator / denominator;
     }
-
-    // 내부 더미 클래스: 개별 GPX 경로 포인트를 표현하는 클래스
-    private static class GPXRoutePoint {
-        // 생성자에서만 할당되므로 final 처리
-        private final BigDecimal latitude;
-        private final BigDecimal longitude;
-        private final BigDecimal elevation;
-        
-        public GPXRoutePoint(BigDecimal latitude, BigDecimal longitude, BigDecimal elevation, LocalDateTime time) {
-            this.latitude = latitude;
-            this.longitude = longitude;
-            this.elevation = elevation;
-        }
-
-        public BigDecimal getLatitude() {
-            return latitude;
-        }
-
-        public BigDecimal getLongitude() {
-            return longitude;
-        }
-
-        public BigDecimal getElevation() {
-            return elevation;
-        }
-    }
-
-    // 파싱된 경로 포인트들을 데이터베이스에 저장하는 메서드
+    
+    /**
+     * GPX 경로 포인트들을 배치 저장합니다.
+     */
     private void saveRoutePoints(RouteEntity route, List<GPXRoutePoint> points) {
         List<RoutePointEntity> entities = new ArrayList<>();
         for (int i = 0; i < points.size(); i++) {
@@ -519,5 +486,167 @@ public class RouteCreateService {
             entities.add(routePoint);
         }
         routePointRepository.saveAll(entities);
+    }
+    
+    // Enum 변환 도우미 메서드들
+    private RouteEntity.Region convertRegion(String region) {
+        try {
+            return RouteEntity.Region.valueOf(region);
+        } catch (IllegalArgumentException e) {
+            throw new UnsupportedEnumException("지원하지 않는 지역 유형");
+        }
+    }
+    
+    private RouteEntity.DistanceType convertDistanceType(String type) {
+        return switch (type) {
+            case "단거리" -> RouteEntity.DistanceType.단거리;
+            case "중거리" -> RouteEntity.DistanceType.중거리;
+            case "장거리" -> RouteEntity.DistanceType.장거리;
+            default -> throw new UnsupportedEnumException("지원하지 않는 거리 유형");
+        };
+    }
+    
+    private RouteEntity.AltitudeType convertAltitudeType(String type) {
+        return switch (type) {
+            case "낮음" -> RouteEntity.AltitudeType.낮음;
+            case "중간" -> RouteEntity.AltitudeType.중간;
+            case "높음" -> RouteEntity.AltitudeType.높음;
+            default -> throw new UnsupportedEnumException("지원하지 않는 고도 유형");
+        };
+    }
+    
+    private RouteEntity.RoadType convertRoadType(String type) {
+        return switch (type) {
+            case "자전거 도로" -> RouteEntity.RoadType.평지;
+            case "산길" -> RouteEntity.RoadType.산길;
+            case "고속도로" -> RouteEntity.RoadType.고속도로;
+            default -> throw new UnsupportedEnumException("지원하지 않는 도로 유형");
+        };
+    }
+    
+    /**
+     * 내부 클래스: 파싱된 GPX 데이터를 저장하는 클래스
+     */
+    private static class GPXData {
+        private final BigDecimal distance;
+        private final BigDecimal altitude;
+        private final List<GPXRoutePoint> routePoints;
+
+        public GPXData(BigDecimal distance, BigDecimal altitude, List<GPXRoutePoint> routePoints) {
+            this.distance = distance;
+            this.altitude = altitude;
+            this.routePoints = routePoints;
+        }
+
+        public BigDecimal getDistance() {
+            return distance;
+        }
+
+        public BigDecimal getAltitude() {
+            return altitude;
+        }
+
+        public List<GPXRoutePoint> getRoutePoints() {
+            return routePoints;
+        }
+    }
+
+    /**
+     * 내부 클래스: 개별 GPX 경로 포인트 표현  
+     * SAX 파싱 과정에서 setter를 통해 값이 설정됩니다.
+     */
+    private static class GPXRoutePoint {
+        private BigDecimal latitude;
+        private BigDecimal longitude;
+        private BigDecimal elevation;
+        private LocalDateTime time;
+
+        public GPXRoutePoint(BigDecimal latitude, BigDecimal longitude, BigDecimal elevation, LocalDateTime time) {
+            this.latitude = latitude;
+            this.longitude = longitude;
+            this.elevation = elevation;
+            this.time = time;
+        }
+
+        public BigDecimal getLatitude() {
+            return latitude;
+        }
+
+        public BigDecimal getLongitude() {
+            return longitude;
+        }
+
+        public BigDecimal getElevation() {
+            return elevation;
+        }
+
+        public LocalDateTime getTime() {
+            return time;
+        }
+
+        public void setElevation(BigDecimal elevation) {
+            this.elevation = elevation;
+        }
+
+        public void setTime(LocalDateTime time) {
+            this.time = time;
+        }
+    }
+    
+    /**
+     * SAX 기반 GPX 파서 핸들러 클래스.
+     * <trkpt> 요소를 만나면 좌표, 고도, 시간 정보를 읽어 GPXRoutePoint 객체로 저장합니다.
+     */
+    private static class GPXHandler extends DefaultHandler {
+        private final List<GPXRoutePoint> points = new ArrayList<>();
+        private GPXRoutePoint currentPoint = null;
+        private final StringBuilder content = new StringBuilder();
+
+        public List<GPXRoutePoint> getPoints() {
+            return points;
+        }
+
+        @Override
+        public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
+            content.setLength(0);
+            if ("trkpt".equalsIgnoreCase(qName)) {
+                String latStr = attributes.getValue("lat");
+                String lonStr = attributes.getValue("lon");
+                BigDecimal lat = new BigDecimal(latStr);
+                BigDecimal lon = new BigDecimal(lonStr);
+                currentPoint = new GPXRoutePoint(lat, lon, BigDecimal.ZERO, LocalDateTime.now());
+            }
+        }
+
+        @Override
+        public void characters(char[] ch, int start, int length) throws SAXException {
+            content.append(ch, start, length);
+        }
+
+        @Override
+        public void endElement(String uri, String localName, String qName) throws SAXException {
+            if (currentPoint != null) {
+                if ("ele".equalsIgnoreCase(qName)) {
+                    try {
+                        currentPoint.setElevation(new BigDecimal(content.toString().trim()));
+                    } catch (NumberFormatException e) {
+                        currentPoint.setElevation(BigDecimal.ZERO);
+                    }
+                } else if ("time".equalsIgnoreCase(qName)) {
+                    String timeStr = content.toString().trim();
+                    if (timeStr.endsWith("Z")) {
+                        timeStr = timeStr.substring(0, timeStr.length() - 1);
+                    }
+                    try {
+                        currentPoint.setTime(LocalDateTime.parse(timeStr));
+                    } catch (Exception e) {
+                        // 파싱 실패 시 기본값 유지
+                    }
+                } else if ("trkpt".equalsIgnoreCase(qName)) {
+                    points.add(currentPoint);
+                    currentPoint = null;
+                }
+            }
+        }
     }
 }

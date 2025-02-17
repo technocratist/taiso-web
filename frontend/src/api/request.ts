@@ -14,8 +14,9 @@ export const get = async <T>(url: string, params?: any): Promise<T> => {
 
 // POST: URL과 body 데이터를 전달
 export const post = async <T>(url: string, data?: any): Promise<T> => {
-  const response = await axiosClient.post<T>(url, data);
-  console.log(response);
+  const response = await axiosClient.post<T>(url, data, {
+    headers: {},
+  });
   return response.data;
 };
 

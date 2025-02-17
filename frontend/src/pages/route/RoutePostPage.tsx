@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import routeService from "../../services/routeService";
 
 function RoutePostPage() {
   const [routeName, setRouteName] = useState("");
@@ -19,118 +20,164 @@ function RoutePostPage() {
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-
-    const formData = new FormData();
-    formData.append("routeName", routeName);
-    formData.append("userId", userId);
-    formData.append("description", description);
-    // 태그 입력 값을 콤마로 구분하여 배열 형태로 변환한 후 JSON 문자열로 전송
-    formData.append("tag", JSON.stringify(tag.split(",").map((t) => t.trim())));
-    formData.append("region", region);
-    formData.append("distanceType", distanceType);
-    formData.append("altitudeType", altitudeType);
-    formData.append("roadType", roadType);
-    if (selectedFile) {
-      formData.append("file", selectedFile);
+    console.log(123);
+    // 파일이 필수인 경우, 파일 선택 여부를 확인합니다.
+    if (!selectedFile) {
+      alert("Please select a file.");
+      return;
     }
 
+    // 백엔드 RoutePostRequestDTO 스펙에 맞게 데이터 구성 (userId는 number로 변환)
+    const payload = {
+      routeData: JSON.stringify({
+        routeName,
+        userId: Number(userId),
+        description,
+        tag: tag.split(",").map((t) => t.trim()),
+        region,
+        distanceType,
+        altitudeType,
+        roadType,
+      }),
+      file: selectedFile,
+    };
+
     try {
-      const response = await fetch("/api/route", {
-        method: "POST",
-        body: formData,
-      });
-      if (response.ok) {
-        alert("Route posted successfully!");
-      } else {
-        alert("Failed to post route");
-      }
+      await routeService.createRoute(payload);
+      alert("Route posted successfully!");
     } catch (error) {
       console.error("Error posting route:", error);
-      alert("Error occurred");
+      alert("Failed to post route");
     }
   };
 
   return (
-    <div>
-      <h1>Post a Route</h1>
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label>Route Name:</label>
-          <input
-            type="text"
-            value={routeName}
-            onChange={(e) => setRouteName(e.target.value)}
-            required
-          />
+    <div className="flex justify-center items-center bg-base-200">
+      <div className="card w-full max-w-lg shadow-xl bg-base-100">
+        <div className="card-body">
+          <h1 className="text-2xl font-bold mb-4 text-center">Post a Route</h1>
+          <form onSubmit={handleSubmit} noValidate>
+            <div className="form-control mb-4">
+              <label className="label">
+                <span className="label-text">Route Name:</span>
+              </label>
+              <input
+                type="text"
+                placeholder="Route Name"
+                value={routeName}
+                onChange={(e) => setRouteName(e.target.value)}
+                className="input input-bordered"
+                required
+              />
+            </div>
+            <div className="form-control mb-4">
+              <label className="label">
+                <span className="label-text">User ID:</span>
+              </label>
+              <input
+                type="number"
+                placeholder="User ID"
+                value={userId}
+                onChange={(e) => setUserId(e.target.value)}
+                className="input input-bordered"
+                required
+              />
+            </div>
+            <div className="form-control mb-4">
+              <label className="label">
+                <span className="label-text">Description:</span>
+              </label>
+              <textarea
+                placeholder="Description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                className="textarea textarea-bordered"
+                required
+              />
+            </div>
+            <div className="form-control mb-4">
+              <label className="label">
+                <span className="label-text">Tag (콤마로 구분):</span>
+              </label>
+              <input
+                type="text"
+                placeholder="Tags (comma separated)"
+                value={tag}
+                onChange={(e) => setTag(e.target.value)}
+                className="input input-bordered"
+                required
+              />
+            </div>
+            <div className="form-control mb-4">
+              <label className="label">
+                <span className="label-text">Region:</span>
+              </label>
+              <input
+                type="text"
+                placeholder="Region"
+                value={region}
+                onChange={(e) => setRegion(e.target.value)}
+                className="input input-bordered"
+                required
+              />
+            </div>
+            <div className="form-control mb-4">
+              <label className="label">
+                <span className="label-text">Distance Type:</span>
+              </label>
+              <input
+                type="text"
+                placeholder="Distance Type"
+                value={distanceType}
+                onChange={(e) => setDistanceType(e.target.value)}
+                className="input input-bordered"
+                required
+              />
+            </div>
+            <div className="form-control mb-4">
+              <label className="label">
+                <span className="label-text">Altitude Type:</span>
+              </label>
+              <input
+                type="text"
+                placeholder="Altitude Type"
+                value={altitudeType}
+                onChange={(e) => setAltitudeType(e.target.value)}
+                className="input input-bordered"
+                required
+              />
+            </div>
+            <div className="form-control mb-4">
+              <label className="label">
+                <span className="label-text">Road Type:</span>
+              </label>
+              <input
+                type="text"
+                placeholder="Road Type"
+                value={roadType}
+                onChange={(e) => setRoadType(e.target.value)}
+                className="input input-bordered"
+                required
+              />
+            </div>
+            <div className="form-control mb-4">
+              <label className="label">
+                <span className="label-text">File:</span>
+              </label>
+              <input
+                type="file"
+                onChange={handleFileChange}
+                className="file-input file-input-bordered w-full"
+              />
+            </div>
+            <div className="form-control mt-6">
+              <button type="submit" className="btn btn-primary">
+                Submit
+              </button>
+            </div>
+          </form>
         </div>
-        <div>
-          <label>User ID:</label>
-          <input
-            type="number"
-            value={userId}
-            onChange={(e) => setUserId(e.target.value)}
-            required
-          />
-        </div>
-        <div>
-          <label>Description:</label>
-          <textarea
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            required
-          />
-        </div>
-        <div>
-          <label>Tag (콤마로 구분):</label>
-          <input
-            type="text"
-            value={tag}
-            onChange={(e) => setTag(e.target.value)}
-            required
-          />
-        </div>
-        <div>
-          <label>Region:</label>
-          <input
-            type="text"
-            value={region}
-            onChange={(e) => setRegion(e.target.value)}
-            required
-          />
-        </div>
-        <div>
-          <label>Distance Type:</label>
-          <input
-            type="text"
-            value={distanceType}
-            onChange={(e) => setDistanceType(e.target.value)}
-            required
-          />
-        </div>
-        <div>
-          <label>Altitude Type:</label>
-          <input
-            type="text"
-            value={altitudeType}
-            onChange={(e) => setAltitudeType(e.target.value)}
-            required
-          />
-        </div>
-        <div>
-          <label>Road Type:</label>
-          <input
-            type="text"
-            value={roadType}
-            onChange={(e) => setRoadType(e.target.value)}
-            required
-          />
-        </div>
-        <div>
-          <label>File:</label>
-          <input type="file" onChange={handleFileChange} />
-        </div>
-        <button type="submit">Submit</button>
-      </form>
+      </div>
     </div>
   );
 }

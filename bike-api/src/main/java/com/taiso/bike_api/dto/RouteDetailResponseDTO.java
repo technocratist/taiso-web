@@ -11,7 +11,7 @@ import lombok.Setter;
 @Builder
 public class RouteDetailResponseDTO {
     private Long routeId;
-    private Integer routeImgId;
+    private String routeImgId;
     private Long userId;
     private String routeName;
     private String description;

@@ -117,13 +117,15 @@ public class RouteEntity {
     }
 
     public enum DistanceType {
-        킬로미터,
-        마일
+        단거리,
+        중거리,
+        장거리
     }
 
     public enum AltitudeType {
-        미터,
-        피트
+        낮음,
+        중간,
+        높음
     }
 
     public enum RoadType {

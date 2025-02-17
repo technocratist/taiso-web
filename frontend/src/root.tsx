@@ -2,7 +2,7 @@ import { Outlet } from "react-router";
 
 function Root() {
   return (
-    <div className="flex flex-col items-center justify-center h-screen">
+    <div className="flex flex-col items-center justify-center">
       <Outlet />
     </div>
   );

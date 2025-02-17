@@ -32,6 +32,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
@@ -70,6 +71,9 @@ public class RouteCreateService {
     @Autowired
     private S3Service s3Service;
 
+    @Autowired
+    private UserService userService;
+
     @Value("${naver.api.key.id}")
     private String naverApiKeyId;
     @Value("${naver.api.key.key}")
@@ -77,9 +81,11 @@ public class RouteCreateService {
 
 
     // 메타데이터(JSON)와 파일(Multipart/form-data)로부터 루트를 생성하는 메서드
-    public RoutePostResponseDTO createRoute(RoutePostRequestDTO dto, MultipartFile file) {
+    public RoutePostResponseDTO createRoute(RoutePostRequestDTO dto, MultipartFile file, Authentication authentication) {
         // 실행 시간 측정을 시작
         long startTime = System.currentTimeMillis();
+
+        Long userId = userService.getUserIdByEmail(authentication.getName());
         
         // 파일 확장자 검증: gpx 또는 tcx 파일만 지원
         String originalFilename = file.getOriginalFilename();
@@ -97,7 +103,7 @@ public class RouteCreateService {
         }
         
         // GPX 파일 S3 업로드
-        String gpxFileKey = s3Service.uploadFile(file, dto.getUserId());
+        String gpxFileKey = s3Service.uploadFile(file, userId);
         System.out.println("GPX 파일 S3 업로드 완료, Key: " + gpxFileKey);
         String gpxFileUrl = s3Service.generatePresignedUrl(gpxFileKey, Duration.ofMinutes(10));
         System.out.println("GPX 파일 프리사인 URL: " + gpxFileUrl);
@@ -118,7 +124,7 @@ public class RouteCreateService {
         RouteEntity route = RouteEntity.builder()
                 .routeName(dto.getRouteName())
                 .description(dto.getDescription())
-                .userId(dto.getUserId())
+                .userId(userId)
                 .region(convertRegion(dto.getRegion()))
                 .distance(gpxData.getDistance())
                 .altitude(gpxData.getAltitude())
@@ -420,8 +426,9 @@ public class RouteCreateService {
     // 예시: 입력이 "단거리"이면 킬로미터, "장거리"이면 마일로 변환
     private RouteEntity.DistanceType convertDistanceType(String type) {
         return switch (type) {
-            case "단거리" -> RouteEntity.DistanceType.킬로미터;
-            case "장거리" -> RouteEntity.DistanceType.마일;
+            case "단거리" -> RouteEntity.DistanceType.단거리;
+            case "중거리" -> RouteEntity.DistanceType.중거리;
+            case "장거리" -> RouteEntity.DistanceType.장거리;
             default -> throw new UnsupportedEnumException("지원하지 않는 거리 유형");
         };
     }
@@ -429,8 +436,9 @@ public class RouteCreateService {
     // 예시: 입력이 "평지"이면 미터, "고지"이면 피트로 변환
     private RouteEntity.AltitudeType convertAltitudeType(String type) {
         return switch (type) {
-            case "평지" -> RouteEntity.AltitudeType.미터;
-            case "고지" -> RouteEntity.AltitudeType.피트;
+            case "낮음" -> RouteEntity.AltitudeType.낮음;
+            case "중간" -> RouteEntity.AltitudeType.중간;
+            case "높음" -> RouteEntity.AltitudeType.높음;
             default -> throw new UnsupportedEnumException("지원하지 않는 고도 유형");
         };
     }

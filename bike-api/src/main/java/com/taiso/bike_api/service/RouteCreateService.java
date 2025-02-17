@@ -54,14 +54,12 @@ import com.taiso.bike_api.repository.RoutePointRepository;
 import com.taiso.bike_api.repository.RouteRepository;
 import com.taiso.bike_api.repository.RouteTagCategoryRepository;
 
-
-
 @Service
 public class RouteCreateService {
 
     @Autowired
     private RouteRepository routeRepository;
-    
+
     @Autowired
     private RouteTagCategoryRepository routeTagCategoryRepository;
 
@@ -73,16 +71,16 @@ public class RouteCreateService {
     @Value("${naver.api.key.key}")
     private String naverApiKey;
 
-
     // 메타데이터(JSON)와 파일(Multipart/form-data)로부터 루트를 생성하는 메서드
     public RoutePostResponseDTO createRoute(RoutePostRequestDTO dto, MultipartFile file) {
         // 실행 시간 측정을 시작
         long startTime = System.currentTimeMillis();
-        
+
         // 파일 확장자 검증: gpx 또는 tcx 파일만 지원
         String originalFilename = file.getOriginalFilename();
-        if (originalFilename == null || 
-            (!originalFilename.toLowerCase().endsWith(".gpx") && !originalFilename.toLowerCase().endsWith(".tcx"))) {
+        if (originalFilename == null ||
+                (!originalFilename.toLowerCase().endsWith(".gpx")
+                        && !originalFilename.toLowerCase().endsWith(".tcx"))) {
             throw new InvalidFileExtensionException("지원하지 않는 파일 타입");
         }
 
@@ -90,25 +88,25 @@ public class RouteCreateService {
         GPXData gpxData;
         try {
             gpxData = parseGPXFile(file); // 실제 파싱 로직 구현
-        } catch(Exception e) {
+        } catch (Exception e) {
             throw new InvalidFileExtensionException("파일 파싱 중 오류가 발생하였습니다. 파일이 손상되었거나 올바른 형식이 아닙니다");
         }
-        
+
         // 파일을 클라우드 버킷에 업로드 (시뮬레이션)
         Integer uploadedFileId = uploadFileToCloud(file);
-        
+
         // 외부 API를 호출하여 정적 지도 이미지를 생성하고 클라우드에 저장 (시뮬레이션)
         Integer staticMapImgId = generateStaticMapImage(dto, gpxData);
-        
+
         // 태그 문자열을 태그 엔티티로 처리 (기존 태그가 있으면 사용, 없으면 새로 생성)
         Set<RouteTagCategoryEntity> tags = dto.getTag().stream().map(tagName -> {
             return routeTagCategoryRepository.findByName(tagName)
-                .orElseGet(() -> {
-                    RouteTagCategoryEntity newTag = RouteTagCategoryEntity.builder().name(tagName).build();
-                    return routeTagCategoryRepository.save(newTag);
-                });
+                    .orElseGet(() -> {
+                        RouteTagCategoryEntity newTag = RouteTagCategoryEntity.builder().name(tagName).build();
+                        return routeTagCategoryRepository.save(newTag);
+                    });
         }).collect(Collectors.toSet());
-        
+
         // DTO의 필드와 파싱한 파일 데이터를 이용하여 RouteEntity 객체로 매핑
         RouteEntity route = RouteEntity.builder()
                 .routeName(dto.getRouteName())
@@ -127,26 +125,26 @@ public class RouteCreateService {
 
         RouteEntity savedRoute = routeRepository.save(route);
         saveRoutePoints(savedRoute, gpxData.getRoutePoints());
-        
+
         // 실행 시간 측정 종료 및 출력
         long endTime = System.currentTimeMillis();
         System.out.println("--------------------------------");
         System.out.println("createRoute 실행 시간: " + (endTime - startTime) + " ms");
         System.out.println("--------------------------------");
-        
+
         RoutePostResponseDTO response = new RoutePostResponseDTO();
         response.setRouteId(savedRoute.getRouteId());
         return response;
     }
-    
+
     // 더미 구현: GPX/TCX 파일을 파싱하여 필요한 정보를 추출하는 메서드
     private GPXData parseGPXFile(MultipartFile file) throws Exception {
         String originalFilename = file.getOriginalFilename();
         boolean isGPX = originalFilename != null && originalFilename.toLowerCase().endsWith(".gpx");
         boolean isTCX = originalFilename != null && originalFilename.toLowerCase().endsWith(".tcx");
-        
+
         List<GPXRoutePoint> points = new ArrayList<>();
-        
+
         // XXE 공격을 방지하기 위한 안전한 XML 파싱 설정
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
@@ -155,11 +153,11 @@ public class RouteCreateService {
         factory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
         factory.setXIncludeAware(false);
         factory.setExpandEntityReferences(false);
-        
+
         DocumentBuilder builder = factory.newDocumentBuilder();
         Document doc = builder.parse(file.getInputStream());
         doc.getDocumentElement().normalize();
-        
+
         if (isGPX) {
             // GPX 트랙 포인트 파싱: <trkpt lat="..." lon="..."> 태그를 기대
             NodeList trkptList = doc.getElementsByTagName("trkpt");
@@ -174,7 +172,7 @@ public class RouteCreateService {
                     String lonStr = trkptElement.getAttribute("lon");
                     BigDecimal lat = new BigDecimal(latStr);
                     BigDecimal lon = new BigDecimal(lonStr);
-                    
+
                     // 고도 정보 파싱 (존재할 경우)
                     BigDecimal elevation = BigDecimal.ZERO;
                     NodeList eleList = trkptElement.getElementsByTagName("ele");
@@ -183,7 +181,7 @@ public class RouteCreateService {
                         String eleStr = eleElement.getTextContent();
                         elevation = new BigDecimal(eleStr);
                     }
-                    
+
                     // 시간 정보 파싱 (존재할 경우)
                     LocalDateTime pointTime = LocalDateTime.now();
                     NodeList timeList = trkptElement.getElementsByTagName("time");
@@ -196,7 +194,7 @@ public class RouteCreateService {
                         }
                         pointTime = LocalDateTime.parse(timeStr);
                     }
-                    
+
                     points.add(new GPXRoutePoint(lat, lon, elevation, pointTime));
                 }
             }
@@ -206,7 +204,7 @@ public class RouteCreateService {
         } else {
             throw new InvalidFileExtensionException("지원하지 않는 파일 형식");
         }
-        
+
         // 파싱된 경로 포인트를 이용하여 총 거리와 고도 상승량 계산
         BigDecimal totalDistance = BigDecimal.ZERO;
         BigDecimal totalAltitude = BigDecimal.ZERO;
@@ -221,13 +219,13 @@ public class RouteCreateService {
                 double dLat = Math.toRadians(lat2 - lat1);
                 double dLon = Math.toRadians(lon2 - lon1);
                 double a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                           Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) *
-                           Math.sin(dLon / 2) * Math.sin(dLon / 2);
+                        Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) *
+                                Math.sin(dLon / 2) * Math.sin(dLon / 2);
                 double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
                 double distanceMeters = earthRadius * c;
                 BigDecimal distanceKm = new BigDecimal(distanceMeters).divide(new BigDecimal(1000));
                 totalDistance = totalDistance.add(distanceKm);
-                
+
                 // 이전 고도와 비교하여 양수 차이가 있을 때만 고도 상승량에 추가
                 BigDecimal diff = point.getElevation().subtract(prev.getElevation());
                 if (diff.compareTo(BigDecimal.ZERO) > 0) {
@@ -236,16 +234,16 @@ public class RouteCreateService {
             }
             prev = point;
         }
-        
+
         return new GPXData(totalDistance, totalAltitude, points);
     }
-    
+
     // 더미 메서드: 파일 업로드를 시뮬레이션하고 파일 식별자를 반환
     private Integer uploadFileToCloud(MultipartFile file) {
         // TODO: 클라우드 버킷으로 파일 업로드 구현
         return 1; // 더미 파일 ID
     }
-    
+
     /**
      * 네이버 정적 지도 API로부터 지도 이미지를 받아 GPX 경로를 합성한 후,
      * 로컬 파일 시스템에 저장하고 결과 ID(더미)를 반환합니다.
@@ -267,10 +265,14 @@ public class RouteCreateService {
             for (GPXRoutePoint pt : points) {
                 double lat = pt.getLatitude().doubleValue();
                 double lng = pt.getLongitude().doubleValue();
-                if (lat < minLat) minLat = lat;
-                if (lat > maxLat) maxLat = lat;
-                if (lng < minLng) minLng = lng;
-                if (lng > maxLng) maxLng = lng;
+                if (lat < minLat)
+                    minLat = lat;
+                if (lat > maxLat)
+                    maxLat = lat;
+                if (lng < minLng)
+                    minLng = lng;
+                if (lng > maxLng)
+                    maxLng = lng;
             }
 
             // 3. 바운딩 박스의 중심 좌표 계산
@@ -282,13 +284,13 @@ public class RouteCreateService {
 
             // 5. 네이버 정적 지도 API URL 구성 (base 크기와 scaleFactor 사용)
             String url = "https://naveropenapi.apigw.ntruss.com/map-static/v2/raster" +
-                         "?w=" + baseWidth +
-                         "&h=" + baseHeight +
-                         "&center=" + centerLng + "," + centerLat +
-                         "&level=" + zoom +
-                         "&maptype=basic" +
-                         "&format=png" +
-                         "&scale=" + scaleFactor;
+                    "?w=" + baseWidth +
+                    "&h=" + baseHeight +
+                    "&center=" + centerLng + "," + centerLat +
+                    "&level=" + zoom +
+                    "&maptype=basic" +
+                    "&format=png" +
+                    "&scale=" + scaleFactor;
 
             // 6. RestTemplate 및 헤더 설정 (API 키는 실제 값으로 대체)
             RestTemplate restTemplate = new RestTemplate();
@@ -299,7 +301,8 @@ public class RouteCreateService {
 
             ResponseEntity<byte[]> response = restTemplate.exchange(url, HttpMethod.GET, entity, byte[].class);
             if (response.getStatusCode() != HttpStatus.OK) {
-                throw new StaticMapImageFetchException("정적 지도 이미지를 가져오지 못했습니다. (상태 코드: " + response.getStatusCode() + ")");
+                throw new StaticMapImageFetchException(
+                        "정적 지도 이미지를 가져오지 못했습니다. (상태 코드: " + response.getStatusCode() + ")");
             }
             byte[] imageBytes = response.getBody();
             if (imageBytes == null) {
@@ -328,8 +331,7 @@ public class RouteCreateService {
                         pt.getLatitude().doubleValue(),
                         pt.getLongitude().doubleValue(),
                         centerLat, centerLng,
-                        actualWidth, actualHeight, zoom, scaleFactor
-                );
+                        actualWidth, actualHeight, zoom, scaleFactor);
                 // 지도 중앙을 기준으로 오프셋에 alpha를 곱해 축소
                 int adjustedX = centerX + (int) Math.round((pixel.x - centerX) * alpha);
                 int adjustedY = centerY + (int) Math.round((pixel.y - centerY) * alpha);
@@ -358,7 +360,8 @@ public class RouteCreateService {
     /**
      * GPX 경로의 바운딩 박스를 기반으로, Web Mercator 방식을 활용해 적절한 zoom 레벨을 계산합니다.
      */
-    private int computeZoom(double minLat, double minLng, double maxLat, double maxLng, int imageWidth, int imageHeight) {
+    private int computeZoom(double minLat, double minLng, double maxLat, double maxLng, int imageWidth,
+            int imageHeight) {
         double tileSize = 256;
 
         // 경도 차이 계산 (국제 날짜 변경선 보정)
@@ -383,7 +386,7 @@ public class RouteCreateService {
         double zoomY = Math.log(imageHeight / (tileSize * diffY)) / Math.log(2);
 
         int zoom = (int) Math.floor(Math.min(zoomX, zoomY));
-        zoom = Math.max(0, Math.min(zoom, 19)) ;
+        zoom = Math.max(0, Math.min(zoom, 19));
         return zoom;
     }
 
@@ -394,7 +397,7 @@ public class RouteCreateService {
      * zoom과 scaleFactor는 static map API 요청 시 사용한 값입니다.
      */
     private java.awt.Point convertGeoToPixel(double lat, double lng, double centerLat, double centerLng,
-                                               int imageWidth, int imageHeight, int zoom, int scaleFactor) {
+            int imageWidth, int imageHeight, int zoom, int scaleFactor) {
         CRSFactory crsFactory = new CRSFactory();
         CoordinateReferenceSystem crsWGS84 = crsFactory.createFromName("EPSG:4326");
         CoordinateReferenceSystem crs3857 = crsFactory.createFromName("EPSG:3857");
@@ -418,6 +421,7 @@ public class RouteCreateService {
 
         return new java.awt.Point(pixelX, pixelY);
     }
+
     /**
      * 합성된 이미지를 로컬 파일 시스템에 저장하는 더미 메서드.
      */
@@ -446,7 +450,7 @@ public class RouteCreateService {
             throw new StaticMapImageFetchException("이미지 로컬 저장 중 오류: " + e.getMessage());
         }
     }
-    
+
     // enum 타입 변환 도우미 메서드 (예시 매핑 로직 포함)
     private RouteEntity.Region convertRegion(String region) {
         try {
@@ -455,7 +459,7 @@ public class RouteCreateService {
             throw new UnsupportedEnumException("지원하지 않는 지역 유형");
         }
     }
-    
+
     // 예시: 입력이 "단거리"이면 킬로미터, "장거리"이면 마일로 변환
     private RouteEntity.DistanceType convertDistanceType(String type) {
         return switch (type) {
@@ -464,7 +468,7 @@ public class RouteCreateService {
             default -> throw new UnsupportedEnumException("지원하지 않는 거리 유형");
         };
     }
-    
+
     // 예시: 입력이 "평지"이면 미터, "고지"이면 피트로 변환
     private RouteEntity.AltitudeType convertAltitudeType(String type) {
         return switch (type) {
@@ -473,7 +477,7 @@ public class RouteCreateService {
             default -> throw new UnsupportedEnumException("지원하지 않는 고도 유형");
         };
     }
-    
+
     // 도로 유형에 대한 예시 변환: 예를 들어 "자전거 도로"는 평지로, "산길"은 산길, "고속도로"는 고속도로로 매핑
     private RouteEntity.RoadType convertRoadType(String type) {
         return switch (type) {
@@ -483,27 +487,27 @@ public class RouteCreateService {
             default -> throw new UnsupportedEnumException("지원하지 않는 도로 유형");
         };
     }
-    
+
     // 내부 더미 클래스: 파싱된 GPX 데이터를 저장하는 클래스
     private static class GPXData {
         private final BigDecimal distance;
         private final BigDecimal altitude;
         private final List<GPXRoutePoint> routePoints;
-        
+
         public GPXData(BigDecimal distance, BigDecimal altitude, List<GPXRoutePoint> routePoints) {
             this.distance = distance;
             this.altitude = altitude;
             this.routePoints = routePoints;
         }
-        
+
         public BigDecimal getDistance() {
             return distance;
         }
-        
+
         public BigDecimal getAltitude() {
             return altitude;
         }
-        
+
         public List<GPXRoutePoint> getRoutePoints() {
             return routePoints;
         }
@@ -515,7 +519,7 @@ public class RouteCreateService {
         private final BigDecimal latitude;
         private final BigDecimal longitude;
         private final BigDecimal elevation;
-        
+
         public GPXRoutePoint(BigDecimal latitude, BigDecimal longitude, BigDecimal elevation, LocalDateTime time) {
             this.latitude = latitude;
             this.longitude = longitude;

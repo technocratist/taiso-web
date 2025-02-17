@@ -4,6 +4,8 @@ import java.time.LocalDateTime;
 
 import org.hibernate.annotations.CreationTimestamp;
 
+import com.taiso.bike_api.dto.RouteLikeDTO;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -48,4 +50,14 @@ public class RouteLikeEntity {
     @CreationTimestamp
     @Column(name = "liked_at", nullable = false, updatable = false)
     private LocalDateTime likedAt;
+    
+    
+    public static RouteLikeEntity toEntity(RouteEntity route, UserEntity user) {
+    	return RouteLikeEntity.builder()
+    			
+    			.route(route)
+    			.user(user)
+    			
+    			.build();
+    }
 }

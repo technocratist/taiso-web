@@ -19,7 +19,7 @@ public class TestController {
 
     @GetMapping("/api/test")
     @Operation(summary = "인증 테스트", description = "인증 테스트 API")
-    public TestResponseDTO test(Authentication authentication) {    
+    public TestResponseDTO test(Authentication authentication) {
         log.info("TestController.test() 호출됨");
         // 인증 정보 출력
         System.out.println("authentication: " + authentication);

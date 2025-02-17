@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import routeService from "../../services/routeService";
+import usePost from "../../hooks/usePost";
+import { useNavigate } from "react-router";
 
 function RoutePostPage() {
   const [routeName, setRouteName] = useState("");
@@ -11,6 +13,12 @@ function RoutePostPage() {
   const [altitudeType, setAltitudeType] = useState("");
   const [roadType, setRoadType] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const navigate = useNavigate();
+
+  // usePost 훅에서 반환하는 executePost 함수를 사용합니다.
+  const { executePost, data, loading, error } = usePost(
+    routeService.createRoute
+  );
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -20,7 +28,6 @@ function RoutePostPage() {
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    console.log(123);
     // 파일이 필수인 경우, 파일 선택 여부를 확인합니다.
     if (!selectedFile) {
       alert("Please select a file.");
@@ -43,8 +50,8 @@ function RoutePostPage() {
     };
 
     try {
-      await routeService.createRoute(payload);
-      alert("Route posted successfully!");
+      await executePost(payload);
+      navigate("/");
     } catch (error) {
       console.error("Error posting route:", error);
       alert("Failed to post route");
@@ -178,6 +185,12 @@ function RoutePostPage() {
           </form>
         </div>
       </div>
+      {/* 로딩 오버레이 */}
+      {loading && (
+        <div className="absolute inset-0 z-50 flex justify-center items-center bg-gray-500 bg-opacity-50">
+          <span className="loading loading-spinner loading-lg"></span>
+        </div>
+      )}
     </div>
   );
 }

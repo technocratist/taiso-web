@@ -3,12 +3,16 @@ import authService, {
   RegisterRequest,
   RegisterResponse,
 } from "../services/authService";
+import { useAuthStore } from "../stores/useAuthStore";
+import { useNavigate } from "react-router";
 
 function RegisterForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [passwordConfirm, setPasswordConfirm] = useState("");
   const [error, setError] = useState("");
+  const { setUser } = useAuthStore();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -19,8 +23,14 @@ function RegisterForm() {
     };
     try {
       const response: RegisterResponse = await authService.register(payload);
-    } catch (error) {
-      setError("회원가입에 실패했습니다.");
+      setUser({ email: response.email });
+      navigate("/");
+    } catch (error: any) {
+      if (error.response && error.response.status === 409) {
+        setError("이미 등록된 이메일입니다.");
+      } else {
+        setError("회원가입에 실패했습니다.");
+      }
     }
   };
 

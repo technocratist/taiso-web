@@ -65,8 +65,13 @@ public class AuthController {
     
         // 응답 헤더에 쿠키 추가
         response.addCookie(jwtCookie);
+
+        LoginResponseDTO loginResponseDTO = new LoginResponseDTO();
+        loginResponseDTO.setUserEmail(authentication.getName());
+        loginResponseDTO.setUserId(userService.getUserIdByEmail(authentication.getName()));
+
     
-        return ResponseEntity.status(HttpStatus.OK).build();
+        return ResponseEntity.status(HttpStatus.OK).body(loginResponseDTO);
     }
 
     // 회원가입

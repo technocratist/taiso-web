@@ -20,5 +20,7 @@ public class UserDetailResponseDTO {
     private String bio;
     private byte[] profileImg;
     private byte[] backgroundImg;
+    private String level;
+    private String gender;
 
 }

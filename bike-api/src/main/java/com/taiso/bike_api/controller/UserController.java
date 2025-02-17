@@ -24,29 +24,29 @@ public class UserController {
 
     @PostMapping("/me/details")
     @Operation(summary = "내 페이지 정보 수정", description = "상세 프로필 페이지 정보 수정")
-    public ResponseEntity<UserDetailResponseDTO> updateUserDetail(@RequestBody UserDetailRequestDTO userDetailRequestDTO
-                                                                , @RequestPart("profileImg") MultipartFile profileImg
-                                                                , @RequestPart("backgroundImg") MultipartFile backgroundImg
+    public ResponseEntity<UserDetailResponseDTO> updateUserDetail(@RequestPart(value = "userDetailData") UserDetailRequestDTO userDetailRequestDTO
+                                                                , @RequestPart(value = "profileImg", required = false) MultipartFile profileImg
+                                                                , @RequestPart(value = "backgroundImg", required = false) MultipartFile backgroundImg
                                                                 , HttpServletResponse httpServletResponse){
 
-        log.info(userDetailRequestDTO.toString());
+        log.info("로직 시작 : {}", userDetailRequestDTO.toString());
+        log.info("profileImg : {}",profileImg.getOriginalFilename());
+        log.info("backgroundImg : {}",backgroundImg.getOriginalFilename());
 
         // 파일Id를 포함한 DTO를 DB로 보내 저장
         userDetailService.updateUserDetail(userDetailRequestDTO, profileImg, backgroundImg);
 
         //return ResponseEntity.status(201).build();
         return ResponseEntity.status(HttpStatus.CREATED).body(null);
-
     }
 
-    @GetMapping("/me/details")
+    @GetMapping("/{userId}")
     @Operation(summary = "내 페이지 정보 조회", description = "회원 프로필 페이지 정보 조회")
-    public ResponseEntity<UserDetailResponseDTO> getUserDetail(@RequestParam Long userId
-                                                             , HttpServletResponse httpServletResponse) {
+    public ResponseEntity<UserDetailResponseDTO> getUserDetail(@PathVariable Long userId) {
 
+        log.info(userId.toString());
         // 찾아온 데이터를 담기
-        UserDetailResponseDTO userDetailResponseDTO = userDetailService.getUserDetail(userId);
-
+        UserDetailResponseDTO userDetailResponseDTO = userDetailService.getUserDetailById(userId);
         log.info(userDetailResponseDTO.toString());
 
         return ResponseEntity.status(HttpStatus.CREATED).body(userDetailResponseDTO);

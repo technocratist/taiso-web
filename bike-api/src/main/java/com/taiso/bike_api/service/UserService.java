@@ -65,7 +65,7 @@ public class UserService {
                     .build();
             userDetailRepository.save(userDetail);
 
-            return new RegisterResponseDTO(savedUser.getUserId(), savedUser.getEmail(), "회원가입 성공");
+            return new RegisterResponseDTO(savedUser.getUserId(), savedUser.getEmail());
         } catch (DataIntegrityViolationException e) {
             throw new EmailAlreadyExistsException("이미 사용 중인 이메일입니다.");
         }

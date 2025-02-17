@@ -3,6 +3,7 @@ package com.taiso.bike_api.service;
 import com.taiso.bike_api.domain.UserDetailEntity;
 import com.taiso.bike_api.dto.UserDetailRequestDTO;
 import com.taiso.bike_api.dto.UserDetailResponseDTO;
+import com.taiso.bike_api.exception.InvalidFileExtensionException;
 import com.taiso.bike_api.repository.UserDetailRepository;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
@@ -13,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.services.s3.S3Client;
 
 import java.security.PrivateKey;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 @Slf4j
@@ -25,56 +27,107 @@ public class UserDetailService {
     @Autowired
     private UserDetailRepository userDetailRepository;
 
-    //이미지를 S3에 저장하기
+    //이미지를 S3에 저장하기 + 정보 업데이트
     @Transactional
-    public void updateUserDetail (UserDetailRequestDTO userDetailRequestDTO,MultipartFile profileImg, MultipartFile backgroundImg) {
+    public void updateUserDetail (UserDetailRequestDTO userDetailRequestDTO,
+                                  MultipartFile profileImg,
+                                  MultipartFile backgroundImg) {
 
-        log.info(userDetailRequestDTO.toString());
+        // 입력값 오류 처리
+        if (userDetailRequestDTO == null || userDetailRequestDTO.getUserId() <= 0) {
+            throw new IllegalArgumentException(userDetailRequestDTO.getUserId() + " 값은 올바르지 않음");
+        }
 
-        //이미지 파일 저장 + Id 발급
-        String profileImgId = s3Service.uploadFile(profileImg,userDetailRequestDTO.getUserId());
-        String backgroundImgId = s3Service.uploadFile(backgroundImg,userDetailRequestDTO.getUserId());
+        log.info("저장전 : {}", userDetailRequestDTO.toString());
+        log.info("profileImg : {}",profileImg.getOriginalFilename());
+        log.info("backgroundImg : {}",backgroundImg.getOriginalFilename());
 
-        //이미지 Id 삽입
-        userDetailRequestDTO.setProfileImg(profileImgId);
-        userDetailRequestDTO.setBackgroundImg(backgroundImgId);
+        // profileImg null 체크
+        if (profileImg != null && !profileImg.isEmpty()) {
 
-        log.info(userDetailRequestDTO.toString());
+            // 들어온 파일 존재 여부 및 확장자 확인
+            String originalFilename = profileImg.getOriginalFilename();
+            if (originalFilename == null ||
+                    (!originalFilename.toLowerCase().endsWith(".jpg") && !originalFilename.toLowerCase().endsWith(".png") && !originalFilename.toLowerCase().endsWith(".jpeg"))) {
+                throw new InvalidFileExtensionException("지원하지 않는 파일 타입");
+            }
 
-        //Entity에 저장
-        UserDetailEntity userDetailEntity = UserDetailEntity.builder().build();
+            // null&확장자 확인되면 S3에 업로드 후 DB에 저장할 Id 생성
+            String profileImgId = s3Service.uploadFile(profileImg, userDetailRequestDTO.getUserId());
+            // 프로필 이미지 Id 업데이트
+            userDetailRequestDTO.setProfileImg(profileImgId);
+        } else {
+            log.info("프로필 이미지는 null이거나 빈 파일이므로 업데이트하지 않고 기존 DTO의 값 사용");
+        }
 
-        log.info(userDetailEntity.toString());
+        // backgroundImg null 체크
+        if (backgroundImg != null && !backgroundImg.isEmpty()) {
 
-        //DB 저장
-        userDetailRepository.save(userDetailEntity);
+            // 들어온 파일 존재 여부 및 확장자 확인
+            String originalFilename = backgroundImg.getOriginalFilename();
+            if (originalFilename == null ||
+                    (!originalFilename.toLowerCase().endsWith(".jpg") && !originalFilename.toLowerCase().endsWith(".png") && !originalFilename.toLowerCase().endsWith(".jpeg"))) {
+                throw new InvalidFileExtensionException("지원하지 않는 파일 타입");
+            }
+
+            // null&확장자 확인되면 S3에 업로드 후 DB에 저장할 Id 생성
+            String backgroundImgId = s3Service.uploadFile(backgroundImg, userDetailRequestDTO.getUserId());
+            // 배경 이미지 Id 업데이트
+            userDetailRequestDTO.setBackgroundImg(backgroundImgId);
+        } else {
+            log.info("배경 이미지는 null이거나 빈 파일이므로 업데이트하지 않고 기존 DTO의 값 사용");
+        }
+
+        log.info("저장 직전 : {}",userDetailRequestDTO.toString());
+
+        //userId로 업데이트할 데이터 DB에서 찾아오기
+        Optional<UserDetailEntity> temp = userDetailRepository.findById(userDetailRequestDTO.getUserId());
+        //존재하는지 체크
+        if(!temp.isPresent()) {
+            throw new NoSuchElementException("존재하지 않는 사용자");
+        }
+        UserDetailEntity entity = temp.get();
+
+        // 업데이트
+        entity.setUserNickname(userDetailRequestDTO.getUserNickname());
+        entity.setUserProfileImg(userDetailRequestDTO.getProfileImg());
+        entity.setUserBackgroundImg(userDetailRequestDTO.getBackgroundImg());
 
         //종료하기
         s3Service.close();
     }
 
-    //S3에서 이미지를 불러오기
+
+    //S3에서 이미지를 불러오기 + 정보 불러오기
     @Transactional
-    public UserDetailResponseDTO getUserDetail (Long userId) {
+    public UserDetailResponseDTO getUserDetailById (Long userId) {
+
+        if (userId == null || userId <= 0) {
+            throw new IllegalArgumentException(userId + " 값은 올바르지 않음");
+        }
 
         //userDetailId로 해당 값 찾기
-        Optional<UserDetailEntity> userDetail = userDetailRepository.findById(userId);
+        Optional<UserDetailEntity> temp = userDetailRepository.findById(userId);
+        // 데이터가 존재하지 않으면 예외 던지기
+        if(!temp.isPresent()) {
+            throw new NoSuchElementException("존재하지 않는 데이터");
+        }
+        UserDetailEntity userDetail = temp.get();
 
-        //존재하면 파일 찾아오기
+        // 파일 찾아오기
+        byte[] profieImg = s3Service.getFile(userDetail.getUserProfileImg());
+        byte[] backgroundImg = s3Service.getFile(userDetail.getUserBackgroundImg());
+
+
         UserDetailResponseDTO userDetailResponseDTO = null;
-        if (userDetail.isPresent()) {
-            byte[] profieImg = s3Service.getFile(userDetail.get().getUserProfileImg());
-            byte[] backgroundImg = s3Service.getFile(userDetail.get().getUserBackgroundImg());
-
             //Entity -> DTO 로 builder
             userDetailResponseDTO = UserDetailResponseDTO.builder()
-                    .userId(userDetail.get().getUserId())
-                    .userNickname(userDetail.get().getUserNickname())
-                    .bio(userDetail.get().getBio())
+                    .userId(userDetail.getUserId())
+                    .userNickname(userDetail.getUserNickname())
+                    .bio(userDetail.getBio())
                     .profileImg(profieImg)
                     .backgroundImg(backgroundImg)
                     .build();
-        }
 
         //종료하기
         s3Service.close();

@@ -3,11 +3,15 @@ import authService, {
   LoginRequest,
   LoginResponse,
 } from "../services/authService";
+import { useAuthStore } from "../stores/useAuthStore";
+import { useNavigate } from "react-router";
 
 function LoginForm() {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [error, setError] = useState<string>("");
+  const { setUser } = useAuthStore();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -20,6 +24,8 @@ function LoginForm() {
     try {
       const response: LoginResponse = await authService.login(payload);
       console.log(response);
+      setUser({ email: response.userEmail });
+      navigate("/");
     } catch (error) {
       setError("로그인 실패");
     }

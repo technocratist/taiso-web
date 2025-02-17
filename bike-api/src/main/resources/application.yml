@@ -27,7 +27,7 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: true
+    show-sql: false
     # 스키마 생성 후에 data.sql 스크립트 실행
     defer-datasource-initialization: true
 

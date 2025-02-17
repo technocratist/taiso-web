@@ -1,3 +1,4 @@
+import { get } from "../api/request";
 import { post } from "../api/request";
 
 export interface LoginRequest {
@@ -7,7 +8,7 @@ export interface LoginRequest {
 
 export interface LoginResponse {
   userId: number;
-  email: string;
+  userEmail: string;
 }
 
 export interface RegisterRequest {
@@ -20,8 +21,16 @@ export interface RegisterResponse {
   email: string;
 }
 
+export interface AuthTestResponse {
+  message: string;
+  timestamp: string;
+  status: string;
+}
+
 const login = async (payload: LoginRequest): Promise<LoginResponse> => {
-  return await post("/auth/login", payload);
+  const response: LoginResponse = await post("/auth/login", payload);
+  console.log(response);
+  return response;
 };
 
 const register = async (
@@ -31,11 +40,16 @@ const register = async (
 };
 
 const logout = async (): Promise<void> => {
-  return await post("/auth/logout");
+  return await post("/auth/logout", {});
+};
+
+const authTest = async (): Promise<AuthTestResponse> => {
+  return await get("/test");
 };
 
 export default {
   login,
   register,
   logout,
+  authTest,
 };

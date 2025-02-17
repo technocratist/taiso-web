@@ -1,23 +1,24 @@
 package com.taiso.bike_api.service;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.time.Duration;
-import java.util.UUID;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
+import software.amazon.awssdk.services.s3.model.S3Object;
+import java.io.IOException;
+import java.io.InputStream;
+import java.time.Duration;
+import java.util.UUID;
 
 @Service
 public class S3Service {
@@ -63,7 +64,6 @@ public class S3Service {
                         .contentType(file.getContentType())
                         .build(), RequestBody.fromInputStream(inputStream, file.getSize()));
             }
-
             return fileKey; // S3에 저장된 파일 키 반환
 
         } catch (IOException e) {
@@ -81,6 +81,26 @@ public class S3Service {
         return key;
     }
 
+    // 파일 불러오기(다운로드)
+    public byte[] getFile(String fileName) {
+        try {
+            // S3에서 파일 다운로드 요청 생성
+            GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+                    .bucket(bucket)  // 설정 파일에서 주입된 버킷 사용
+                    .key(fileName)   // S3에서 다운로드할 파일 이름
+                    .build();
+
+            // S3에서 파일 읽기 (바이트 배열로 반환) v2 사용
+            ResponseInputStream<GetObjectResponse> s3Object = s3Client.getObject(getObjectRequest);
+            // 파일을 byte[] 형식으로 반환
+            return s3Object.readAllBytes();
+
+        } catch (IOException e) {
+            throw new RuntimeException("파일 다운로드 실패", e);
+        }
+    }
+
+    // S3Client 종료하기
     public void close() {
         s3Client.close();
     }

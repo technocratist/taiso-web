@@ -18,8 +18,8 @@ public class UserDetailResponseDTO {
     private Long userId;
     private String userNickname;
     private String bio;
-    private byte[] profileImg;
-    private byte[] backgroundImg;
+    private String profileImg;
+    private String backgroundImg;
     private String level;
     private String gender;
 

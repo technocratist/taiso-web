@@ -123,19 +123,14 @@ public class UserDetailService {
         }
         UserDetailEntity userDetail = temp.get();
 
-        // 파일 찾아오기
-        byte[] profieImg = s3Service.getFile(userDetail.getUserProfileImg());
-        byte[] backgroundImg = s3Service.getFile(userDetail.getUserBackgroundImg());
-
-
         UserDetailResponseDTO userDetailResponseDTO = null;
             //Entity -> DTO 로 builder
             userDetailResponseDTO = UserDetailResponseDTO.builder()
                     .userId(userDetail.getUserId())
                     .userNickname(userDetail.getUserNickname())
                     .bio(userDetail.getBio())
-                    .profileImg(profieImg)
-                    .backgroundImg(backgroundImg)
+                    .profileImg(userDetail.getUserProfileImg())
+                    .backgroundImg(userDetail.getUserBackgroundImg())
                     .build();
 
         //종료하기

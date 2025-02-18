@@ -1,5 +1,9 @@
 package com.taiso.bike_api.controller;
 
+
+import java.util.HashMap;
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,7 +19,9 @@ import com.taiso.bike_api.dto.LoginRequestDTO;
 import com.taiso.bike_api.dto.LoginResponseDTO;
 import com.taiso.bike_api.dto.RegisterRequestDTO;
 import com.taiso.bike_api.dto.RegisterResponseDTO;
+import com.taiso.bike_api.exception.KakaoAuthenticationException;
 import com.taiso.bike_api.security.JwtTokenProvider;
+import com.taiso.bike_api.service.AuthService;
 import com.taiso.bike_api.service.UserService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -40,7 +46,10 @@ public class AuthController {
     
     // 주입된 MemberService를 통해 회원가입을 처리
     @Autowired
-    private UserService userService;        
+    private UserService userService;
+    
+    @Autowired
+    private AuthService authService;
     
     // 로그인
     @PostMapping("/login")
@@ -104,14 +113,47 @@ public class AuthController {
     public ResponseEntity<Void> logout(HttpServletResponse response) {
         // 클라이언트 측 JWT 쿠키 삭제
         Cookie jwtCookie = new Cookie("jwt", null);
-        jwtCookie.setHttpOnly(true);      // 자바스크립트 접근 불가
-        jwtCookie.setSecure(true);        // HTTPS 환경에서만 전송
-        jwtCookie.setPath("/");           // 모든 경로에서 쿠키 접근 허용
-        jwtCookie.setMaxAge(0);           // 0초: 즉시 삭제하도록 설정
+        jwtCookie.setHttpOnly(true); // 자바스크립트 접근 불가
+        jwtCookie.setSecure(true); // HTTPS 환경에서만 전송
+        jwtCookie.setPath("/"); // 모든 경로에서 쿠키 접근 허용
+        jwtCookie.setMaxAge(0); // 0초: 즉시 삭제하도록 설정
         response.addCookie(jwtCookie);
-        
+
         log.info("User logged out: JWT cookie cleared");
         return ResponseEntity.noContent().build(); // 204 No Content 반환
     }
+    
+    /**
+     * 프론트엔드에서 인가 코드(code)를 POST로 전달하면
+     * 카카오 인증 및 JWT 발급을 수행하고 JWT를 반환함.
+     */
+    @PostMapping("/kakao")
+    public ResponseEntity<?> kakaoLogin(@RequestBody Map<String, String> body, HttpServletResponse response) {
+        String code = body.get("code");
+        if (code == null) {
+            return ResponseEntity.badRequest().body("Missing code parameter");
+        }
+        try {
+            // processKakaoLogin 메서드로 토큰 생성
+            String jwtToken = authService.processKakaoLogin(code);
+            // JWT를 HttpOnly, Secure 쿠키에 저장 (코드 내 다른 엔드포인트와 동일한 쿠키 옵션)
+            Cookie jwtCookie = new Cookie("jwt", jwtToken);
+            jwtCookie.setHttpOnly(true);      
+            jwtCookie.setSecure(true);        
+            jwtCookie.setPath("/");
+            jwtCookie.setMaxAge(60 * 10); // 예: 10분 유효
+            response.addCookie(jwtCookie);
+
+            // 성공 메시지를 반환 (토큰은 쿠키에 저장됨)
+            Map<String, String> result = new HashMap<>();
+            result.put("message", "Kakao login successful");
+            return ResponseEntity.ok(result);
+        } catch (KakaoAuthenticationException ex) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ex.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal server error");
+        }
+    }
+
 
 }

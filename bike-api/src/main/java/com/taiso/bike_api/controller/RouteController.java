@@ -4,8 +4,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -14,17 +14,10 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.taiso.bike_api.domain.RouteEntity;
 import com.taiso.bike_api.dto.RouteDetailResponseDTO;
 import com.taiso.bike_api.dto.RouteLikePostResponseDTO;
 import com.taiso.bike_api.dto.RoutePostRequestDTO;
 import com.taiso.bike_api.dto.RoutePostResponseDTO;
-import com.taiso.bike_api.exception.RouteLikeAlreadyExistsException;
-import com.taiso.bike_api.exception.RouteLikeNotFoundException;
-import com.taiso.bike_api.exception.RouteNotFoundException;
-import com.taiso.bike_api.repository.RouteLikeRepository;
-import com.taiso.bike_api.repository.RouteRepository;
-import com.taiso.bike_api.repository.UserRepository;
 import com.taiso.bike_api.service.RouteCreateService;
 import com.taiso.bike_api.service.RouteDeleteService;
 import com.taiso.bike_api.service.RouteService;
@@ -41,18 +34,6 @@ public class RouteController {
 
     @Autowired
     private RouteService routeService;
-    
-    // 루트 좋아요 레파지토리
-    @Autowired
-    private RouteLikeRepository routeLikeRepository;
-
-    // 루트 좋아요 레파지토리
-    @Autowired
-    private RouteRepository routeRepository;  
-    // 루트 좋아요 레파지토리
-    @Autowired
-    private UserRepository userRepository;     
-    
     
     @Autowired
     private RouteCreateService routeCreateService;
@@ -89,26 +70,11 @@ public class RouteController {
     		@PathVariable(name = "routeId") Long routeId,
     		Authentication authentication
     		){
-    	
-    	
-        RouteEntity routeEntity = routeRepository.findById(routeId)
-                .orElseThrow(() -> new RouteNotFoundException("루트를 찾을 수 없습니다."));
-    	
 
-    	Long userId = userRepository.findByEmail(authentication.getName()).get().getUserId();
-        boolean alreadyLiked = routeLikeRepository.existsByUser_UserIdAndRoute_RouteId(userId, routeId);
-        if (alreadyLiked) {
-            throw new RouteLikeNotFoundException("이미 해당 루트를 좋아요했습니다.");
-        }   	
-    	
-    	
-
-		// 좋아요 저장
-		routeService.save(authentication, routeId);
-    	// 정보 출력
+		// service -> 좋아요 저장
+		routeService.PostRouteLike(authentication, routeId);
+		
     	return ResponseEntity.status(HttpStatus.CREATED).body(null);
-	    	
-
     }
 
     
@@ -119,13 +85,10 @@ public class RouteController {
     		@PathVariable(name = "routeId") Long routeId,
     		Authentication authentication
     		) {
-
-    	log.info("유저 authentication: {}", authentication.getName());
     	
     	// service -> 삭제 기능
-    	routeService.delete(routeId, authentication);
+    	routeService.RouteLikeDelete(routeId, authentication);
     	
-    	// 정보 출력
     	return ResponseEntity.status(HttpStatus.NO_CONTENT).body(null);
     }
 

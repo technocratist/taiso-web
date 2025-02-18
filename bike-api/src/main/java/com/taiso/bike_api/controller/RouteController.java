@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -17,6 +18,7 @@ import com.taiso.bike_api.dto.RouteDetailResponseDTO;
 import com.taiso.bike_api.dto.RoutePostRequestDTO;
 import com.taiso.bike_api.dto.RoutePostResponseDTO;
 import com.taiso.bike_api.service.RouteCreateService;
+import com.taiso.bike_api.service.RouteDeleteService;
 import com.taiso.bike_api.service.RouteService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -34,6 +36,9 @@ public class RouteController {
 
     @Autowired
     private RouteCreateService routeCreateService;
+
+    @Autowired
+    private RouteDeleteService routeDeleteService;
 
     @GetMapping("/{routeId}")
     @Operation(summary = "루트 디테일 조회", description = "루트 디테일 조회하는 API")
@@ -56,8 +61,13 @@ public class RouteController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    @DeleteMapping("/{routeId}")
+    public ResponseEntity<Void> deleteRoute(@PathVariable("routeId") Long routeId) {
 
+        routeDeleteService.deleteRoute(routeId);
 
+        return ResponseEntity.noContent().build();
+    }
 }
 
 

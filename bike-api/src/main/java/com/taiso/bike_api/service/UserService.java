@@ -83,7 +83,7 @@ public class UserService {
         } else {
             throw new UserNotFoundException("User not found");
         }
-
-
     }
+
+    
 } 

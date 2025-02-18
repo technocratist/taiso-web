@@ -26,8 +26,8 @@ const OAuthCallback: React.FC = () => {
   }, [location, navigate]);
 
   return (
-    <div>
-      <p>로그인 중입니다...</p>
+    <div className="flex flex-col items-center justify-center h-screen">
+      <span className="bg-blue-700 loading loading-dots loading-lg"></span>
     </div>
   );
 };

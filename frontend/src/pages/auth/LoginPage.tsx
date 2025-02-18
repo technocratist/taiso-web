@@ -1,15 +1,10 @@
 import LoginForm from "../../components/LoginForm";
-import authService from "../../services/authService";
 
 function LoginPage() {
-  const handleAuthTest = async () => {
-    const response = await authService.authTest();
-    console.log(response);
-  };
   return (
-    <div>
+    <div className="flex flex-col items-center justify-center h-screen">
+      <div className="text-4xl font-bold mb-8">Taiso</div>
       <LoginForm />
-      <button onClick={handleAuthTest}>테스트</button>
     </div>
   );
 }

@@ -7,7 +7,11 @@ function AuthRoute() {
   if (isAuthenticated) {
     return <Navigate to="/" />;
   }
-  return <Outlet />;
+  return (
+    <>
+      <Outlet />
+    </>
+  );
 }
 
 export default AuthRoute;

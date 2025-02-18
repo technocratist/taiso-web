@@ -87,8 +87,8 @@ public class S3Service {
         try {
             // S3에서 파일 다운로드 요청 생성
             GetObjectRequest getObjectRequest = GetObjectRequest.builder()
-                    .bucket(bucket)  // 설정 파일에서 주입된 버킷 사용
-                    .key(fileName)   // S3에서 다운로드할 파일 이름
+                    .bucket(bucket) // 설정 파일에서 주입된 버킷 사용
+                    .key(fileName) // S3에서 다운로드할 파일 이름
                     .build();
 
             // S3에서 파일 읽기 (바이트 배열로 반환) v2 사용
@@ -113,20 +113,20 @@ public class S3Service {
                 .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create(accessKey, secretKey)))
                 .build()) {
             GetObjectRequest getObjectRequest = GetObjectRequest.builder()
-                .bucket(bucket)
-                .key(objectKey)
-                .build();
+                    .bucket(bucket)
+                    .key(objectKey)
+                    .build();
 
             GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
-                .signatureDuration(duration)
-                .getObjectRequest(getObjectRequest)
-                .build();
+                    .signatureDuration(duration)
+                    .getObjectRequest(getObjectRequest)
+                    .build();
 
             return presigner.presignGetObject(presignRequest).url().toString();
         }
     }
 
-//    public String getFileUrl(String fileKey) {
-//        return "https://" + bucket + ".s3.amazonaws.com/" + fileKey;
-//    }
+    // public String getFileUrl(String fileKey) {
+    // return "https://" + bucket + ".s3.amazonaws.com/" + fileKey;
+    // }
 }

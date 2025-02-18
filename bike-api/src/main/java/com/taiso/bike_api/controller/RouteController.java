@@ -1,10 +1,12 @@
 package com.taiso.bike_api.controller;
 
+import com.taiso.bike_api.dto.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,10 +18,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.taiso.bike_api.domain.RouteEntity;
-import com.taiso.bike_api.dto.RouteDetailResponseDTO;
-import com.taiso.bike_api.dto.RouteLikePostResponseDTO;
-import com.taiso.bike_api.dto.RoutePostRequestDTO;
-import com.taiso.bike_api.dto.RoutePostResponseDTO;
 import com.taiso.bike_api.exception.RouteLikeAlreadyExistsException;
 import com.taiso.bike_api.exception.RouteLikeNotFoundException;
 import com.taiso.bike_api.exception.RouteNotFoundException;
@@ -131,6 +129,7 @@ public class RouteController {
     }
 
     @DeleteMapping("/{routeId}")
+    @Operation(summary = "루트 삭제", description = "루트를 업로드한 유저가 루트를 삭제하는 API")
     public ResponseEntity<Void> deleteRoute(
         @PathVariable("routeId") Long routeId
         , @AuthenticationPrincipal String userEmail) {
@@ -139,6 +138,28 @@ public class RouteController {
 
         return ResponseEntity.noContent().build();
 
+    }
+
+    @GetMapping("/")
+    @Operation(summary = "루트 리스트 조회", description = "루트를 페이징하여 리스트로 불러오는 API")
+    public ResponseEntity<RouteListResponseDTO> getUsers(
+                                                    //필터정보 null 가능
+                                                    @RequestParam(defaultValue = "") String sort,
+                                                    @RequestParam(defaultValue = "") String distanceType,
+                                                    @RequestParam(defaultValue = "") String altitudeType,
+                                                    @RequestParam(defaultValue = "") String roadType,
+                                                    @RequestParam(defaultValue = "") String[] Tag) {
+
+        // 여기서 page, size의 변수값 수정으로 페이징 컨트롤 가능
+        int page = 1;
+        int size = 10;
+
+        // 루트 데이터들을 페이징된 형태로 불러옴
+        RouteListResponseDTO routeListResponseDTO = routeService.getRouteList(page, size);
+
+        log.info("보내기 직전 : {}",routeListResponseDTO);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(routeListResponseDTO);
     }
 }
 

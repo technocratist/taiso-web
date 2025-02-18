@@ -48,4 +48,14 @@ public class RouteLikeEntity {
     @CreationTimestamp
     @Column(name = "liked_at", nullable = false, updatable = false)
     private LocalDateTime likedAt;
+    
+    
+    public static RouteLikeEntity toEntity(RouteEntity route, UserEntity user) {
+    	return RouteLikeEntity.builder()
+    			
+    			.route(route)
+    			.user(user)
+    			
+    			.build();
+    }
 }

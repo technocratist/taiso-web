@@ -47,9 +47,14 @@ const authTest = async (): Promise<AuthTestResponse> => {
   return await get("/test");
 };
 
+const kakaoLogin = async (code: string): Promise<string> => {
+  return await post("/auth/kakao", { code });
+};
+
 export default {
   login,
   register,
   logout,
   authTest,
+  kakaoLogin,
 };

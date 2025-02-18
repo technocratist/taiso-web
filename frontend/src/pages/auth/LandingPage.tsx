@@ -1,7 +1,9 @@
 import { Link } from "react-router-dom";
 
 function LandingPage() {
-  const KAKAO_AUTH_URL = `https://kauth.kakao.com/oauth/authorize?client_id=31c2e0a2025d6447f459a1c9e4f9ae00&redirect_uri=http://localhost:3000/auth/login/kakao&response_type=code`;
+  const KAKAO_AUTH_URL = `https://kauth.kakao.com/oauth/authorize?client_id=${
+    import.meta.env.VITE_KAKAO_CLIENT_ID
+  }&redirect_uri=http://localhost:3000/oauth/callback&response_type=code`;
 
   const handleKakaoLogin = () => {
     window.location.href = KAKAO_AUTH_URL;

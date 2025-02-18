@@ -1,7 +1,11 @@
 import { Navigate, Outlet } from "react-router-dom";
 import { useAuthStore } from "./stores/useAuthStore";
+import authService from "./services/authService";
 
 function ProtectedRoute() {
+  // 인증 확인
+  authService.authCheck();
+
   const { isAuthenticated } = useAuthStore();
 
   if (!isAuthenticated) {

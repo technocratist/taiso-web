@@ -1,7 +1,6 @@
 package com.taiso.bike_api.controller;
 
 
-import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,11 +14,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.taiso.bike_api.dto.KakaoAuthResultDTO;
 import com.taiso.bike_api.dto.LoginRequestDTO;
 import com.taiso.bike_api.dto.LoginResponseDTO;
 import com.taiso.bike_api.dto.RegisterRequestDTO;
 import com.taiso.bike_api.dto.RegisterResponseDTO;
-import com.taiso.bike_api.exception.KakaoAuthenticationException;
 import com.taiso.bike_api.security.JwtTokenProvider;
 import com.taiso.bike_api.service.AuthService;
 import com.taiso.bike_api.service.UserService;
@@ -128,31 +127,30 @@ public class AuthController {
      * 카카오 인증 및 JWT 발급을 수행하고 JWT를 반환함.
      */
     @PostMapping("/kakao")
-    public ResponseEntity<?> kakaoLogin(@RequestBody Map<String, String> body, HttpServletResponse response) {
+    public ResponseEntity<LoginResponseDTO> kakaoLogin(@RequestBody Map<String, String> body, HttpServletResponse response) {
         String code = body.get("code");
         if (code == null) {
-            return ResponseEntity.badRequest().body("Missing code parameter");
+            return ResponseEntity.badRequest().body(null);
         }
-        try {
-            // processKakaoLogin 메서드로 토큰 생성
-            String jwtToken = authService.processKakaoLogin(code);
-            // JWT를 HttpOnly, Secure 쿠키에 저장 (코드 내 다른 엔드포인트와 동일한 쿠키 옵션)
-            Cookie jwtCookie = new Cookie("jwt", jwtToken);
-            jwtCookie.setHttpOnly(true);      
-            jwtCookie.setSecure(true);        
+        
+            // processKakaoLogin 메서드가 KakaoAuthResultDTO를 리턴하도록 수정되었습니다.
+            KakaoAuthResultDTO result = authService.processKakaoLogin(code);
+            
+            // JWT를 쿠키에 저장
+            Cookie jwtCookie = new Cookie("jwt", result.getJwtToken());
+            jwtCookie.setHttpOnly(true);
+            jwtCookie.setSecure(true);
             jwtCookie.setPath("/");
             jwtCookie.setMaxAge(60 * 10); // 예: 10분 유효
             response.addCookie(jwtCookie);
 
-            // 성공 메시지를 반환 (토큰은 쿠키에 저장됨)
-            Map<String, String> result = new HashMap<>();
-            result.put("message", "Kakao login successful");
-            return ResponseEntity.ok(result);
-        } catch (KakaoAuthenticationException ex) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ex.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal server error");
-        }
+            // LoginResponseDTO를 채워 응답으로 전달
+            LoginResponseDTO loginResponseDTO = new LoginResponseDTO();
+            loginResponseDTO.setUserEmail(result.getUserEmail());
+            loginResponseDTO.setUserId(result.getUserId());
+
+            return ResponseEntity.status(HttpStatus.OK).body(loginResponseDTO);
+
     }
 
 

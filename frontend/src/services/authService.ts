@@ -27,6 +27,11 @@ export interface AuthTestResponse {
   status: string;
 }
 
+export interface KakaoAuthResultDTO {
+  userId: number;
+  userEmail: string;
+}
+
 const login = async (payload: LoginRequest): Promise<LoginResponse> => {
   const response: LoginResponse = await post("/auth/login", payload);
   console.log(response);
@@ -47,7 +52,7 @@ const authTest = async (): Promise<AuthTestResponse> => {
   return await get("/test");
 };
 
-const kakaoLogin = async (code: string): Promise<string> => {
+const kakaoLogin = async (code: string): Promise<KakaoAuthResultDTO> => {
   return await post("/auth/kakao", { code });
 };
 

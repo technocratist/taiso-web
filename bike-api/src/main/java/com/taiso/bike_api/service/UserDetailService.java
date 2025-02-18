@@ -3,7 +3,6 @@ package com.taiso.bike_api.service;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
-import com.taiso.bike_api.exception.InvalidFileExtensionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -16,15 +15,6 @@ import com.taiso.bike_api.repository.UserDetailRepository;
 
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestPart;
-import org.springframework.web.multipart.MultipartFile;
-import software.amazon.awssdk.services.s3.S3Client;
-
-import java.security.PrivateKey;
-import java.util.NoSuchElementException;
-import java.util.Optional;
 
 @Slf4j
 @Service

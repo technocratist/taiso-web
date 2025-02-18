@@ -1,5 +1,8 @@
 package com.taiso.bike_api.controller;
 
+
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -11,11 +14,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.taiso.bike_api.dto.KakaoAuthResultDTO;
 import com.taiso.bike_api.dto.LoginRequestDTO;
 import com.taiso.bike_api.dto.LoginResponseDTO;
 import com.taiso.bike_api.dto.RegisterRequestDTO;
 import com.taiso.bike_api.dto.RegisterResponseDTO;
 import com.taiso.bike_api.security.JwtTokenProvider;
+import com.taiso.bike_api.service.AuthService;
 import com.taiso.bike_api.service.UserService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -40,7 +45,10 @@ public class AuthController {
     
     // 주입된 MemberService를 통해 회원가입을 처리
     @Autowired
-    private UserService userService;        
+    private UserService userService;
+    
+    @Autowired
+    private AuthService authService;
     
     // 로그인
     @PostMapping("/login")
@@ -104,14 +112,46 @@ public class AuthController {
     public ResponseEntity<Void> logout(HttpServletResponse response) {
         // 클라이언트 측 JWT 쿠키 삭제
         Cookie jwtCookie = new Cookie("jwt", null);
-        jwtCookie.setHttpOnly(true);      // 자바스크립트 접근 불가
-        jwtCookie.setSecure(true);        // HTTPS 환경에서만 전송
-        jwtCookie.setPath("/");           // 모든 경로에서 쿠키 접근 허용
-        jwtCookie.setMaxAge(0);           // 0초: 즉시 삭제하도록 설정
+        jwtCookie.setHttpOnly(true); // 자바스크립트 접근 불가
+        jwtCookie.setSecure(true); // HTTPS 환경에서만 전송
+        jwtCookie.setPath("/"); // 모든 경로에서 쿠키 접근 허용
+        jwtCookie.setMaxAge(0); // 0초: 즉시 삭제하도록 설정
         response.addCookie(jwtCookie);
-        
+
         log.info("User logged out: JWT cookie cleared");
         return ResponseEntity.noContent().build(); // 204 No Content 반환
     }
+    
+    /**
+     * 프론트엔드에서 인가 코드(code)를 POST로 전달하면
+     * 카카오 인증 및 JWT 발급을 수행하고 JWT를 반환함.
+     */
+    @PostMapping("/kakao")
+    public ResponseEntity<LoginResponseDTO> kakaoLogin(@RequestBody Map<String, String> body, HttpServletResponse response) {
+        String code = body.get("code");
+        if (code == null) {
+            return ResponseEntity.badRequest().body(null);
+        }
+        
+            // processKakaoLogin 메서드가 KakaoAuthResultDTO를 리턴하도록 수정되었습니다.
+            KakaoAuthResultDTO result = authService.processKakaoLogin(code);
+            
+            // JWT를 쿠키에 저장
+            Cookie jwtCookie = new Cookie("jwt", result.getJwtToken());
+            jwtCookie.setHttpOnly(true);
+            jwtCookie.setSecure(true);
+            jwtCookie.setPath("/");
+            jwtCookie.setMaxAge(60 * 10); // 예: 10분 유효
+            response.addCookie(jwtCookie);
+
+            // LoginResponseDTO를 채워 응답으로 전달
+            LoginResponseDTO loginResponseDTO = new LoginResponseDTO();
+            loginResponseDTO.setUserEmail(result.getUserEmail());
+            loginResponseDTO.setUserId(result.getUserId());
+
+            return ResponseEntity.status(HttpStatus.OK).body(loginResponseDTO);
+
+    }
+
 
 }

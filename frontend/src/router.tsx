@@ -7,9 +7,10 @@ import LoginPage from "./pages/auth/LoginPage";
 import RegisterPage from "./pages/auth/RegisterPage";
 import LandingPage from "./pages/auth/LandingPage";
 import AuthRoute from "./AuthRoute";
-import RouteListPage from "./pages/route/RouteListPage";
 import RoutePostPage from "./pages/route/RoutePostPage";
 import OAuthCallback from "./components/OAuthCallback";
+import RoutePage from "./pages/RoutePage";
+import ClubPage from "./pages/ClubPage";
 
 const router = createBrowserRouter([
   {
@@ -35,9 +36,13 @@ const router = createBrowserRouter([
           {
             path: "route",
             children: [
-              { path: "", element: <RouteListPage /> },
+              { path: "", element: <RoutePage /> },
               { path: "post", element: <RoutePostPage /> },
             ],
+          },
+          {
+            path: "club",
+            children: [{ path: "", element: <ClubPage /> }],
           },
           // 추가적인 인증이 필요한 페이지들을 여기에 추가
         ],

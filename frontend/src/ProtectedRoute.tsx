@@ -1,7 +1,12 @@
 import { Navigate, Outlet } from "react-router-dom";
 import { useAuthStore } from "./stores/useAuthStore";
+import authService from "./services/authService";
+import Navbar from "./components/Navbar";
 
 function ProtectedRoute() {
+  // 인증 확인
+  authService.authCheck();
+
   const { isAuthenticated } = useAuthStore();
 
   if (!isAuthenticated) {
@@ -10,7 +15,12 @@ function ProtectedRoute() {
   }
 
   // 인증된 경우 하위 라우트를 렌더링
-  return <Outlet />;
+  return (
+    <>
+      <Navbar />
+      <Outlet />
+    </>
+  );
 }
 
 export default ProtectedRoute;

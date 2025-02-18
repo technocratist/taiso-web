@@ -1,11 +1,12 @@
 import MainNavbar from "../components/MainNavbar";
 
-function MainPage() {
+function ClubPage() {
   return (
     <div>
       <MainNavbar />
+      club
     </div>
   );
 }
 
-export default MainPage;
+export default ClubPage;

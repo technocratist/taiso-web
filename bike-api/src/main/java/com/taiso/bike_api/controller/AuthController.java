@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -27,6 +28,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 
 
@@ -53,7 +55,7 @@ public class AuthController {
     // 로그인
     @PostMapping("/login")
     @Operation(summary = "로그인", description = "사용자 인증 및 JWT 토큰 발급")
-    public ResponseEntity<LoginResponseDTO> login(@RequestBody LoginRequestDTO loginRequestDTO, HttpServletResponse response) {
+    public ResponseEntity<LoginResponseDTO> login(@Valid @RequestBody LoginRequestDTO loginRequestDTO, HttpServletResponse response) {
         log.info("loginRequestDTO: {}", loginRequestDTO);
         
         // 사용자 인증 수행
@@ -85,7 +87,7 @@ public class AuthController {
     // 회원가입
     @PostMapping("/register")
     @Operation(summary = "회원가입", description = "사용자 회원가입 및 JWT 토큰 발급")
-    public ResponseEntity<RegisterResponseDTO> register(@RequestBody RegisterRequestDTO registerRequestDTO, HttpServletResponse httpServletResponse) {
+    public ResponseEntity<RegisterResponseDTO> register(@Valid @RequestBody RegisterRequestDTO registerRequestDTO, HttpServletResponse httpServletResponse) {
         // 회원가입 처리
         RegisterResponseDTO registerResponseDTO = userService.register(registerRequestDTO);
 
@@ -127,31 +129,45 @@ public class AuthController {
      * 카카오 인증 및 JWT 발급을 수행하고 JWT를 반환함.
      */
     @PostMapping("/kakao")
-    public ResponseEntity<LoginResponseDTO> kakaoLogin(@RequestBody Map<String, String> body, HttpServletResponse response) {
+    @Operation(summary = "카카오 로그인", description = "카카오 인증 및 JWT 발급")
+    public ResponseEntity<LoginResponseDTO> kakaoLogin(@RequestBody Map<String, String> body,
+            HttpServletResponse response) {
         String code = body.get("code");
         if (code == null) {
             return ResponseEntity.badRequest().body(null);
         }
-        
-            // processKakaoLogin 메서드가 KakaoAuthResultDTO를 리턴하도록 수정되었습니다.
-            KakaoAuthResultDTO result = authService.processKakaoLogin(code);
-            
-            // JWT를 쿠키에 저장
-            Cookie jwtCookie = new Cookie("jwt", result.getJwtToken());
-            jwtCookie.setHttpOnly(true);
-            jwtCookie.setSecure(true);
-            jwtCookie.setPath("/");
-            jwtCookie.setMaxAge(60 * 10); // 예: 10분 유효
-            response.addCookie(jwtCookie);
 
-            // LoginResponseDTO를 채워 응답으로 전달
-            LoginResponseDTO loginResponseDTO = new LoginResponseDTO();
-            loginResponseDTO.setUserEmail(result.getUserEmail());
-            loginResponseDTO.setUserId(result.getUserId());
+        // processKakaoLogin 메서드가 KakaoAuthResultDTO를 리턴하도록 수정되었습니다.
+        KakaoAuthResultDTO result = authService.processKakaoLogin(code);
 
-            return ResponseEntity.status(HttpStatus.OK).body(loginResponseDTO);
+        // JWT를 쿠키에 저장
+        Cookie jwtCookie = new Cookie("jwt", result.getJwtToken());
+        jwtCookie.setHttpOnly(true);
+        jwtCookie.setSecure(true);
+        jwtCookie.setPath("/");
+        jwtCookie.setMaxAge(60 * 10); // 예: 10분 유효
+        response.addCookie(jwtCookie);
 
+        // LoginResponseDTO를 채워 응답으로 전달
+        LoginResponseDTO loginResponseDTO = new LoginResponseDTO();
+        loginResponseDTO.setUserEmail(result.getUserEmail());
+        loginResponseDTO.setUserId(result.getUserId());
+
+        return ResponseEntity.status(HttpStatus.OK).body(loginResponseDTO);
+    }    
+
+    /**
+     * 프론트엔드에서 호출하여 인증(로그인) 상태를 확인하는 엔드포인트.
+     * JWT 쿠키를 통해 Spring Security가 인증한 경우, 사용자 정보를 반환한다.
+     */
+    @GetMapping("/me")
+    @Operation(summary = "로그인 상태 확인", description = "JWT 쿠키를 확인하여 로그인 여부 및 사용자 정보를 반환")
+    public ResponseEntity<Void> checkAuth(Authentication authentication) {
+        // authentication 객체가 null 이거나 인증되지 않았다면, 401 응답을 반환
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        return ResponseEntity.status(HttpStatus.OK).body(null);
     }
-
 
 }

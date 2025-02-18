@@ -9,6 +9,7 @@ import LandingPage from "./pages/auth/LandingPage";
 import AuthRoute from "./AuthRoute";
 import RouteListPage from "./pages/route/RouteListPage";
 import RoutePostPage from "./pages/route/RoutePostPage";
+import OAuthCallback from "./components/OAuthCallback";
 
 const router = createBrowserRouter([
   {
@@ -22,6 +23,7 @@ const router = createBrowserRouter([
           { path: "landing", element: <LandingPage /> },
           { path: "login", element: <LoginPage /> },
           { path: "register", element: <RegisterPage /> },
+          { path: "oauth/callback", element: <OAuthCallback /> },
         ],
       },
       // 로그인 후에만 접근 가능한 페이지들

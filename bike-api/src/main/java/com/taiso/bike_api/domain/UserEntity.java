@@ -35,7 +35,8 @@ public class UserEntity {
     @Column(name = "user_id")
     private Long userId;
 
-    @Column(nullable = false)
+    //TODO: 비밀번호 필요 여부 확인
+    @Column(nullable = true)
     private String password;
 
     @Column(nullable = false, unique = true)
@@ -56,6 +57,9 @@ public class UserEntity {
     @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
+
+    @Column(name = "provider")
+    private String provider;
 
 
 }

@@ -5,7 +5,6 @@ import org.springframework.stereotype.Service;
 
 import com.taiso.bike_api.domain.RouteEntity;
 import com.taiso.bike_api.exception.RouteNotFoundException;
-import com.taiso.bike_api.repository.RoutePointRepository;
 import com.taiso.bike_api.repository.RouteRepository;
 
 @Service
@@ -14,8 +13,7 @@ public class RouteDeleteService {
     @Autowired
     private RouteRepository routeRepository;
 
-    @Autowired
-    private RoutePointRepository routePointRepository;
+
 
     public void deleteRoute(Long routeId) {
         // routeId 유효성 검사

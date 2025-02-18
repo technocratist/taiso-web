@@ -4,7 +4,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import com.taiso.bike_api.dto.RouteListResponseDTO;
+import com.taiso.bike_api.dto.RouteResponseDTO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
@@ -161,5 +166,48 @@ public class RouteService {
 		routeEntity.get().setLikeCount( routeEntity.get().getLikeCount() -1 );
 	}
 
+	public RouteListResponseDTO getRouteList (int page, int size) {
+
+		// 정의된 페이징 박스
+		Pageable pageable = PageRequest.of(page, size);
+		// route를 모두 불러옴
+		Page<RouteEntity> routePage = routeRepository.findAll(pageable);
+
+		log.info("repository에서 담아온 데이터 : {}", routePage);
+
+		// map()을 이용해 각 Entity를 DTO로 변환
+		List<RouteResponseDTO> routeResponseDTO = routePage.getContent().stream()
+				.map(route -> new RouteResponseDTO(
+						route.getRouteId(),
+						route.getRouteImgId(),
+						route.getUserId(),
+						route.getRouteName(),
+						route.getDescription(),
+						route.getLikeCount(),
+						route.getTags().stream()
+								.map(RouteTagCategoryEntity::getName)  // `tagName`을 추출해서 List<String>으로 변환
+								.collect(Collectors.toList()),  // 선택적 필드 (null일 수 있음)
+						route.getDistance().floatValue(),       // 선택적 필드 (null일 수 있음)
+						route.getAltitude().floatValue(),       // 선택적 필드 (null일 수 있음)
+						route.getDistanceType().toString(),     // 선택적 필드 (null일 수 있음)
+						route.getAltitudeType().toString(),     // 선택적 필드 (null일 수 있음)
+						route.getRoadType().toString(),         // 선택적 필드 (null일 수 있음)
+						route.getCreatedAt() != null ? route.getCreatedAt().toString() : null,  // 날짜 포맷 (null 체크)
+						route.getFileName()
+//						route.getFileType().toString()			// 선택적 필드 (null일 수 있음)
+				))
+				.collect(Collectors.toList());
+
+		log.info("서비스에서 나가기 직전 리스트 : {}",routeResponseDTO);
+
+		return RouteListResponseDTO.builder()
+				.content(routeResponseDTO)
+				.pageNo(routePage.getNumber() + 1) // 페이지 번호는 1부터 시작하는 것이 일반적
+				.pageSize(routePage.getSize())
+				.totalElements(routePage.getTotalElements())
+				.totalPages(routePage.getTotalPages())
+				.last(routePage.isLast())
+				.build();
+	}
 
 }

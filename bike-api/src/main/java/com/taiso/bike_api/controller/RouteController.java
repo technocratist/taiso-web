@@ -4,8 +4,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -26,6 +26,7 @@ import com.taiso.bike_api.repository.RouteLikeRepository;
 import com.taiso.bike_api.repository.RouteRepository;
 import com.taiso.bike_api.repository.UserRepository;
 import com.taiso.bike_api.service.RouteCreateService;
+import com.taiso.bike_api.service.RouteDeleteService;
 import com.taiso.bike_api.service.RouteService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -56,7 +57,11 @@ public class RouteController {
     @Autowired
     private RouteCreateService routeCreateService;
 
+    @Autowired
+    private RouteDeleteService routeDeleteService;
+
     @GetMapping("/{routeId}")
+    @Operation(summary = "루트 디테일 조회", description = "루트 디테일 조회하는 API")
     public ResponseEntity<RouteDetailResponseDTO> getRoute(@PathVariable Long routeId) {
         RouteDetailResponseDTO route = routeService.getRouteById(routeId);
         return ResponseEntity.status(HttpStatus.OK).body(route);
@@ -66,13 +71,13 @@ public class RouteController {
     @Operation(summary = "루트 생성", description = "루트를 생성하는 API")
     public ResponseEntity<RoutePostResponseDTO> createRoute(
             @RequestPart(value = "routeData") RoutePostRequestDTO routeData,
-            @RequestPart(value = "file") MultipartFile file) {
+            @RequestPart(value = "file") MultipartFile file, Authentication authentication) {
 
         log.info("RouteController.createRoute() 호출됨");
         log.info("routeData: {}", routeData);
         log.info("file: {}", file);
 
-        RoutePostResponseDTO response = routeCreateService.createRoute(routeData, file);
+        RoutePostResponseDTO response = routeCreateService.createRoute(routeData, file, authentication);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
@@ -122,6 +127,15 @@ public class RouteController {
     	
     	// 정보 출력
     	return ResponseEntity.status(HttpStatus.NO_CONTENT).body(null);
+    }
+
+    @DeleteMapping("/{routeId}")
+    public ResponseEntity<Void> deleteRoute(@PathVariable("routeId") Long routeId) {
+
+        routeDeleteService.deleteRoute(routeId);
+
+        return ResponseEntity.noContent().build();
+
     }
 }
 

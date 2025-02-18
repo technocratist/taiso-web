@@ -22,7 +22,7 @@ public class TestController {
     public TestResponseDTO test(Authentication authentication) {
         log.info("TestController.test() 호출됨");
         // 인증 정보 출력
-        System.out.println("authentication: " + authentication);
+        System.out.println("authentication: " + authentication.getName());
         return new TestResponseDTO(authentication.getName(), LocalDateTime.now().toString(), "success");
     }
 }

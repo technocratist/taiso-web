@@ -3,6 +3,10 @@ spring:
     name: bike-api
   profiles:
     active: dev
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
 
 # ----------------------------
 # 개발 환경(dev) 설정
@@ -23,7 +27,7 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: true
+    show-sql: false
     # 스키마 생성 후에 data.sql 스크립트 실행
     defer-datasource-initialization: true
 

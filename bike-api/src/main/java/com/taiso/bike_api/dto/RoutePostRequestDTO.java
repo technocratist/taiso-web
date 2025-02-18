@@ -12,9 +12,6 @@ public class RoutePostRequestDTO {
     @NotBlank
     private String routeName;
     
-    @NotNull
-    private Long userId;
-    
     @NotBlank
     private String description; // Note: using "description" over "discription"
     

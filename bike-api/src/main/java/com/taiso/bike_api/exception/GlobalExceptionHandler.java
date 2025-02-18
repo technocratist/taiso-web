@@ -12,9 +12,18 @@ import com.taiso.bike_api.dto.ErrorResponseDTO;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.NoSuchElementException;
+
 @RestControllerAdvice
 @Slf4j
 public class GlobalExceptionHandler {
+
+    // BD에 존재하지 않는 데이터 예외 처리
+    @ExceptionHandler(NoSuchElementException.class)
+    public ResponseEntity<ErrorResponseDTO> handleNoSuchElementException(NoSuchElementException ex, HttpServletRequest request) {
+        ErrorResponseDTO errorResponse = ErrorResponseDTO.makeErrorResponse(ex.getMessage(), HttpStatus.NOT_FOUND, request.getRequestURI());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+    }
 
     // 루트 예외 처리
     @ExceptionHandler(RouteNotFoundException.class)
@@ -93,6 +102,14 @@ public class GlobalExceptionHandler {
                              .body(errorResponse); 
     }
 
+    // 사용자 예외 처리
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<ErrorResponseDTO> handleUserNotFoundException(UserNotFoundException ex, HttpServletRequest request) {
+        log.error("UserNotFoundException: ", ex);
+        ErrorResponseDTO errorResponse = ErrorResponseDTO.makeErrorResponse(ex.getMessage(), HttpStatus.NOT_FOUND, request.getRequestURI());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+    }
+
     // 기타 예외 처리 (선택 사항)
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponseDTO> handleGenericException(Exception ex, HttpServletRequest request) {
@@ -103,21 +120,6 @@ public class GlobalExceptionHandler {
                 .body(errorResponse);
     }
     
-    // 루트 좋아요 찾을 수 없음
-    @ExceptionHandler(RouteLikeNotFoundException.class)
-    public ResponseEntity<ErrorResponseDTO> handleRouteLikeNotFoundException(RouteLikeNotFoundException ex, HttpServletRequest request) {
-        ErrorResponseDTO errorResponse = ErrorResponseDTO.makeErrorResponse(ex.getMessage(), HttpStatus.NOT_FOUND, request.getRequestURI());
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
-    }
-
-    // 루트 좋아요 이미 있음 
-    @ExceptionHandler(RouteLikeAlreadyExistsException.class)
-    public ResponseEntity<ErrorResponseDTO> handleRouteLikeNotFoundException(RouteLikeAlreadyExistsException ex, HttpServletRequest request) {
-       log.error("EmailAlreadyExistsException: ", ex);
-   	
-        ErrorResponseDTO errorResponse = ErrorResponseDTO.makeErrorResponse(ex.getMessage(), HttpStatus.CONFLICT, request.getRequestURI());
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
-    }		
 	
     
 }

@@ -4,6 +4,7 @@ package com.taiso.bike_api.domain;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.hibernate.annotations.CreationTimestamp;
@@ -21,6 +22,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -48,8 +50,8 @@ public class RouteEntity {
     @Column(name = "description", length = 1000)
     private String description;
 
-    @Column(name = "route_img_id")
-    private Integer routeImgId;
+    @Column(name = "route_img_id", length = 1000)
+    private String routeImgId;
 
     // route의 소유자(작성자)의 user_id(외래키)는 단순 값으로 관리하거나 별도의 연관관계를 설정할 수 있습니다.
     @Column(name = "user_id", nullable = false)
@@ -105,6 +107,9 @@ public class RouteEntity {
     @Builder.Default
     private Set<RouteTagCategoryEntity> tags = new HashSet<>();
 
+    @OneToMany(mappedBy = "route", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<RoutePointEntity> routePoints;
+
     public enum Region {
         서울,
         경기,
@@ -117,13 +122,15 @@ public class RouteEntity {
     }
 
     public enum DistanceType {
-        킬로미터,
-        마일
+        단거리,
+        중거리,
+        장거리
     }
 
     public enum AltitudeType {
-        미터,
-        피트
+        낮음,
+        중간,
+        높음
     }
 
     public enum RoadType {

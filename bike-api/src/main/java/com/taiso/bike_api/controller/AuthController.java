@@ -65,8 +65,13 @@ public class AuthController {
     
         // 응답 헤더에 쿠키 추가
         response.addCookie(jwtCookie);
+
+        LoginResponseDTO loginResponseDTO = new LoginResponseDTO();
+        loginResponseDTO.setUserEmail(authentication.getName());
+        loginResponseDTO.setUserId(userService.getUserIdByEmail(authentication.getName()));
+
     
-        return ResponseEntity.status(HttpStatus.OK).build();
+        return ResponseEntity.status(HttpStatus.OK).body(loginResponseDTO);
     }
 
     // 회원가입
@@ -75,6 +80,8 @@ public class AuthController {
     public ResponseEntity<RegisterResponseDTO> register(@RequestBody RegisterRequestDTO registerRequestDTO, HttpServletResponse httpServletResponse) {
         // 회원가입 처리
         RegisterResponseDTO registerResponseDTO = userService.register(registerRequestDTO);
+
+
 
         // 가입된 사용자의 이메일을 기반으로 JWT 토큰 발급
         String jwt = jwtTokenProvider.generateToken(registerResponseDTO.getEmail());

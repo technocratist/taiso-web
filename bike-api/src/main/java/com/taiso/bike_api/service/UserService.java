@@ -12,6 +12,7 @@ import com.taiso.bike_api.domain.UserEntity;
 import com.taiso.bike_api.dto.RegisterRequestDTO;
 import com.taiso.bike_api.dto.RegisterResponseDTO;
 import com.taiso.bike_api.exception.EmailAlreadyExistsException;
+import com.taiso.bike_api.exception.UserNotFoundException;
 import com.taiso.bike_api.repository.UserDetailRepository;
 import com.taiso.bike_api.repository.UserRepository;
 import com.taiso.bike_api.repository.UserRoleRepository;
@@ -47,14 +48,16 @@ public class UserService {
 
         // MemberEntity 생성 (roleId=1, statusId=1 은 기본값으로 설정)
         UserEntity user = UserEntity.builder()
-            .email(dto.getEmail())
-            .password(passwordEncoder.encode(dto.getPassword()))
-            .role(userRoleRepository.findByRoleName("USER").orElseThrow(() -> new RuntimeException("Role not found")))
-            .status(userStatusRepository.findByStatusName("ACTIVE").orElseThrow(() -> new RuntimeException("Status not found")))
-            .build();
+                .email(dto.getEmail())
+                .password(passwordEncoder.encode(dto.getPassword()))
+                .role(userRoleRepository.findByRoleName("USER")
+                        .orElseThrow(() -> new RuntimeException("Role not found")))
+                .status(userStatusRepository.findByStatusName("ACTIVE")
+                        .orElseThrow(() -> new RuntimeException("Status not found")))
+                .build();
 
         //레이스 컨디션 발생시, db unique 제약조건 위반 예외 처리
-        try{
+        try {
             UserEntity savedUser = userRepository.save(user);
             userRepository.flush();
 
@@ -65,10 +68,22 @@ public class UserService {
                     .build();
             userDetailRepository.save(userDetail);
 
-            return new RegisterResponseDTO(savedUser.getUserId(), savedUser.getEmail(), "회원가입 성공");
+            return new RegisterResponseDTO(savedUser.getUserId(), savedUser.getEmail());
         } catch (DataIntegrityViolationException e) {
             throw new EmailAlreadyExistsException("이미 사용 중인 이메일입니다.");
         }
+
+    }
+    
+
+    public Long getUserIdByEmail(String email) {
+        Optional<UserEntity> user = userRepository.findByEmail(email);
+        if (user.isPresent()) {
+            return user.get().getUserId();
+        } else {
+            throw new UserNotFoundException("User not found");
+        }
+
 
     }
 } 

@@ -8,6 +8,13 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.taiso.bike_api.domain.RouteEntity;
@@ -123,9 +130,11 @@ public class RouteController {
 
     @DeleteMapping("/{routeId}")
     @Operation(summary = "루트 삭제", description = "루트를 업로드한 유저가 루트를 삭제하는 API")
-    public ResponseEntity<Void> deleteRoute(@PathVariable("routeId") Long routeId) {
+    public ResponseEntity<Void> deleteRoute(
+        @PathVariable("routeId") Long routeId
+        , @AuthenticationPrincipal String userEmail) {
 
-        routeDeleteService.deleteRoute(routeId);
+        routeDeleteService.deleteRoute(routeId, userEmail);
 
         return ResponseEntity.noContent().build();
 

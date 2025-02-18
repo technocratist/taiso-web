@@ -1,5 +1,7 @@
 package com.taiso.bike_api.exception;
 
+import java.util.NoSuchElementException;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -11,8 +13,6 @@ import com.taiso.bike_api.dto.ErrorResponseDTO;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
-
-import java.util.NoSuchElementException;
 
 @RestControllerAdvice
 @Slf4j
@@ -104,10 +104,20 @@ public class GlobalExceptionHandler {
 
     // 사용자 예외 처리
     @ExceptionHandler(UserNotFoundException.class)
-    public ResponseEntity<ErrorResponseDTO> handleUserNotFoundException(UserNotFoundException ex, HttpServletRequest request) {
+    public ResponseEntity<ErrorResponseDTO> handleUserNotFoundException(UserNotFoundException ex,
+            HttpServletRequest request) {
         log.error("UserNotFoundException: ", ex);
-        ErrorResponseDTO errorResponse = ErrorResponseDTO.makeErrorResponse(ex.getMessage(), HttpStatus.NOT_FOUND, request.getRequestURI());
+        ErrorResponseDTO errorResponse = ErrorResponseDTO.makeErrorResponse(ex.getMessage(), HttpStatus.NOT_FOUND,
+                request.getRequestURI());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+    }
+    
+    // 카카오 인증 예외 처리
+    @ExceptionHandler(KakaoAuthenticationException.class)
+    public ResponseEntity<ErrorResponseDTO> handleKakaoAuthenticationException(KakaoAuthenticationException ex, HttpServletRequest request) {
+        log.error("KakaoAuthenticationException: ", ex);
+        ErrorResponseDTO errorResponse = ErrorResponseDTO.makeErrorResponse(ex.getMessage(), HttpStatus.UNAUTHORIZED, request.getRequestURI());
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
     }
 
     // 기타 예외 처리 (선택 사항)
@@ -120,6 +130,11 @@ public class GlobalExceptionHandler {
                 .body(errorResponse);
     }
     
-	
+    @ExceptionHandler(RouteDeleteAccessDeniedException.class)
+	public ResponseEntity<ErrorResponseDTO> handleRouteDeleteAccessDeniedException(RouteDeleteAccessDeniedException ex, HttpServletRequest request) {
+        log.error("RouteDeleteAccessDeniedException: ", ex);
+        ErrorResponseDTO errorResponse = ErrorResponseDTO.makeErrorResponse(ex.getMessage(), HttpStatus.FORBIDDEN, request.getRequestURI());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
+    }
     
 }

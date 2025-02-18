@@ -2,19 +2,19 @@ package com.taiso.bike_api;
 
 import java.time.LocalDateTime;
 
-import com.taiso.bike_api.domain.UserDetailEntity;
-import com.taiso.bike_api.repository.UserDetailRepository;
-import jakarta.persistence.PersistenceContext;
-import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
+import com.taiso.bike_api.domain.UserDetailEntity;
 import com.taiso.bike_api.domain.UserEntity;
+import com.taiso.bike_api.repository.UserDetailRepository;
 import com.taiso.bike_api.repository.UserRepository;
 import com.taiso.bike_api.repository.UserRoleRepository;
 import com.taiso.bike_api.repository.UserStatusRepository;
+
+import jakarta.transaction.Transactional;
     
 
 @Component

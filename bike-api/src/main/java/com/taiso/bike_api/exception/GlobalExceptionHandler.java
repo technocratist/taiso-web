@@ -130,6 +130,31 @@ public class GlobalExceptionHandler {
                 .body(errorResponse);
     }
     
+    // 루트 좋아요 찾을 수 없음
+    @ExceptionHandler(RouteLikeNotFoundException.class)
+    public ResponseEntity<ErrorResponseDTO> handleRouteLikeNotFoundException(RouteLikeNotFoundException ex, HttpServletRequest request) {
+        ErrorResponseDTO errorResponse = ErrorResponseDTO.makeErrorResponse(ex.getMessage(), HttpStatus.NOT_FOUND, request.getRequestURI());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+    }
+
+    // 루트 좋아요 이미 있음 
+    @ExceptionHandler(RouteLikeAlreadyExistsException.class)
+    public ResponseEntity<ErrorResponseDTO> handleRouteLikeNotFoundException(RouteLikeAlreadyExistsException ex, HttpServletRequest request) {
+       log.error("EmailAlreadyExistsException: ", ex);
+   	
+        ErrorResponseDTO errorResponse = ErrorResponseDTO.makeErrorResponse(ex.getMessage(), HttpStatus.CONFLICT, request.getRequestURI());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
+    }	
+    
+    // 루트 좋아요 이미 삭제
+    @ExceptionHandler(RouteLikeDeleteAlreadyExistsException.class)
+    public ResponseEntity<ErrorResponseDTO> handleRouteLikeNotFoundException(RouteLikeDeleteAlreadyExistsException ex, HttpServletRequest request) {
+       log.error("EmailAlreadyExistsException: ", ex);
+   	
+        ErrorResponseDTO errorResponse = ErrorResponseDTO.makeErrorResponse(ex.getMessage(), HttpStatus.CONFLICT, request.getRequestURI());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
+    }	    
+    
     @ExceptionHandler(RouteDeleteAccessDeniedException.class)
 	public ResponseEntity<ErrorResponseDTO> handleRouteDeleteAccessDeniedException(RouteDeleteAccessDeniedException ex, HttpServletRequest request) {
         log.error("RouteDeleteAccessDeniedException: ", ex);

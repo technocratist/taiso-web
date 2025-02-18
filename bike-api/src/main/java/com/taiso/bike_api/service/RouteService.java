@@ -1,29 +1,45 @@
 package com.taiso.bike_api.service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import com.taiso.bike_api.domain.RouteEntity;
+import com.taiso.bike_api.domain.RouteLikeEntity;
 import com.taiso.bike_api.domain.RoutePointEntity;
 import com.taiso.bike_api.domain.RouteTagCategoryEntity;
+import com.taiso.bike_api.domain.UserEntity;
 import com.taiso.bike_api.dto.RouteDetailResponseDTO;
 import com.taiso.bike_api.dto.RoutePointDTO;
 import com.taiso.bike_api.exception.RouteNotFoundException;
+import com.taiso.bike_api.repository.RouteLikeRepository;
 import com.taiso.bike_api.repository.RoutePointRepository;
 import com.taiso.bike_api.repository.RouteRepository;
+import com.taiso.bike_api.repository.UserRepository;
+
+import jakarta.transaction.Transactional;
+import lombok.extern.slf4j.Slf4j;
 
 
 @Service
+@Slf4j
 public class RouteService {
+	
+	@Autowired
+	private RouteLikeRepository routeLikeRepository;
 
     @Autowired
     private RouteRepository routeRepository;
 
     @Autowired
     private RoutePointRepository routePointRepository;
+    
+    @Autowired
+    private UserRepository userRepository;
 
 
     public RouteDetailResponseDTO getRouteById(Long routeId) {
@@ -74,4 +90,59 @@ public class RouteService {
                 .routePoint(pointResponses)
                 .build();
     }
+
+
+    // 루트 좋아요 등록 기능
+    @Transactional
+	public void save(Authentication authentication, Long routeId) {
+    	
+		// 유저 id 가져오기
+    	Optional<UserEntity> userEntity = userRepository.findByEmail(authentication.getName());
+		log.info("부모 값 userEntity: {}", userEntity.get());
+		
+		Optional<RouteEntity> routeEntity = routeRepository.findById(routeId);
+		
+		// 부모 글을 꺼냄
+		UserEntity userEntity2 = userEntity.get();
+		RouteEntity routeEntity2 = routeEntity.get();
+		if(!routeEntity.isPresent()) return;
+		if(!userEntity.isPresent()) return;
+		
+		// 부모글을 자식 entity에 전달
+		RouteLikeEntity routeLikeEntity = RouteLikeEntity.toEntity(routeEntity2, userEntity2);
+		
+		// 저장
+		routeLikeRepository.save(routeLikeEntity);
+		
+		routeEntity.get().setLikeCount( routeEntity.get().getLikeCount() +1 );
+	}
+
+
+
+
+    // 루트 좋아요 삭제 기능
+    @Transactional
+	public void delete(Long routeId, Authentication authentication) {
+
+		// 루트 id 가져오기 -> like count 줄이기 
+		Optional<RouteEntity> routeEntity = routeRepository.findById(routeId);
+		
+		// 유저 id 가져오기 
+    	Optional<UserEntity> userEntity = userRepository.findByEmail(authentication.getName());
+    	
+    	Long userId = userRepository.findByEmail(authentication.getName()).get().getUserId();
+		
+		// 유저 id로 RouteLikeId가져와서 삭제하기?
+    	RouteLikeEntity routeLikeEntity = routeLikeRepository.findByUser_UserIdAndRoute_RouteId(userId, routeId).get();
+		
+	    // 좋아요 삭제
+	    routeLikeRepository.delete(routeLikeEntity);
+		
+		// like count 1줄이기
+		routeEntity.get().setLikeCount( routeEntity.get().getLikeCount() -1 );
+	}
+
+
+
+
 }

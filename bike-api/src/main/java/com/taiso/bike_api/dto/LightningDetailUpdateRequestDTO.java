@@ -4,6 +4,7 @@ import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -38,6 +39,6 @@ public class LightningDetailUpdateRequestDTO {
 //    private String address;
 
     private Long tagId;
-//  List<LightningDetailTagDTO> lightningTag;
+    private List<String> lightningTag;
 
 }

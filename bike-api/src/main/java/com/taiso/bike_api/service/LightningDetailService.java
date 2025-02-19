@@ -9,6 +9,7 @@ import com.taiso.bike_api.exception.LightningFullMemberException;
 import com.taiso.bike_api.exception.LightningNotFoundException;
 import com.taiso.bike_api.exception.NotPermissionException;
 import com.taiso.bike_api.repository.LightningDetailRepository;
+import com.taiso.bike_api.repository.RouteTagCategoryRepository;
 import com.taiso.bike_api.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
@@ -26,6 +27,8 @@ public class LightningDetailService {
 
     LightningDetailRepository lightningDetailRepository;
 
+    RouteTagCategoryRepository routeTagCategoryRepository;
+
     // 번개 수정 화면에 기존 정보 뿌리기
     public LightningDetailUpdateGetResponseDTO getUpdateLightningDetail(Long lightningId,
                                          Authentication authentication) {
@@ -41,7 +44,7 @@ public class LightningDetailService {
         if(!temp.isPresent()) {
             throw new LightningNotFoundException("존재하지 않는 번개 입니다.");
         }
-        if (userId != temp.get().getCreatorId()) {
+        if(userId != temp.get().getCreatorId()) {
             throw new NotPermissionException("번개 생성자만 수정 할 수 있습니다.");
         }
 

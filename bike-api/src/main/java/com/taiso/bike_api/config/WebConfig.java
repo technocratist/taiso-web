@@ -18,6 +18,7 @@ public class WebConfig implements WebMvcConfigurer {
                 // 허용할 HTTP 메서드 설정
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
                 // 인증 정보 허용 여부 설정
+                .allowedHeaders("*")
                 .allowCredentials(true);
     }
 }

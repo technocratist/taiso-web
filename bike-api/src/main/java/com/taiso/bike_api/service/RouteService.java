@@ -1,11 +1,8 @@
 package com.taiso.bike_api.service;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
-import com.taiso.bike_api.dto.RouteListResponseDTO;
-import com.taiso.bike_api.dto.RouteResponseDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -19,10 +16,14 @@ import com.taiso.bike_api.domain.RoutePointEntity;
 import com.taiso.bike_api.domain.RouteTagCategoryEntity;
 import com.taiso.bike_api.domain.UserEntity;
 import com.taiso.bike_api.dto.RouteDetailResponseDTO;
+import com.taiso.bike_api.dto.RouteListResponseDTO;
 import com.taiso.bike_api.dto.RoutePointDTO;
-import com.taiso.bike_api.exception.RouteLikeDeleteAlreadyExistsException;
+import com.taiso.bike_api.dto.RouteResponseDTO;
+import com.taiso.bike_api.exception.RouteDeleteAccessDeniedException;
+import com.taiso.bike_api.exception.RouteLikeAlreadyExistsException;
 import com.taiso.bike_api.exception.RouteLikeNotFoundException;
 import com.taiso.bike_api.exception.RouteNotFoundException;
+import com.taiso.bike_api.exception.UserNotFoundException;
 import com.taiso.bike_api.repository.RouteLikeRepository;
 import com.taiso.bike_api.repository.RoutePointRepository;
 import com.taiso.bike_api.repository.RouteRepository;
@@ -49,7 +50,7 @@ public class RouteService {
     private UserRepository userRepository;
 
 
-    public RouteDetailResponseDTO getRouteById(Long routeId) {
+    public RouteDetailResponseDTO getRouteById(Long routeId, String userEmail) {
         // routeId 유효성 검사 (0 이하인 경우 오류)
         if (routeId == null || routeId <= 0) {
             throw new IllegalArgumentException(routeId + " 값은 올바르지 않음");
@@ -75,7 +76,18 @@ public class RouteService {
         // 각 태그의 이름(예: getTagName())을 리스트로 변환 (해당 메서드는 RouteTagCategoryEntity에 구현되어 있다고 가정)
         List<String> tags = routeEntity.getTags().stream()
                 .map(RouteTagCategoryEntity::getName)
-                .collect(Collectors.toList());
+				.collect(Collectors.toList());
+				
+		// 특정 유저의 좋아요 여부 체크
+    	// userId가 null이 아니고 유효한 경우에만 좋아요 여부를 조회
+    	boolean liked = false;
+    	if (userEmail != null) {
+        	// 유저 엔티티 조회 (해당 로직은 UserRepository가 있다고 가정)
+        	UserEntity userEntity = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new UserNotFoundException(userEmail + "번 유저를 찾을 수 없음"));
+        	// route와 user가 매핑된 좋아요가 존재하는지 여부 확인 (existsByRouteAndUser 메서드 구현 필요)
+        	liked = routeLikeRepository.existsByUser_UserIdAndRoute_RouteId(userEntity.getUserId(), routeId);
+    	}
 
         // DTO 빌드 (필드명이 spec과 동일하도록 변환)
         return RouteDetailResponseDTO.builder()
@@ -85,6 +97,7 @@ public class RouteService {
                 .routeName(routeEntity.getRouteName())
                 .description(routeEntity.getDescription())
                 .likeCount(routeEntity.getLikeCount())
+                .originalFilePath(routeEntity.getOriginalFilePath())
                 .tag(tags)
                 .distance(routeEntity.getDistance().floatValue())
                 .altitude(routeEntity.getAltitude().floatValue())
@@ -94,80 +107,59 @@ public class RouteService {
                 .createdAt(routeEntity.getCreatedAt().toString())
                 .fileName(routeEntity.getFileName())
                 .fileType(routeEntity.getFileType() != null ? routeEntity.getFileType().name() : null)
-                .routePoint(pointResponses)
+				.routePoint(pointResponses)
+				.isLiked(liked)
                 .build();
     }
 
 
-    // 루트 좋아요 등록 기능
     @Transactional
-	public void PostRouteLike(Authentication authentication, Long routeId) {
-    	
-    	// 예외 처리 -> 404
-        RouteEntity routeEntityException = routeRepository.findById(routeId)
-                .orElseThrow(() -> new RouteNotFoundException("루트를 찾을 수 없습니다."));
-    	
-        // 예외 처리 -> 409
-    	Long userIdException = userRepository.findByEmail(authentication.getName()).get().getUserId();
-        boolean alreadyLiked = routeLikeRepository.existsByUser_UserIdAndRoute_RouteId(userIdException, routeId);
-        if (alreadyLiked) {
-            throw new RouteLikeNotFoundException("이미 해당 루트를 좋아요했습니다.");
-        }
-        
-		// 유저 id 가져오기
-    	Optional<UserEntity> userEntity = userRepository.findByEmail(authentication.getName());
-		
-		Optional<RouteEntity> routeEntity = routeRepository.findById(routeId);
-		
-		// 부모 글을 꺼냄
-		UserEntity userEntity2 = userEntity.get();
-		RouteEntity routeEntity2 = routeEntity.get();
-		if(!routeEntity.isPresent()) return;
-		if(!userEntity.isPresent()) return;
-		
-		// 부모글을 자식 entity에 전달
-		RouteLikeEntity routeLikeEntity = RouteLikeEntity.toEntity(routeEntity2, userEntity2);
-		
-		// 저장
-		routeLikeRepository.save(routeLikeEntity);
-		
-		routeEntity.get().setLikeCount( routeEntity.get().getLikeCount() +1 );
+	public void postRouteLike(Authentication authentication, Long routeId) {
+    	// 사용자와 루트를 한 번만 조회
+    	UserEntity user = userRepository.findByEmail(authentication.getName())
+            .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
+    	RouteEntity route = routeRepository.findById(routeId)
+            .orElseThrow(() -> new RouteNotFoundException("루트를 찾을 수 없습니다."));
+    
+    	// 이미 좋아요한 경우 예외 발생
+   	 	if (routeLikeRepository.existsByUser_UserIdAndRoute_RouteId(user.getUserId(), routeId)) {
+        	throw new RouteLikeAlreadyExistsException("이미 해당 루트를 좋아요했습니다.");
+    	}
+    
+    	// 좋아요 Entity 생성 및 저장
+    	RouteLikeEntity routeLike = RouteLikeEntity.toEntity(route, user);
+    	try {
+        	routeLikeRepository.save(routeLike);
+        	route.setLikeCount(route.getLikeCount() + 1);
+    	} catch (Exception e) {
+        	throw new RuntimeException("좋아요 등록 실패", e);
+    	}
+	}
+
+	@Transactional
+	public void deleteRouteLike(Authentication authentication, Long routeId) {
+    	// 사용자와 루트를 한 번만 조회
+    	UserEntity user = userRepository.findByEmail(authentication.getName())
+            .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
+    	RouteEntity route = routeRepository.findById(routeId)
+            .orElseThrow(() -> new RouteNotFoundException("루트를 찾을 수 없습니다."));
+    
+    	// 해당 좋아요가 존재하지 않으면 예외 발생
+    	RouteLikeEntity routeLike = routeLikeRepository.findByUser_UserIdAndRoute_RouteId(user.getUserId(), routeId)
+            .orElseThrow(() -> new RouteLikeNotFoundException("해당 루트에 대한 좋아요가 존재하지 않습니다."));
+    
+		// 좋아요 삭제 및 좋아요 수 감소
+		try {
+			routeLikeRepository.delete(routeLike);
+			route.setLikeCount(route.getLikeCount() - 1);
+		} catch (Exception e) {
+			throw new RuntimeException("좋아요 삭제 실패", e);
+		}
 	}
 
 
-    // 루트 좋아요 삭제 기능
-    @Transactional
-	public void RouteLikeDelete(Long routeId, Authentication authentication) {
-
-    	// 예외 처리 404
-    	RouteEntity routeEntityException = routeRepository.findById(routeId)
-                .orElseThrow(() -> new RouteNotFoundException("루트를 찾을 수 없습니다."));
-    	
-    	// 예외 처리 409 이미 삭제한 경우 
-    	Long userIdException = userRepository.findByEmail(authentication.getName()).get().getUserId();
-        boolean exists = routeLikeRepository.existsByUser_UserIdAndRoute_RouteId(userIdException, routeId);
-        if (!exists) {
-            throw new RouteLikeDeleteAlreadyExistsException("이미 해당 루트를 삭제했습니다.");
-        }
-    	
-		// 루트 id 가져오기 -> like count 줄이기 
-		Optional<RouteEntity> routeEntity = routeRepository.findById(routeId);
-		
-		// 유저 id 가져오기	
-    	Long userId = userRepository.findByEmail(authentication.getName()).get().getUserId();
-		
-		// 유저 id로 RouteLikeId가져와서 삭제하기
-    	RouteLikeEntity routeLikeEntity = routeLikeRepository.findByUser_UserIdAndRoute_RouteId(userId, routeId).get();
-		
-	    // 좋아요 삭제
-	    routeLikeRepository.delete(routeLikeEntity);
-		
-		// like count 1줄이기
-		routeEntity.get().setLikeCount( routeEntity.get().getLikeCount() -1 );
-	}
-
-	public RouteListResponseDTO getRouteList (int page, int size) {
-
+	// 루트 리스트 조회 기능
+	public RouteListResponseDTO getRouteList(int page, int size) {
 		// 정의된 페이징 박스
 		Pageable pageable = PageRequest.of(page, size);
 		// route를 모두 불러옴
@@ -177,28 +169,25 @@ public class RouteService {
 
 		// map()을 이용해 각 Entity를 DTO로 변환
 		List<RouteResponseDTO> routeResponseDTO = routePage.getContent().stream()
-				.map(route -> new RouteResponseDTO(
-						route.getRouteId(),
-						route.getRouteImgId(),
-						route.getUserId(),
-						route.getRouteName(),
-						route.getDescription(),
-						route.getLikeCount(),
-						route.getTags().stream()
-								.map(RouteTagCategoryEntity::getName)  // `tagName`을 추출해서 List<String>으로 변환
-								.collect(Collectors.toList()),  // 선택적 필드 (null일 수 있음)
-						route.getDistance().floatValue(),       // 선택적 필드 (null일 수 있음)
-						route.getAltitude().floatValue(),       // 선택적 필드 (null일 수 있음)
-						route.getDistanceType().toString(),     // 선택적 필드 (null일 수 있음)
-						route.getAltitudeType().toString(),     // 선택적 필드 (null일 수 있음)
-						route.getRoadType().toString(),         // 선택적 필드 (null일 수 있음)
-						route.getCreatedAt() != null ? route.getCreatedAt().toString() : null,  // 날짜 포맷 (null 체크)
-						route.getFileName()
-//						route.getFileType().toString()			// 선택적 필드 (null일 수 있음)
-				))
-				.collect(Collectors.toList());
+    .map(route -> new RouteResponseDTO(
+        route.getRouteId(),
+        route.getRouteImgId(),
+        route.getUserId(),
+        route.getRouteName(),
+        route.getLikeCount(),
+        route.getTags().stream()
+            .map(RouteTagCategoryEntity::getName)
+            .collect(Collectors.toList()),
+        route.getDistance() != null ? route.getDistance().floatValue() : null,
+        route.getAltitude() != null ? route.getAltitude().floatValue() : null,
+        route.getDistanceType() != null ? route.getDistanceType().toString() : null,
+        route.getAltitudeType() != null ? route.getAltitudeType().toString() : null,
+        route.getRoadType() != null ? route.getRoadType().toString() : null,
+        route.getCreatedAt() != null ? route.getCreatedAt().toString() : null
+    ))
+    .collect(Collectors.toList());
 
-		log.info("서비스에서 나가기 직전 리스트 : {}",routeResponseDTO);
+		log.info("서비스에서 나가기 직전 리스트 : {}", routeResponseDTO);
 
 		return RouteListResponseDTO.builder()
 				.content(routeResponseDTO)
@@ -209,5 +198,21 @@ public class RouteService {
 				.last(routePage.isLast())
 				.build();
 	}
+	
+	public void deleteRoute(Long routeId, String userEmail) {
+        // 루트 정보 조회
+        RouteEntity routeEntity = routeRepository.findById(routeId)
+        .orElseThrow(() -> new RouteNotFoundException(routeId + "번 루트를 찾을 수 없음"));
 
+        // 루트를 만든 유저 정보 가져오기
+        UserEntity userEntity = userRepository.findById(routeEntity.getUserId())
+        .orElseThrow(() -> new UserNotFoundException("해당 루트를 만든 사용자를 찾을 수 없음"));
+
+        // 루트 만든 사람과 삭제 요청한 사람이 일치하는지 검증
+        if (!userEmail.equals(userEntity.getEmail())) {
+            throw new RouteDeleteAccessDeniedException("삭제 권한이 없습니다.");
+        }
+        // 대상 루트 삭제
+        routeRepository.delete(routeEntity);
+    }
 }

@@ -66,7 +66,7 @@ public class InitLoader implements CommandLineRunner {
         // 테스트 아이디 추가
         UserEntity user = UserEntity.builder()
                 .email("test@test.com")
-                .password(passwordEncoder.encode("test"))
+                .password(passwordEncoder.encode("asdf1234!"))
                 .role(userRoleRepository.findByRoleName("USER").get())
                 .status(userStatusRepository.findByStatusName("ACTIVE").get())
                 .createdAt(LocalDateTime.now())

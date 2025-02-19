@@ -16,19 +16,12 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.taiso.bike_api.domain.RouteEntity;
 import com.taiso.bike_api.dto.RouteDetailResponseDTO;
 import com.taiso.bike_api.dto.RouteLikePostResponseDTO;
 import com.taiso.bike_api.dto.RouteListResponseDTO;
 import com.taiso.bike_api.dto.RoutePostRequestDTO;
 import com.taiso.bike_api.dto.RoutePostResponseDTO;
-import com.taiso.bike_api.exception.RouteLikeNotFoundException;
-import com.taiso.bike_api.exception.RouteNotFoundException;
-import com.taiso.bike_api.repository.RouteLikeRepository;
-import com.taiso.bike_api.repository.RouteRepository;
-import com.taiso.bike_api.repository.UserRepository;
 import com.taiso.bike_api.service.RouteCreateService;
-import com.taiso.bike_api.service.RouteDeleteService;
 import com.taiso.bike_api.service.RouteService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -47,8 +40,6 @@ public class RouteController {
     @Autowired
     private RouteCreateService routeCreateService;
 
-    @Autowired
-    private RouteDeleteService routeDeleteService;
 
     @GetMapping("/{routeId}")
     @Operation(summary = "루트 디테일 조회", description = "루트 디테일 조회하는 API")
@@ -81,7 +72,7 @@ public class RouteController {
     		){
 
 		// service -> 좋아요 저장
-		routeService.PostRouteLike(authentication, routeId);
+		routeService.postRouteLike(authentication, routeId);
 		
     	return ResponseEntity.status(HttpStatus.CREATED).body(null);
     }
@@ -96,7 +87,7 @@ public class RouteController {
     		) {
     	
     	// service -> 삭제 기능
-    	routeService.RouteLikeDelete(routeId, authentication);
+    	routeService.deleteRouteLike(authentication, routeId);
     	
     	return ResponseEntity.status(HttpStatus.NO_CONTENT).body(null);
     }
@@ -107,7 +98,7 @@ public class RouteController {
         @PathVariable("routeId") Long routeId
         , @AuthenticationPrincipal String userEmail) {
 
-        routeDeleteService.deleteRoute(routeId, userEmail);
+        routeService.deleteRoute(routeId, userEmail);
 
         return ResponseEntity.noContent().build();
 

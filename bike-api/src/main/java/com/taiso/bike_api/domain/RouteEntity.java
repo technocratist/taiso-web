@@ -90,7 +90,7 @@ public class RouteEntity {
     @Column(name = "road_type", nullable = false, length = 20)
     private RoadType roadType;
 
-    @Column(name = "original_file_path", length = 255)
+    @Column(name = "original_file_path", length = 1000)
     private String originalFilePath;
 
     @Column(name = "file_name", length = 255)
@@ -128,19 +128,21 @@ public class RouteEntity {
     }
 
     public enum AltitudeType {
-        낮음,
-        중간,
-        높음
+        평지,
+        힐리,
+        클라이밍,
+        마운틴
     }
 
     public enum RoadType {
-        평지,
-        산길,
-        고속도로
+        자전거도로,
+        공도,
+        산길
     }
 
     public enum FileType {
         GPX,
         TCX
     }
+
 }

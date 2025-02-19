@@ -166,6 +166,7 @@ public class RouteService {
 		routeEntity.get().setLikeCount( routeEntity.get().getLikeCount() -1 );
 	}
 
+	// 루트 전체 리스트 조회
 	public RouteListResponseDTO getRouteList (int page, int size) {
 
 		// 정의된 페이징 박스

@@ -1,94 +1,75 @@
 package com.taiso.bike_api.dto;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Set;
 
+import com.taiso.bike_api.domain.LightningEntity.BikeType;
+import com.taiso.bike_api.domain.LightningEntity.Gender;
+import com.taiso.bike_api.domain.LightningEntity.Level;
+import com.taiso.bike_api.domain.LightningEntity.LightningStatus;
+import com.taiso.bike_api.domain.LightningEntity.RecruitType;
+import com.taiso.bike_api.domain.LightningEntity.Region;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+
+@NoArgsConstructor
+@AllArgsConstructor
+@Setter
+@Getter
+@ToString
+@Builder
 public class LightningRequestDTO {
+
     private Long lightningId;
-    
+
+    private Long creatorId;
+
     private String title;
 
     private String description;
-    
+
     private LocalDateTime eventDate;
 
     private Integer duration;
 
-    private String status;
+    private LocalDateTime createdAt;
+
+    private LocalDateTime updatedAt;
+
+    private LightningStatus status;
 
     private Integer capacity;
 
-    private Double latitude;
+    private BigDecimal latitude;
 
-    private Double longitude;
-
-    private String address;
+    private BigDecimal longitude;
 
     private Gender gender;
 
     private Level level;
 
-    private RecruitType RecruitType;
-
-    private Long creatorId;
+    private RecruitType recruitType;
 
     private BikeType bikeType;
 
     private Region region;
 
-    private Integer distance;
+    private Long distance;
 
     private Long routeId;
 
-    // private 
+    private String address;
 
-    public enum Gender {
-        남성,
-        여성,
-        선택안함
-    }
+    private Boolean isClubOnly;
 
-    public enum Level {
-        자유,
-        초보,
-        중급,
-        고급
-    }
+    private Long clubId;
 
-    public enum RecruitType {
-        참가형,
-        주최형
-    }
+    private Set<String> tags;
 
-    public enum BikeType {
-        로드,
-        산악
-    }
-
-    public enum Region {
-        강남구,
-        강동구,
-        강서구,
-        강북구,
-        마포구,
-        광진구,
-        은평구,
-        관악구,
-        서초구,
-        동작구,
-        종로구,
-        용산구,
-        중구,
-        송파구,
-        구로구,
-        중랑구,
-        도봉구,
-        영등포구,
-        양천구,
-        금천구,
-        성동구,
-        서대문구,
-        노원구,
-        동대문구,
-        성북구
-    }
 }

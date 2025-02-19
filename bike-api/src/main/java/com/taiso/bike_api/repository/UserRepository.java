@@ -10,4 +10,6 @@ import com.taiso.bike_api.domain.UserEntity;
 @Repository
 public interface UserRepository extends JpaRepository<UserEntity, Long> {
     Optional<UserEntity> findByEmail(String email);
+
+    Long getUserIdByEmail(String userEmail);
 }

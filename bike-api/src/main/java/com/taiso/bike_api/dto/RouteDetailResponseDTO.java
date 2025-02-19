@@ -27,4 +27,5 @@ public class RouteDetailResponseDTO {
     private String fileName;          // optional
     private String fileType;          // optional (e.g., gpx, fit)
     private List<RoutePointDTO> routePoint;
+    private boolean isLiked;
 }

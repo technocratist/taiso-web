@@ -50,7 +50,7 @@ public class RouteService {
     private UserRepository userRepository;
 
 
-    public RouteDetailResponseDTO getRouteById(Long routeId) {
+    public RouteDetailResponseDTO getRouteById(Long routeId, String userEmail) {
         // routeId 유효성 검사 (0 이하인 경우 오류)
         if (routeId == null || routeId <= 0) {
             throw new IllegalArgumentException(routeId + " 값은 올바르지 않음");
@@ -76,7 +76,18 @@ public class RouteService {
         // 각 태그의 이름(예: getTagName())을 리스트로 변환 (해당 메서드는 RouteTagCategoryEntity에 구현되어 있다고 가정)
         List<String> tags = routeEntity.getTags().stream()
                 .map(RouteTagCategoryEntity::getName)
-                .collect(Collectors.toList());
+				.collect(Collectors.toList());
+				
+		// 특정 유저의 좋아요 여부 체크
+    	// userId가 null이 아니고 유효한 경우에만 좋아요 여부를 조회
+    	boolean liked = false;
+    	if (userEmail != null) {
+        	// 유저 엔티티 조회 (해당 로직은 UserRepository가 있다고 가정)
+        	UserEntity userEntity = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new UserNotFoundException(userEmail + "번 유저를 찾을 수 없음"));
+        	// route와 user가 매핑된 좋아요가 존재하는지 여부 확인 (existsByRouteAndUser 메서드 구현 필요)
+        	liked = routeLikeRepository.existsByUser_UserIdAndRoute_RouteId(userEntity.getUserId(), routeId);
+    	}
 
         // DTO 빌드 (필드명이 spec과 동일하도록 변환)
         return RouteDetailResponseDTO.builder()
@@ -96,7 +107,8 @@ public class RouteService {
                 .createdAt(routeEntity.getCreatedAt().toString())
                 .fileName(routeEntity.getFileName())
                 .fileType(routeEntity.getFileType() != null ? routeEntity.getFileType().name() : null)
-                .routePoint(pointResponses)
+				.routePoint(pointResponses)
+				.isLiked(liked)
                 .build();
     }
 

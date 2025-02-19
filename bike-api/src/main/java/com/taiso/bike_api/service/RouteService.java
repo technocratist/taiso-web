@@ -86,6 +86,7 @@ public class RouteService {
                 .routeName(routeEntity.getRouteName())
                 .description(routeEntity.getDescription())
                 .likeCount(routeEntity.getLikeCount())
+                .originalFilePath(routeEntity.getOriginalFilePath())
                 .tag(tags)
                 .distance(routeEntity.getDistance().floatValue())
                 .altitude(routeEntity.getAltitude().floatValue())
@@ -156,26 +157,23 @@ public class RouteService {
 
 		// map()을 이용해 각 Entity를 DTO로 변환
 		List<RouteResponseDTO> routeResponseDTO = routePage.getContent().stream()
-				.map(route -> new RouteResponseDTO(
-						route.getRouteId(),
-						route.getRouteImgId(),
-						route.getUserId(),
-						route.getRouteName(),
-						route.getDescription(),
-						route.getLikeCount(),
-						route.getTags().stream()
-								.map(RouteTagCategoryEntity::getName) // `tagName`을 추출해서 List<String>으로 변환
-								.collect(Collectors.toList()), // 선택적 필드 (null일 수 있음)
-						route.getDistance().floatValue(), // 선택적 필드 (null일 수 있음)
-						route.getAltitude().floatValue(), // 선택적 필드 (null일 수 있음)
-						route.getDistanceType().toString(), // 선택적 필드 (null일 수 있음)
-						route.getAltitudeType().toString(), // 선택적 필드 (null일 수 있음)
-						route.getRoadType().toString(), // 선택적 필드 (null일 수 있음)
-						route.getCreatedAt() != null ? route.getCreatedAt().toString() : null, // 날짜 포맷 (null 체크)
-						route.getFileName()
-				//						route.getFileType().toString()			// 선택적 필드 (null일 수 있음)
-				))
-				.collect(Collectors.toList());
+    .map(route -> new RouteResponseDTO(
+        route.getRouteId(),
+        route.getRouteImgId(),
+        route.getUserId(),
+        route.getRouteName(),
+        route.getLikeCount(),
+        route.getTags().stream()
+            .map(RouteTagCategoryEntity::getName)
+            .collect(Collectors.toList()),
+        route.getDistance() != null ? route.getDistance().floatValue() : null,
+        route.getAltitude() != null ? route.getAltitude().floatValue() : null,
+        route.getDistanceType() != null ? route.getDistanceType().toString() : null,
+        route.getAltitudeType() != null ? route.getAltitudeType().toString() : null,
+        route.getRoadType() != null ? route.getRoadType().toString() : null,
+        route.getCreatedAt() != null ? route.getCreatedAt().toString() : null
+    ))
+    .collect(Collectors.toList());
 
 		log.info("서비스에서 나가기 직전 리스트 : {}", routeResponseDTO);
 
@@ -190,7 +188,6 @@ public class RouteService {
 	}
 	
 	public void deleteRoute(Long routeId, String userEmail) {
-        
         // 루트 정보 조회
         RouteEntity routeEntity = routeRepository.findById(routeId)
         .orElseThrow(() -> new RouteNotFoundException(routeId + "번 루트를 찾을 수 없음"));
@@ -203,10 +200,7 @@ public class RouteService {
         if (!userEmail.equals(userEntity.getEmail())) {
             throw new RouteDeleteAccessDeniedException("삭제 권한이 없습니다.");
         }
-
         // 대상 루트 삭제
         routeRepository.delete(routeEntity);
-
     }
-
 }

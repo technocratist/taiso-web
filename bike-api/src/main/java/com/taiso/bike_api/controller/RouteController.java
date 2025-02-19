@@ -100,7 +100,7 @@ public class RouteController {
 
         routeService.deleteRoute(routeId, userEmail);
 
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).body(null);
 
     }
 
@@ -115,7 +115,7 @@ public class RouteController {
                                                     @RequestParam(defaultValue = "") String[] Tag) {
 
         // 여기서 page, size의 변수값 수정으로 페이징 컨트롤 가능
-        int page = 1;
+        int page = 0;
         int size = 10;
 
         // 루트 데이터들을 페이징된 형태로 불러옴

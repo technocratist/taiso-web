@@ -16,6 +16,7 @@ public class RouteDetailResponseDTO {
     private String routeName;
     private String description;
     private Long likeCount;
+    private String originalFilePath;
     private List<String> tag;         // not required field
     private Float distance;           // not required field (unit: km)
     private Float altitude;           // not required field (unit: m)

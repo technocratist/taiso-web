@@ -47,7 +47,7 @@ public class RouteEntity {
     @Column(name = "route_name", nullable = false, length = 255)
     private String routeName;
 
-    @Column(name = "description", length = 1000)
+    @Column(name = "description", length = 1000, nullable = false)
     private String description;
 
     @Column(name = "route_img_id", length = 1000)
@@ -57,7 +57,7 @@ public class RouteEntity {
     @Column(name = "user_id", nullable = false)
     private Long userId;
 
-    @Column(name = "like_count", columnDefinition = "BIGINT default 0")
+    @Column(name = "like_count", columnDefinition = "BIGINT default 0", nullable = false)
     private Long likeCount;
 
     @CreationTimestamp
@@ -93,11 +93,11 @@ public class RouteEntity {
     @Column(name = "original_file_path", length = 1000)
     private String originalFilePath;
 
-    @Column(name = "file_name", length = 255)
+    @Column(name = "file_name", length = 255, nullable = false)
     private String fileName;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "file_type", length = 10)
+    @Column(name = "file_type", length = 10, nullable = false)
     private FileType fileType;
 
     @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})

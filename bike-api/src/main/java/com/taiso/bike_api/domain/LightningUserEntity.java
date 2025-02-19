@@ -69,4 +69,8 @@ public class LightningUserEntity {
         번개생성자,
         참여자
     }
+
+
+    
+    
 }

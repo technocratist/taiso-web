@@ -173,4 +173,22 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
     
+    // 번개 찾을 수 없음 
+    @ExceptionHandler(LightningNotFoundException.class)
+    public ResponseEntity<ErrorResponseDTO> handleLightningNotFoundException(LightningNotFoundException ex, HttpServletRequest request) {
+        ErrorResponseDTO errorResponse = ErrorResponseDTO.makeErrorResponse(ex.getMessage(), HttpStatus.NOT_FOUND, request.getRequestURI());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+    }
+    
+    // 이미 참여한 번개 처리
+    @ExceptionHandler(LightningUserAlreadyExistsException.class)
+    public ResponseEntity<ErrorResponseDTO> handleLightningUserAlreadyExistsException(LightningUserAlreadyExistsException ex, HttpServletRequest request) {
+       log.error("EmailAlreadyExistsException: ", ex);
+   	
+        ErrorResponseDTO errorResponse = ErrorResponseDTO.makeErrorResponse(ex.getMessage(), HttpStatus.CONFLICT, request.getRequestURI());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
+    }    
+    
+    
+    
 }

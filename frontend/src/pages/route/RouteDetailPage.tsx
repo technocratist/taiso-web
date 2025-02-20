@@ -1,8 +1,9 @@
-import { useParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
 import routeService, { RouteDetailResponse } from "../../services/routeService";
 import { useEffect, useState } from "react";
-import NaverMap from "../../components/NaverMap";
 import AltitudeChart from "../../components/AltitudeChart";
+import KakaoMapRoute from "../../components/KakaoMap";
+import { useAuthStore } from "../../stores/useAuthStore";
 
 function RouteDetailPage() {
   const { routeId } = useParams();
@@ -11,6 +12,8 @@ function RouteDetailPage() {
   );
   const [isLoading, setIsLoading] = useState(true);
   const [likePending, setLikePending] = useState(false);
+  const { user } = useAuthStore();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchRouteDetail = async () => {
@@ -46,12 +49,22 @@ function RouteDetailPage() {
     }
   };
 
+  const handleDeleteRoute = async () => {
+    try {
+      const response = await routeService.deleteRoute(Number(routeId));
+      console.log(response);
+      navigate("/route");
+    } catch (response) {
+      console.error("루트 삭제 실패:", response);
+    }
+  };
+
   if (isLoading) {
     return <div>Loading...</div>;
   }
 
   return (
-    <div className="flex flex-col mt-2 gap-2">
+    <div className="flex flex-col mt-2 gap-2 md:w-full w-[90%]">
       <div className="text-4xl font-bold">{routeDetail?.routeName}</div>
       <div className="flex items-center gap-1">
         {routeDetail?.tag.map((tag, index) => (
@@ -82,7 +95,12 @@ function RouteDetailPage() {
         </svg>
         <div className="text-sm link">{routeDetail?.fileName}</div>
       </div>
-      {routeDetail && <NaverMap routeData={routeDetail} />}
+      {routeDetail && (
+        <KakaoMapRoute
+          key={routeDetail.routeId}
+          routePoints={routeDetail.routePoint}
+        />
+      )}
       {routeDetail && <AltitudeChart routePoints={routeDetail.routePoint} />}
 
       <div className="flex items-center justify-center gap-1">
@@ -127,6 +145,13 @@ function RouteDetailPage() {
           북마크
         </div>
       </div>
+      {user?.userId === routeDetail?.userId && (
+        <div>
+          <button onClick={handleDeleteRoute} className="btn btn-primary">
+            삭제
+          </button>
+        </div>
+      )}
       <div>{routeDetail?.altitude}</div>
       <div>{routeDetail?.description}</div>
       <div>{routeDetail?.distance}</div>

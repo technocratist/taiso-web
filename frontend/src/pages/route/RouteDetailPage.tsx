@@ -1,8 +1,9 @@
-import { useParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
 import routeService, { RouteDetailResponse } from "../../services/routeService";
 import { useEffect, useState } from "react";
 import AltitudeChart from "../../components/AltitudeChart";
 import KakaoMapRoute from "../../components/KakaoMap";
+import { useAuthStore } from "../../stores/useAuthStore";
 
 function RouteDetailPage() {
   const { routeId } = useParams();
@@ -11,6 +12,8 @@ function RouteDetailPage() {
   );
   const [isLoading, setIsLoading] = useState(true);
   const [likePending, setLikePending] = useState(false);
+  const { user } = useAuthStore();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchRouteDetail = async () => {
@@ -43,6 +46,16 @@ function RouteDetailPage() {
       // 필요 시 사용자에게 에러 메시지를 노출하는 로직 추가 가능
     } finally {
       setLikePending(false);
+    }
+  };
+
+  const handleDeleteRoute = async () => {
+    try {
+      const response = await routeService.deleteRoute(Number(routeId));
+      console.log(response);
+      navigate("/route");
+    } catch (response) {
+      console.error("루트 삭제 실패:", response);
     }
   };
 
@@ -132,6 +145,13 @@ function RouteDetailPage() {
           북마크
         </div>
       </div>
+      {user?.userId === routeDetail?.userId && (
+        <div>
+          <button onClick={handleDeleteRoute} className="btn btn-primary">
+            삭제
+          </button>
+        </div>
+      )}
       <div>{routeDetail?.altitude}</div>
       <div>{routeDetail?.description}</div>
       <div>{routeDetail?.distance}</div>

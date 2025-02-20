@@ -104,12 +104,17 @@ const unlikeRoute = async (routeId: number): Promise<RoutePostResponse> => {
   return await del(`/routes/${routeId}/like`);
 };
 
+const deleteRoute = async (routeId: number): Promise<RoutePostResponse> => {
+  return await del(`/routes/${routeId}`);
+};
+
 export default {
   createRoute,
   getRouteDetail,
   getRouteList,
   likeRoute,
   unlikeRoute,
+  deleteRoute,
 };
 
 //

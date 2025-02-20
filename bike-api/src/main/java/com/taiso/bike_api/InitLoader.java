@@ -9,7 +9,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import com.taiso.bike_api.domain.LightningEntity;
-import com.taiso.bike_api.domain.LightningUserEntity;
 import com.taiso.bike_api.domain.UserDetailEntity;
 import com.taiso.bike_api.domain.UserEntity;
 import com.taiso.bike_api.repository.LightningUserRepository;

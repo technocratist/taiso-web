@@ -1,7 +1,5 @@
 package com.taiso.bike_api.service;
 
-import java.util.Optional;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.core.Authentication;
@@ -107,7 +105,7 @@ public class LightningMemberService {
     	}else if(lightningEntity.getStatus() == LightningStatus.취소) {
     		throw new LightningStatusMismatchException("취소된 번개에 참여할 수 없습니다.");
     	}
-    	
+
 	}
 
     // 인원 다 찼을 때 마감
@@ -141,12 +139,12 @@ public class LightningMemberService {
     	}
     	
     	// enum 값을 직접 할당
+
         lightningEntity.setStatus(LightningEntity.LightningStatus.마감);
 		
 	}
 
 
-    
     
 
 }

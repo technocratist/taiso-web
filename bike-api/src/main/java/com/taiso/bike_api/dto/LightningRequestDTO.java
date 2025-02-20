@@ -26,8 +26,6 @@ import lombok.ToString;
 @Builder
 public class LightningRequestDTO {
 
-    private Long lightningId;
-
     private Long creatorId;
 
     private String title;
@@ -37,10 +35,6 @@ public class LightningRequestDTO {
     private LocalDateTime eventDate;
 
     private Integer duration;
-
-    private LocalDateTime createdAt;
-
-    private LocalDateTime updatedAt;
 
     private LightningStatus status;
 

@@ -14,6 +14,9 @@ import com.taiso.bike_api.repository.LightningRepository;
 import com.taiso.bike_api.repository.LightningTagCategoryRepository;
 import com.taiso.bike_api.repository.UserRepository;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Service
 public class LightningService {
     
@@ -27,7 +30,6 @@ public class LightningService {
     LightningTagCategoryRepository lightningTagCategoryRepository;
 
     public LightningResponseDTO createLightning(LightningRequestDTO requestDTO, String userEmail) {
-
         // 태그 이름을 통해서 태그 엔티티 가져오기
         Set<LightningTagCategoryEntity> tags = requestDTO.getTags().stream()
             .map(tagName -> lightningTagCategoryRepository.findByName(tagName)
@@ -35,29 +37,36 @@ public class LightningService {
                             LightningTagCategoryEntity.builder().name(tagName).build())))
             .collect(Collectors.toSet());
 
+
+        
         // 번개 엔티티 빌드
-        LightningEntity lightningEntity = LightningEntity.builder()
-                                                        .creatorId(userRepository.getUserIdByEmail(userEmail))
-                                                        .title(requestDTO.getTitle())
-                                                        .description(requestDTO.getDescription())
-                                                        .eventDate(requestDTO.getEventDate())
-                                                        .duration(requestDTO.getDuration())
-                                                        .status(requestDTO.getStatus())
-                                                        .capacity(requestDTO.getCapacity())
-                                                        .latitude(requestDTO.getLatitude())
-                                                        .longitude(requestDTO.getLongitude())
-                                                        .gender(requestDTO.getGender())
-                                                        .level(requestDTO.getLevel())
-                                                        .recruitType(requestDTO.getRecruitType())
-                                                        .bikeType(requestDTO.getBikeType())
-                                                        .region(requestDTO.getRegion())
-                                                        .distance(requestDTO.getDistance())
-                                                        .routeId(requestDTO.getRouteId())
-                                                        .address(requestDTO.getAddress())
-                                                        .isClubOnly(requestDTO.getIsClubOnly())
-                                                        .clubId(requestDTO.getClubId())
-                                                        .tags(tags)
-                                                        .build();
+        // try{
+            LightningEntity lightningEntity = LightningEntity.builder()
+            .creatorId(userRepository.findByEmail(userEmail).get().getUserId())
+            .title(requestDTO.getTitle())
+            .description(requestDTO.getDescription())
+            .eventDate(requestDTO.getEventDate())
+            .duration(requestDTO.getDuration())
+            .status(requestDTO.getStatus())
+            .capacity(requestDTO.getCapacity())
+            .latitude(requestDTO.getLatitude())
+            .longitude(requestDTO.getLongitude())
+            .gender(requestDTO.getGender())
+            .level(requestDTO.getLevel())
+            .recruitType(requestDTO.getRecruitType())
+            .bikeType(requestDTO.getBikeType())
+            .region(requestDTO.getRegion())
+            .distance(requestDTO.getDistance())
+            .routeId(requestDTO.getRouteId())
+            .address(requestDTO.getAddress())
+            .isClubOnly(requestDTO.getIsClubOnly())
+            .clubId(requestDTO.getClubId())
+            .tags(tags)
+            .build();
+        // } catch() {
+
+        // }
+        
 
         LightningEntity savedLightning = lightningRepository.save(lightningEntity);
 

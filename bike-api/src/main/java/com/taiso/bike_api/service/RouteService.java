@@ -1,8 +1,12 @@
 package com.taiso.bike_api.service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
+import com.taiso.bike_api.dto.RouteListResponseDTO;
+import com.taiso.bike_api.dto.RouteResponseDTO;
+import com.taiso.bike_api.exception.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -16,14 +20,7 @@ import com.taiso.bike_api.domain.RoutePointEntity;
 import com.taiso.bike_api.domain.RouteTagCategoryEntity;
 import com.taiso.bike_api.domain.UserEntity;
 import com.taiso.bike_api.dto.RouteDetailResponseDTO;
-import com.taiso.bike_api.dto.RouteListResponseDTO;
 import com.taiso.bike_api.dto.RoutePointDTO;
-import com.taiso.bike_api.dto.RouteResponseDTO;
-import com.taiso.bike_api.exception.RouteDeleteAccessDeniedException;
-import com.taiso.bike_api.exception.RouteLikeAlreadyExistsException;
-import com.taiso.bike_api.exception.RouteLikeNotFoundException;
-import com.taiso.bike_api.exception.RouteNotFoundException;
-import com.taiso.bike_api.exception.UserNotFoundException;
 import com.taiso.bike_api.repository.RouteLikeRepository;
 import com.taiso.bike_api.repository.RoutePointRepository;
 import com.taiso.bike_api.repository.RouteRepository;
@@ -77,7 +74,7 @@ public class RouteService {
         List<String> tags = routeEntity.getTags().stream()
                 .map(RouteTagCategoryEntity::getName)
 				.collect(Collectors.toList());
-				
+
 		// 특정 유저의 좋아요 여부 체크
     	// userId가 null이 아니고 유효한 경우에만 좋아요 여부를 조회
     	boolean liked = false;
@@ -113,6 +110,7 @@ public class RouteService {
     }
 
 
+    // 루트 좋아요 등록 기능
     @Transactional
 	public void postRouteLike(Authentication authentication, Long routeId) {
     	// 사용자와 루트를 한 번만 조회
@@ -120,12 +118,12 @@ public class RouteService {
             .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
     	RouteEntity route = routeRepository.findById(routeId)
             .orElseThrow(() -> new RouteNotFoundException("루트를 찾을 수 없습니다."));
-    
+
     	// 이미 좋아요한 경우 예외 발생
    	 	if (routeLikeRepository.existsByUser_UserIdAndRoute_RouteId(user.getUserId(), routeId)) {
         	throw new RouteLikeAlreadyExistsException("이미 해당 루트를 좋아요했습니다.");
     	}
-    
+
     	// 좋아요 Entity 생성 및 저장
     	RouteLikeEntity routeLike = RouteLikeEntity.toEntity(route, user);
     	try {
@@ -143,11 +141,11 @@ public class RouteService {
             .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
     	RouteEntity route = routeRepository.findById(routeId)
             .orElseThrow(() -> new RouteNotFoundException("루트를 찾을 수 없습니다."));
-    
+
     	// 해당 좋아요가 존재하지 않으면 예외 발생
     	RouteLikeEntity routeLike = routeLikeRepository.findByUser_UserIdAndRoute_RouteId(user.getUserId(), routeId)
             .orElseThrow(() -> new RouteLikeNotFoundException("해당 루트에 대한 좋아요가 존재하지 않습니다."));
-    
+
 		// 좋아요 삭제 및 좋아요 수 감소
 		try {
 			routeLikeRepository.delete(routeLike);
@@ -198,7 +196,7 @@ public class RouteService {
 				.last(routePage.isLast())
 				.build();
 	}
-	
+
 	public void deleteRoute(Long routeId, String userEmail) {
         // 루트 정보 조회
         RouteEntity routeEntity = routeRepository.findById(routeId)

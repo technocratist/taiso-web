@@ -172,6 +172,29 @@ public class GlobalExceptionHandler {
         ErrorResponseDTO errorResponse = ErrorResponseDTO.makeErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST, request.getRequestURI());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
+
+    // 미존재 번개 예외 처리
+    @ExceptionHandler(LightningNotFoundException.class)
+    public ResponseEntity<ErrorResponseDTO> handleLightningNotFoundException(LightningNotFoundException ex, HttpServletRequest request) {
+        ErrorResponseDTO errorResponse = ErrorResponseDTO.makeErrorResponse(ex.getMessage(), HttpStatus.NOT_FOUND, request.getRequestURI());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+    }
+
+    // 번개 수정 권한 없음 예외 처리
+    @ExceptionHandler(NotPermissionException.class)
+    public ResponseEntity<ErrorResponseDTO> handleNotPermissionException(NotPermissionException ex, HttpServletRequest request) {
+        ErrorResponseDTO errorResponse = ErrorResponseDTO.makeErrorResponse(ex.getMessage(), HttpStatus.NOT_FOUND, request.getRequestURI());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
+    }
+
+    // 번개 수정 불가 상태 예외 처리
+    @ExceptionHandler(LightningFullMemberException.class)
+    public ResponseEntity<ErrorResponseDTO> handleLightningFullMemberException(LightningFullMemberException ex, HttpServletRequest request) {
+        ErrorResponseDTO errorResponse = ErrorResponseDTO.makeErrorResponse(ex.getMessage(), HttpStatus.FORBIDDEN, request.getRequestURI());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+    }
+
+
     
     // 번개 찾을 수 없음 
     @ExceptionHandler(LightningNotFoundException.class)

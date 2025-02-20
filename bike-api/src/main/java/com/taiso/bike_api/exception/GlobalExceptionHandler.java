@@ -193,7 +193,6 @@ public class GlobalExceptionHandler {
         ErrorResponseDTO errorResponse = ErrorResponseDTO.makeErrorResponse(ex.getMessage(), HttpStatus.FORBIDDEN, request.getRequestURI());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
     }
-
     
     // 이미 참여한 번개 처리
     @ExceptionHandler(LightningUserAlreadyExistsException.class)

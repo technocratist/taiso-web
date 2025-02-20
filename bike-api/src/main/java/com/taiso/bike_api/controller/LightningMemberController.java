@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.taiso.bike_api.dto.JoinParticipantsPostResponseDTO;
 import com.taiso.bike_api.service.LightningMemberService;
 
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 
@@ -26,6 +27,7 @@ public class LightningMemberController {
     private LightningMemberService lightningMemberService;
 
 	@PostMapping("{lightningId}/participants")
+  @Operation(summary = "번개 참가 및 참가 신청", description = "번개에 현재 사용자 참가 및 참가 신청 API")
 	public ResponseEntity<JoinParticipantsPostResponseDTO> join(
     		@PathVariable(name = "lightningId") Long lightningId,
 			Authentication authentication
@@ -37,6 +39,7 @@ public class LightningMemberController {
 	}
 	
 	// 인원 다 찼을 때 마감 Service.autoClose 도착했을 때의 TEST
+//  @Operation(summary = "번개 마감", description = "인원 가득 찼을 때 마감 수정 테스트") 
 //	@PatchMapping("{lightningId}/auto-close")
 //	public void autoClose(
 //    		@PathVariable(name = "lightningId") Long lightningId
@@ -44,4 +47,20 @@ public class LightningMemberController {
 //		lightningMemberService.autoClose(lightningId);
 //	}
 	
+    
+    // 번개 강제 마감
+    @Operation(summary = "번개 강제 마감", description = "번개 강제 마감 API")
+    @PatchMapping("{lightningId}/close")  
+    public ResponseEntity<JoinParticipantsPostResponseDTO> lightningClose(
+    		@PathVariable(name = "lightningId") Long lightningId,
+			Authentication authentication
+    		) {
+    	
+    	lightningMemberService.lightningClose(lightningId, authentication);
+
+		return ResponseEntity.status(HttpStatus.CREATED).body(null);
+    }
+    
+
+    
 }

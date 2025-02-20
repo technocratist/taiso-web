@@ -10,23 +10,40 @@ function RouteDetailPage() {
     null
   );
   const [isLoading, setIsLoading] = useState(true);
+  const [likePending, setLikePending] = useState(false);
 
   useEffect(() => {
     const fetchRouteDetail = async () => {
       setIsLoading(true);
-      const routeDetail = await routeService.getRouteDetail(Number(routeId));
-      setRouteDetail(routeDetail);
+      const routeDetailData = await routeService.getRouteDetail(
+        Number(routeId)
+      );
+      setRouteDetail(routeDetailData);
       setIsLoading(false);
     };
     fetchRouteDetail();
   }, [routeId]);
 
-  const handleLike = () => {
-    routeService.likeRoute(Number(routeId));
-  };
-
-  const handleUnlike = () => {
-    routeService.unlikeRoute(Number(routeId));
+  const handleToggleLike = async () => {
+    if (likePending || !routeDetail) return;
+    setLikePending(true);
+    const previousLikedState = routeDetail.liked;
+    // Optimistic UI 업데이트: 좋아요 상태 즉시 토글
+    setRouteDetail({ ...routeDetail, liked: !previousLikedState });
+    try {
+      if (previousLikedState) {
+        await routeService.unlikeRoute(Number(routeId));
+      } else {
+        await routeService.likeRoute(Number(routeId));
+      }
+    } catch (error) {
+      // API 호출 실패 시 이전 상태로 롤백
+      setRouteDetail({ ...routeDetail, liked: previousLikedState });
+      console.error("좋아요 상태 업데이트 실패:", error);
+      // 필요 시 사용자에게 에러 메시지를 노출하는 로직 추가 가능
+    } finally {
+      setLikePending(false);
+    }
   };
 
   if (isLoading) {
@@ -69,11 +86,12 @@ function RouteDetailPage() {
       {routeDetail && <AltitudeChart routePoints={routeDetail.routePoint} />}
 
       <div className="flex items-center justify-center gap-1">
-        <div
-          className={`btn btn-error w-fit no-animation ${
-            routeDetail?.liked ? "" : "btn-outline"
+        <button
+          className={`btn btn-outline w-fit no-animation transition-none ${
+            routeDetail?.liked ? "" : "btn-error transition-none"
           }`}
-          onClick={routeDetail?.liked ? handleUnlike : handleLike}
+          onClick={handleToggleLike}
+          disabled={likePending}
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -90,8 +108,8 @@ function RouteDetailPage() {
             />
           </svg>
           좋아요
-        </div>
-        <div className="btn btn-primary w-fit  no-animation">
+        </button>
+        <div className="btn btn-primary w-fit no-animation">
           <svg
             data-slot="icon"
             className="size-6"
@@ -112,7 +130,6 @@ function RouteDetailPage() {
       <div>{routeDetail?.altitude}</div>
       <div>{routeDetail?.description}</div>
       <div>{routeDetail?.distance}</div>
-      <div onClick={handleUnlike}>test</div>
     </div>
   );
 }

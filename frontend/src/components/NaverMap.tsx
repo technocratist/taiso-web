@@ -7,7 +7,7 @@ interface NaverMapProps {
   routeData: RouteDetailResponse;
 }
 
-const DEFAULT_COORD = { lat: 37.5665, lng: 126.978 };
+const DEFAULT_COORD = { lat: 37.3646656, lng: 127.108828 };
 
 const NaverMap: React.FC<NaverMapProps> = ({ routeData }) => {
   const mapRef = useRef<HTMLDivElement>(null);
@@ -32,7 +32,7 @@ const NaverMap: React.FC<NaverMapProps> = ({ routeData }) => {
 
       mapInstance.current = new naver.maps.Map(mapRef.current, {
         center: initialPosition,
-        zoom: 12,
+        zoom: 13,
       });
     }
   }, [scriptLoaded, routeData]);
@@ -61,13 +61,13 @@ const NaverMap: React.FC<NaverMapProps> = ({ routeData }) => {
     path.forEach((latlng) => bounds.extend(latlng));
     mapInstance.current.fitBounds(bounds);
 
-    // 맵이 idle 상태가 되면 다시 fitBounds를 호출해 초기 렌더링 문제를 보완
+    // 맵이 idle 상태가 되면 다시 fitBounds를 호출해 초기 렌더링 문제 보완
     (naver.maps.Event as any).once(mapInstance.current, "idle", () => {
       mapInstance.current!.fitBounds(bounds);
     });
 
     return () => {
-      (polyline as any)?.setMap(null);
+      polyline?.setMap(null);
       polyline = null;
     };
   }, [scriptLoaded, routeData]);

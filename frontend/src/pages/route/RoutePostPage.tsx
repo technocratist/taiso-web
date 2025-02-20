@@ -150,8 +150,8 @@ function RoutePostPage() {
     };
 
     try {
-      await executePost(payload);
-      navigate("/");
+      const data: any = await executePost(payload);
+      navigate(`/route/${data.routeId}`);
     } catch (err) {
       console.error("Error posting route:", err);
       setServerError("루트 등록에 실패했습니다. 잠시 후 다시 시도해주세요.");

@@ -194,13 +194,32 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
     }
 
-    
-    // 이미 참여한 번개 처리
+    // 이미 참여한 번개 예외 처리
     @ExceptionHandler(LightningUserAlreadyExistsException.class)
     public ResponseEntity<ErrorResponseDTO> handleLightningUserAlreadyExistsException(LightningUserAlreadyExistsException ex, HttpServletRequest request) {
        log.error("EmailAlreadyExistsException: ", ex);
    	
         ErrorResponseDTO errorResponse = ErrorResponseDTO.makeErrorResponse(ex.getMessage(), HttpStatus.CONFLICT, request.getRequestURI());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
+    }    
+    
+    // 유저 아이디와 번개 생성자 불일치 예외 처리
+    @ExceptionHandler(LightningCreatorMismatchException.class)
+    public ResponseEntity<ErrorResponseDTO> handleLightningCreatorMismatchException(LightningCreatorMismatchException ex,
+            HttpServletRequest request) {
+        log.error("RouteDeleteAccessDeniedException: ", ex);
+        ErrorResponseDTO errorResponse = ErrorResponseDTO.makeErrorResponse(ex.getMessage(), HttpStatus.FORBIDDEN,
+                request.getRequestURI());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
+    }    
+    
+    // 모집 상태가 아닌 번개에 참가 예외 처리
+    @ExceptionHandler(LightningStatusMismatchException.class)
+    public ResponseEntity<ErrorResponseDTO> handleLightningStatusMismatchException(LightningStatusMismatchException ex,
+            HttpServletRequest request) {
+        log.error("RouteDeleteAccessDeniedException: ", ex);
+        ErrorResponseDTO errorResponse = ErrorResponseDTO.makeErrorResponse(ex.getMessage(), HttpStatus.CONFLICT,
+                request.getRequestURI());
         return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
     }    
     

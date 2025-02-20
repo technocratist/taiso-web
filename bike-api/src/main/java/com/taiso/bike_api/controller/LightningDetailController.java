@@ -8,6 +8,7 @@ import com.taiso.bike_api.service.LightningDetailService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -19,18 +20,22 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "번개 디테일 컨트롤러", description = "번개 디테일 조회&수정 API")
 public class LightningDetailController {
 
+    @Autowired
     private LightningDetailService lightningDetailService;
 
     @Operation(summary = "번개 디테일 조회", description = "특정 번개 상세 페이지 조회 API")
     @GetMapping("/{lightning}")
-    public ResponseEntity<LightningDetailGetResponseDTO> getLightningDetail (@RequestParam(value = "LightningId") Long lightningId) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(null);
+    public ResponseEntity<LightningDetailGetResponseDTO> getLightningDetail (@PathVariable("lightning") Long lightningId) {
+
+        LightningDetailGetResponseDTO lightningDetailGetResponseDTO = lightningDetailService.getLightningDetail(lightningId);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(lightningDetailGetResponseDTO);
     }
 
     @Operation(summary = "번개 디테일 수정 화면 조회", description = "특정 번개 상세 수정 화면 조회 API")
     @GetMapping("/{lightning}/update")
     public ResponseEntity<LightningDetailUpdateGetResponseDTO> getUpdateLightningDetail (
-                                        @RequestParam(value = "LightningId") Long lightningId,
+                                        @PathVariable("lightning") Long lightningId,
                                         Authentication authentication) {
 
         LightningDetailUpdateGetResponseDTO lightningDetailUpdateGetResponseDTO = lightningDetailService.getUpdateLightningDetail(lightningId, authentication);
@@ -41,7 +46,7 @@ public class LightningDetailController {
     @Operation(summary = "번개 디테일 수정", description = "특정 번개 상세 수정 API")
     @PostMapping("/{lightning}")
     public ResponseEntity<LightningDetailUpdateResponseDTO> updateLightningDetail (
-            LightningDetailUpdateRequestDTO lightningDetailUpdateRequestDTO,
+            @RequestBody LightningDetailUpdateRequestDTO lightningDetailUpdateRequestDTO,
             Authentication authentication) {
 
         lightningDetailService.updateLightningDetail(lightningDetailUpdateRequestDTO, authentication);

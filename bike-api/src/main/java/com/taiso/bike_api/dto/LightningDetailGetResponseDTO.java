@@ -6,6 +6,7 @@ import lombok.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -54,7 +55,7 @@ public class LightningDetailGetResponseDTO {
 
     // 번개 태그
     private Long tagId;
-    private List<String> lightningTag;
+    private Set<String> lightningTag;
 
 
 

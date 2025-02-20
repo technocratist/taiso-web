@@ -1,5 +1,6 @@
 package com.taiso.bike_api.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,8 +25,7 @@ public class LightningMemberController {
 
     @Autowired
     private LightningMemberService lightningMemberService;
-    
-    
+
 	@PostMapping("{lightningId}/participants")
 	public ResponseEntity<JoinParticipantsPostResponseDTO> join(
     		@PathVariable(name = "lightningId") Long lightningId,

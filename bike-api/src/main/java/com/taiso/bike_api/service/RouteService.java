@@ -1,12 +1,8 @@
 package com.taiso.bike_api.service;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
-import com.taiso.bike_api.dto.RouteListResponseDTO;
-import com.taiso.bike_api.dto.RouteResponseDTO;
-import com.taiso.bike_api.exception.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -20,7 +16,14 @@ import com.taiso.bike_api.domain.RoutePointEntity;
 import com.taiso.bike_api.domain.RouteTagCategoryEntity;
 import com.taiso.bike_api.domain.UserEntity;
 import com.taiso.bike_api.dto.RouteDetailResponseDTO;
+import com.taiso.bike_api.dto.RouteListResponseDTO;
 import com.taiso.bike_api.dto.RoutePointDTO;
+import com.taiso.bike_api.dto.RouteResponseDTO;
+import com.taiso.bike_api.exception.RouteDeleteAccessDeniedException;
+import com.taiso.bike_api.exception.RouteLikeAlreadyExistsException;
+import com.taiso.bike_api.exception.RouteLikeNotFoundException;
+import com.taiso.bike_api.exception.RouteNotFoundException;
+import com.taiso.bike_api.exception.UserNotFoundException;
 import com.taiso.bike_api.repository.RouteLikeRepository;
 import com.taiso.bike_api.repository.RoutePointRepository;
 import com.taiso.bike_api.repository.RouteRepository;

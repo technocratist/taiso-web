@@ -7,11 +7,11 @@ import LoginPage from "./pages/auth/LoginPage";
 import RegisterPage from "./pages/auth/RegisterPage";
 import LandingPage from "./pages/auth/LandingPage";
 import AuthRoute from "./AuthRoute";
-import RoutePostPage from "./pages/route/RoutePostPage";
+import RoutePostPage from "../../route/RoutePostPage";
 import OAuthCallback from "./components/OAuthCallback";
 import RoutePage from "./pages/RoutePage";
 import ClubPage from "./pages/ClubPage";
-import RouteDetailPage from "./pages/route/RouteDetailPage";
+import RouteDetailPage from "../../route/RouteDetailPage";
 import NotFoundErrorPage from "./pages/error/NotFoundErrorPage";
 
 const router = createBrowserRouter([

@@ -4,9 +4,9 @@ import RouteList from "../components/RouteList";
 
 function RoutePage() {
   return (
-    <div className="min-h-screen flex flex-col ">
+    <div className="min-h-screen flex flex-col">
       <MainNavbar />
-      <div className="flex-1 max-w-screen-lg mx-auto p-4">
+      <div className="flex-1 w-full mx-auto p-4">
         <div className="flex justify-start mb-4 gap-2 ml-10">
           <div className="badge badge-primary badge-outline badge-lg text-sm cursor-pointer hover:bg-primary hover:text-white">
             랭킹순

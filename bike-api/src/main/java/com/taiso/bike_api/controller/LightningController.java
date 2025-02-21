@@ -12,6 +12,7 @@ import com.taiso.bike_api.dto.LightningRequestDTO;
 import com.taiso.bike_api.dto.LightningResponseDTO;
 import com.taiso.bike_api.service.LightningService;
 
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 
@@ -27,6 +28,7 @@ public class LightningController {
     LightningService lightningService;
     
     @PostMapping("")
+    @Operation(summary = "번개 생성", description = "번개 생성 API")
     public ResponseEntity<LightningResponseDTO> createLighting(
         @RequestBody LightningRequestDTO requestDTO
         , @AuthenticationPrincipal String userEmail) {

@@ -119,15 +119,18 @@ public class RouteController {
                                                     @RequestParam(defaultValue = "") String distanceType,
                                                     @RequestParam(defaultValue = "") String altitudeType,
                                                     @RequestParam(defaultValue = "") String roadType,
-                                                    @RequestParam(defaultValue = "") String[] Tag) {
+            @RequestParam(defaultValue = "") String[] Tag) {
 
         // 루트 데이터들을 페이징된 형태로 불러옴
-        RouteListResponseDTO routeListResponseDTO = routeService.getRouteList(page, size, sort, distanceType, altitudeType, roadType, Tag);
+        RouteListResponseDTO routeListResponseDTO = routeService.getRouteList(page, size, sort, distanceType,
+                altitudeType, roadType, Tag);
 
-        log.info("보내기 직전 : {}",routeListResponseDTO);
+        log.info("보내기 직전 : {}", routeListResponseDTO);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(routeListResponseDTO);
     }
+    
+    
 }
 
 

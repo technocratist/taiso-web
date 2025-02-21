@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router";
-import routeService from "../frontend/src/services/routeService";
-import usePost from "../frontend/src/hooks/usePost";
+import routeService from "../../services/routeService";
+import usePost from "../../hooks/usePost";
 
 const TAG_OPTIONS = [
   "한강 자전거길",

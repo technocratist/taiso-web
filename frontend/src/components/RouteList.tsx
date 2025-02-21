@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import routeService, { RouteListResponse } from "../services/routeService";
 import { Link, useNavigate } from "react-router-dom";
+import ImageWithSkeleton from "./ImageWithSkeleton";
 
 function RouteList() {
   const PAGE_SIZE = 8;
@@ -66,13 +67,24 @@ function RouteList() {
   };
 
   return (
-    <div className="flex flex-col items-center">
+    <div className="flex flex-col ">
+      <div className="flex justify-start mb-4 gap-2">
+        <div className="badge badge-primary badge-outline badge-lg text-sm cursor-pointer hover:bg-primary hover:text-white">
+          랭킹순
+        </div>
+        <div className="badge badge-primary badge-outline badge-lg text-sm cursor-pointer hover:bg-primary hover:text-white">
+          최신순
+        </div>
+        <div className="badge badge-primary badge-outline badge-lg text-sm cursor-pointer hover:bg-primary hover:text-white">
+          태그
+        </div>
+      </div>
       <div className="flex flex-wrap justify-center gap-6">
         {routeList.map((route) => (
           <Link to={`/route/${route.routeId}`} key={route.routeId}>
             <div className="card card-compact bg-base-100 w-56 shadow-xl">
-              <figure className="relative overflow-hidden">
-                <img
+              <figure className="relative overflow-hidden aspect-[4/3]">
+                <ImageWithSkeleton
                   src={route.routeImgId}
                   alt={route.routeName}
                   className="object-cover w-full h-full"
@@ -99,7 +111,10 @@ function RouteList() {
         </div>
       )}
       {!isLoading && hasMore && (
-        <button className="btn btn-primary mt-4" onClick={handleLoadMore}>
+        <button
+          className="btn btn-primary btn-wide mt-4 mx-auto"
+          onClick={handleLoadMore}
+        >
           더보기
         </button>
       )}

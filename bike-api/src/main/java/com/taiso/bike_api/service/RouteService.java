@@ -257,7 +257,7 @@ public class RouteService {
                         route.getCreatedAt() != null ? route.getCreatedAt().toString() : null
                 ))
                 .collect(Collectors.toList());
-
+                
 
         return RouteListResponseDTO.builder()
                 .content(routeResponseDTO)

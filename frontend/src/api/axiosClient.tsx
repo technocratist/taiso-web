@@ -4,7 +4,6 @@
 
 import axios, { AxiosResponse, AxiosError } from "axios";
 import { useAuthStore } from "../stores/useAuthStore";
-import { navigateTo } from "../utils/navigation";
 
 const axiosClient = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL as string,
@@ -41,7 +40,6 @@ axiosClient.interceptors.response.use(
           break;
         case 404:
           console.error("리소스 없음: 요청한 리소스를 찾을 수 없습니다.");
-          navigateTo("/404");
           break;
         case 422:
           console.error("잘못된 입력: 요청 데이터가 유효하지 않습니다.");

@@ -1,11 +1,9 @@
 import { useNavigate, useParams } from "react-router";
-import routeService, {
-  RouteDetailResponse,
-} from "../frontend/src/services/routeService";
+import routeService, { RouteDetailResponse } from "../../services/routeService";
 import { useEffect, useState } from "react";
-import AltitudeChart from "../frontend/src/components/AltitudeChart";
-import KakaoMapRoute from "../frontend/src/components/KakaoMap";
-import { useAuthStore } from "../frontend/src/stores/useAuthStore";
+import AltitudeChart from "../../components/AltitudeChart";
+import KakaoMapRoute from "../../components/KakaoMap";
+import { useAuthStore } from "../../stores/useAuthStore";
 
 function RouteDetailPage() {
   const { routeId } = useParams();

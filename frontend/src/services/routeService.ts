@@ -38,12 +38,12 @@ export interface RouteDetailResponse {
 
 export interface RouteListPageResponse {
   content: RouteListResponse[];
-  pageable: {
-    pageNumber: number;
-    pageSize: number;
-    totalPages: number;
-    totalElements: number;
-  };
+
+  pageNumber: number;
+  pageSize: number;
+  totalPages: number;
+  totalElements: number;
+  last: boolean;
 }
 
 export interface RouteListResponse {
@@ -92,8 +92,18 @@ const getRouteDetail = async (
   return await get(`/routes/${routeId}`);
 };
 
-const getRouteList = async (): Promise<RouteListPageResponse> => {
-  return await get(`/routes/`);
+const getRouteList = async (
+  page: number,
+  size: number,
+  sort: string,
+  distanceType: string,
+  altitudeType: string,
+  roadType: string,
+  tag: string[]
+): Promise<RouteListPageResponse> => {
+  return await get(
+    `/routes/?page=${page}&size=${size}&sort=${sort}&distanceType=${distanceType}&altitudeType=${altitudeType}&roadType=${roadType}&tag=${tag}`
+  );
 };
 
 const likeRoute = async (routeId: number): Promise<RoutePostResponse> => {

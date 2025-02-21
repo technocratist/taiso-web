@@ -7,17 +7,6 @@ function RoutePage() {
     <div className="min-h-screen flex flex-col">
       <MainNavbar />
       <div className="flex-1 w-full mx-auto p-4">
-        <div className="flex justify-start mb-4 gap-2 ml-10">
-          <div className="badge badge-primary badge-outline badge-lg text-sm cursor-pointer hover:bg-primary hover:text-white">
-            랭킹순
-          </div>
-          <div className="badge badge-primary badge-outline badge-lg text-sm cursor-pointer hover:bg-primary hover:text-white">
-            최신순
-          </div>
-          <div className="badge badge-primary badge-outline badge-lg text-sm cursor-pointer hover:bg-primary hover:text-white">
-            태그
-          </div>
-        </div>
         <div className="fixed bottom-8 right-10 z-50">
           <Link to="/route/post" className="btn btn-primary btn-circle ">
             <svg

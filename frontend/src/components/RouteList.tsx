@@ -79,27 +79,68 @@ function RouteList() {
           태그
         </div>
       </div>
-      <div className="flex flex-wrap justify-center gap-6">
+      <div className="flex flex-wrap justify-center gap-2">
         {routeList.map((route) => (
-          <Link to={`/route/${route.routeId}`} key={route.routeId}>
-            <div className="card card-compact bg-base-100 w-56 shadow-xl">
+          <Link
+            to={`/route/${route.routeId}`}
+            key={route.routeId}
+            className="group"
+          >
+            <div className="bg-base-100 w-60 cursor-pointer hover:bg-base-200 p-3 rounded-2xl relative">
+              <svg
+                data-slot="icon"
+                fill="none"
+                stroke-width="2.25"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+                aria-hidden="true"
+                className="size-5 text-gray-600 absolute top-5 right-11 z-10"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  console.log("delete");
+                }}
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z"
+                ></path>
+              </svg>
+              <svg
+                data-slot="icon"
+                fill="none"
+                strokeWidth="2.25"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+                aria-hidden="true"
+                className="size-5 text-gray-600 absolute top-5 right-5 z-10"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  console.log("delete");
+                }}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0 1 11.186 0Z"
+                ></path>
+              </svg>
               <figure className="relative overflow-hidden aspect-[4/3]">
                 <ImageWithSkeleton
                   src={route.routeImgId}
                   alt={route.routeName}
-                  className="object-cover w-full h-full"
                 />
               </figure>
-              <div className="card-body">
-                <h2 className="card-title -mt-1">{route.routeName}</h2>
-                <div className="flex justify-between text-sm text-gray-600 -mt-1">
-                  <span>{route.distance} km</span>
-                  <span>{route.altitude} m</span>
+              <div className="ml-1">
+                <div className="font-semibold mt-2">{route.routeName}</div>
+                <div className="flex text-xs text-gray-500 gap-2">
+                  <span>{route.distance}km</span>
+                  <span>{route.altitude}m</span>
                 </div>
-                <p className="text-xs">{route.roadType}</p>
-                <p className="text-xs text-gray-400">
-                  {new Date(route.createdAt).toLocaleDateString()}
-                </p>
               </div>
             </div>
           </Link>

@@ -114,7 +114,7 @@ public class RouteController {
     public ResponseEntity<RouteListResponseDTO> getRouteList(
                                                     //필터정보 null 가능
                                                     @RequestParam(defaultValue = "0") int page,
-                                                    @RequestParam(defaultValue = "10") int size,
+                                                    @RequestParam(defaultValue = "8") int size,
                                                     @RequestParam(defaultValue = "") String sort,
                                                     @RequestParam(defaultValue = "") String distanceType,
                                                     @RequestParam(defaultValue = "") String altitudeType,

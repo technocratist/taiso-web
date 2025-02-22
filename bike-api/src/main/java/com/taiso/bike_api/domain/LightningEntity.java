@@ -14,12 +14,14 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -101,8 +103,12 @@ public class LightningEntity {
     @Column(name = "distance", nullable = false)
     private Long distance;
 
-    @Column(name = "route_id")
-    private Long routeId;
+    // @Column(name = "route_id")
+    // private Long routeId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "route_id")
+    private RouteEntity route;
 
     @Column(name = "address", nullable = false, length = 255)
     private String address;
@@ -121,7 +127,12 @@ public class LightningEntity {
     @Builder.Default
     private Set<LightningTagCategoryEntity> tags = new HashSet<>();
 
-
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinTable(name = "lightning_user",
+            joinColumns = @JoinColumn(name = "lightning_id"),
+            inverseJoinColumns = @JoinColumn(name = "user_id"))
+    @Builder.Default
+    private Set<UserEntity> users = new HashSet<>();
     
     // ENUM 정의
     public enum LightningStatus {

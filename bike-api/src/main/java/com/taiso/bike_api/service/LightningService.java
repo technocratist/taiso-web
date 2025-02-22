@@ -1,6 +1,7 @@
 package com.taiso.bike_api.service;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -15,6 +16,7 @@ import com.taiso.bike_api.domain.LightningEntity.Gender;
 import com.taiso.bike_api.domain.LightningEntity.Level;
 import com.taiso.bike_api.domain.LightningEntity.Region;
 import com.taiso.bike_api.domain.LightningTagCategoryEntity;
+import com.taiso.bike_api.domain.UserEntity;
 import com.taiso.bike_api.dto.LightningGetRequestDTO;
 import com.taiso.bike_api.dto.LightningGetResponseDTO;
 import com.taiso.bike_api.dto.LightningRequestDTO;
@@ -53,11 +55,18 @@ public class LightningService {
                             LightningTagCategoryEntity.builder().name(tagName).build())))
             .collect(Collectors.toSet());
 
+        // 생성자의 정보 조회해오기
+        UserEntity creator = userRepository.findByEmail(userEmail).get();
+
+        // 생성자를 번개 멤버에 추가하기 위한 set초기화
+        Set<UserEntity> users = new HashSet<>();
+        users.add(creator);
+
         // 루트가 존재하는지 확인하는 예외처리 필요
-        // non null 커럼에 null이 들어가는 경우의 예외처리
+        // non null 컬럼에 null이 들어가는 경우의 예외처리
         // try{
             LightningEntity lightningEntity = LightningEntity.builder()
-            .creatorId(userRepository.findByEmail(userEmail).get().getUserId())
+            .creatorId(creator.getUserId())
             .title(requestDTO.getTitle())
             .description(requestDTO.getDescription())
             .eventDate(requestDTO.getEventDate())
@@ -77,6 +86,7 @@ public class LightningService {
             .isClubOnly(requestDTO.getIsClubOnly())
             .clubId(requestDTO.getClubId())
             .tags(tags)
+            .users(users)
             .build();
         // } catch() {
 

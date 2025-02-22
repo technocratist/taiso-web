@@ -10,7 +10,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.MathContext;
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -143,32 +142,34 @@ public class RouteCreateService {
         long step5Time = System.nanoTime() - step5Start;
         System.out.println("Step 5 (save route and points): " + step5Time / 1_000_000.0 + " ms");
 
-        // Step 6: S3 업로드 (GPX 파일, 정적 지도 이미지) 및 DB 업데이트
-        long step6Start = System.nanoTime();
-        try {
-            // GPX 파일 업로드
-            String gpxFileKey = s3Service.uploadFile(file, userId);
-            String gpxFileUrl = s3Service.generatePresignedUrl(gpxFileKey, Duration.ofMinutes(10));
-            System.out.println("GPX 파일 S3 업로드 완료, Key: " + gpxFileKey);
-            System.out.println("GPX 파일 프리사인 URL: " + gpxFileUrl);
+// Step 6: S3 업로드 (GPX 파일, 정적 지도 이미지) 및 DB 업데이트
+long step6Start = System.nanoTime();
+try {
+    // GPX 파일 업로드
+    String gpxFileKey = s3Service.uploadFile(file, userId);
+    // presigned URL 대신 S3의 기본 URL을 가져옴
+    String gpxFileUrl = s3Service.getFileUrl(gpxFileKey);
+    System.out.println("GPX 파일 S3 업로드 완료, Key: " + gpxFileKey);
+    System.out.println("GPX 파일 URL: " + gpxFileUrl);
 
-            // 정적 지도 이미지 업로드
-            String compositeKey = "static-maps/composite_" + System.currentTimeMillis() + ".png";
-            s3Service.uploadFile(staticMapImageBytes, compositeKey, "image/png");
-            String staticMapUrl = s3Service.generatePresignedUrl(compositeKey, Duration.ofMinutes(10));
-            System.out.println("정적 지도 이미지 S3 업로드 완료, Key: " + compositeKey);
-            System.out.println("정적 지도 프리사인 URL: " + staticMapUrl);
+    // 정적 지도 이미지 업로드
+    String compositeKey = "static-maps/composite_" + System.currentTimeMillis() + ".png";
+    s3Service.uploadFile(staticMapImageBytes, compositeKey, "image/png");
+    // presigned URL 대신 S3의 기본 URL을 가져옴
+    String staticMapUrl = s3Service.getFileUrl(compositeKey);
+    System.out.println("정적 지도 이미지 S3 업로드 완료, Key: " + compositeKey);
+    System.out.println("정적 지도 이미지 URL: " + staticMapUrl);
 
-            // 업로드된 이미지 URL DB 반영
-            savedRoute.setRouteImgId(staticMapUrl);
-            savedRoute.setOriginalFilePath(gpxFileUrl);
-            routeRepository.save(savedRoute);
-        } catch (Exception e) {
-            routeRepository.delete(savedRoute);
-            throw new StaticMapImageFetchException("S3 업로드 중 오류");
-        }
-        long step6Time = System.nanoTime() - step6Start;
-        System.out.println("Step 6 (S3 upload): " + step6Time / 1_000_000.0 + " ms");
+    // 업로드된 이미지 URL DB 반영
+    savedRoute.setRouteImgId(staticMapUrl);
+    savedRoute.setOriginalFilePath(gpxFileUrl);
+    routeRepository.save(savedRoute);
+} catch (Exception e) {
+    routeRepository.delete(savedRoute);
+    throw new StaticMapImageFetchException("S3 업로드 중 오류");
+}
+long step6Time = System.nanoTime() - step6Start;
+System.out.println("Step 6 (S3 upload): " + step6Time / 1_000_000.0 + " ms");
 
         long overallTime = System.nanoTime() - overallStart;
         System.out.println("Total createRoute execution time: " + overallTime / 1_000_000.0 + " ms");

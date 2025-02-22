@@ -1,10 +1,13 @@
 package com.taiso.bike_api.dto;
 
-import lombok.*;
+import java.util.Set;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
 @Getter
 @Setter
@@ -19,14 +22,8 @@ public class LightningDetailUpdateRequestDTO {
 
     private String title;
     private String description;
-//    private LocalDateTime eventDate;
-//    private Integer duration;
 
     private String status;
-//    private Integer capacity;
-
-//    private BigDecimal latitude;
-//    private BigDecimal longitude;
 
     private String gender;
     private String level;
@@ -34,11 +31,7 @@ public class LightningDetailUpdateRequestDTO {
     private String bikeType;
     private String region;
 
-//    private Long distance;
-//    private Long routeId;
-//    private String address;
-
     private Long tagId;
-    private List<String> lightningTag;
+    private Set<String> lightningTag;
 
 }

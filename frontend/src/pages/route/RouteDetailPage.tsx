@@ -1,8 +1,9 @@
-import { useParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
 import routeService, { RouteDetailResponse } from "../../services/routeService";
 import { useEffect, useState } from "react";
-import NaverMap from "../../components/NaverMap";
 import AltitudeChart from "../../components/AltitudeChart";
+import KakaoMapRoute from "../../components/KakaoMap";
+import { useAuthStore } from "../../stores/useAuthStore";
 
 function RouteDetailPage() {
   const { routeId } = useParams();
@@ -10,23 +11,52 @@ function RouteDetailPage() {
     null
   );
   const [isLoading, setIsLoading] = useState(true);
+  const [likePending, setLikePending] = useState(false);
+  const { user } = useAuthStore();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchRouteDetail = async () => {
       setIsLoading(true);
-      const routeDetail = await routeService.getRouteDetail(Number(routeId));
-      setRouteDetail(routeDetail);
+      const routeDetailData = await routeService.getRouteDetail(
+        Number(routeId)
+      );
+      setRouteDetail(routeDetailData);
       setIsLoading(false);
     };
     fetchRouteDetail();
   }, [routeId]);
 
-  const handleLike = () => {
-    routeService.likeRoute(Number(routeId));
+  const handleToggleLike = async () => {
+    if (likePending || !routeDetail) return;
+    setLikePending(true);
+    const previousLikedState = routeDetail.liked;
+    // Optimistic UI 업데이트: 좋아요 상태 즉시 토글
+    setRouteDetail({ ...routeDetail, liked: !previousLikedState });
+    try {
+      if (previousLikedState) {
+        await routeService.unlikeRoute(Number(routeId));
+      } else {
+        await routeService.likeRoute(Number(routeId));
+      }
+    } catch (error) {
+      // API 호출 실패 시 이전 상태로 롤백
+      setRouteDetail({ ...routeDetail, liked: previousLikedState });
+      console.error("좋아요 상태 업데이트 실패:", error);
+      // 필요 시 사용자에게 에러 메시지를 노출하는 로직 추가 가능
+    } finally {
+      setLikePending(false);
+    }
   };
 
-  const handleUnlike = () => {
-    routeService.unlikeRoute(Number(routeId));
+  const handleDeleteRoute = async () => {
+    try {
+      const response = await routeService.deleteRoute(Number(routeId));
+      console.log(response);
+      navigate("/route");
+    } catch (response) {
+      console.error("루트 삭제 실패:", response);
+    }
   };
 
   if (isLoading) {
@@ -34,7 +64,7 @@ function RouteDetailPage() {
   }
 
   return (
-    <div className="flex flex-col mt-2 gap-2">
+    <div className="flex flex-col mt-2 gap-2 md:w-full w-[90%]">
       <div className="text-4xl font-bold">{routeDetail?.routeName}</div>
       <div className="flex items-center gap-1">
         {routeDetail?.tag.map((tag, index) => (
@@ -65,15 +95,21 @@ function RouteDetailPage() {
         </svg>
         <div className="text-sm link">{routeDetail?.fileName}</div>
       </div>
-      {routeDetail && <NaverMap routeData={routeDetail} />}
+      {routeDetail && (
+        <KakaoMapRoute
+          key={routeDetail.routeId}
+          routePoints={routeDetail.routePoint}
+        />
+      )}
       {routeDetail && <AltitudeChart routePoints={routeDetail.routePoint} />}
 
       <div className="flex items-center justify-center gap-1">
-        <div
-          className={`btn btn-error w-fit no-animation ${
-            routeDetail?.liked ? "" : "btn-outline"
+        <button
+          className={`btn btn-outline w-fit no-animation transition-none ${
+            routeDetail?.liked ? "" : "btn-error transition-none"
           }`}
-          onClick={routeDetail?.liked ? handleUnlike : handleLike}
+          onClick={handleToggleLike}
+          disabled={likePending}
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -90,8 +126,8 @@ function RouteDetailPage() {
             />
           </svg>
           좋아요
-        </div>
-        <div className="btn btn-primary w-fit  no-animation">
+        </button>
+        <div className="btn btn-primary w-fit no-animation">
           <svg
             data-slot="icon"
             className="size-6"
@@ -109,10 +145,16 @@ function RouteDetailPage() {
           북마크
         </div>
       </div>
+      {user?.userId === routeDetail?.userId && (
+        <div>
+          <button onClick={handleDeleteRoute} className="btn btn-primary">
+            삭제
+          </button>
+        </div>
+      )}
       <div>{routeDetail?.altitude}</div>
       <div>{routeDetail?.description}</div>
       <div>{routeDetail?.distance}</div>
-      <div onClick={handleUnlike}>test</div>
     </div>
   );
 }

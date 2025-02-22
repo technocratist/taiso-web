@@ -1,11 +1,15 @@
 package com.taiso.bike_api.dto;
 
-import com.taiso.bike_api.domain.LightningEntity;
-import lombok.*;
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.Set;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
 @Getter
 @Setter
@@ -54,7 +58,7 @@ public class LightningDetailGetResponseDTO {
 
     // 번개 태그
     private Long tagId;
-    private List<String> lightningTag;
+    private Set<String> lightningTag;
 
 
 

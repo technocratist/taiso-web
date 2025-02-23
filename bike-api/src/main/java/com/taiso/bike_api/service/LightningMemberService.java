@@ -2,6 +2,7 @@ package com.taiso.bike_api.service;
 
 import java.util.Optional;
 
+import com.taiso.bike_api.exception.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.core.Authentication;
@@ -12,12 +13,6 @@ import com.taiso.bike_api.domain.LightningEntity.LightningStatus;
 import com.taiso.bike_api.domain.LightningEntity.RecruitType;
 import com.taiso.bike_api.domain.LightningUserEntity;
 import com.taiso.bike_api.domain.UserEntity;
-import com.taiso.bike_api.exception.EmailAlreadyExistsException;
-import com.taiso.bike_api.exception.LightningCreatorMismatchException;
-import com.taiso.bike_api.exception.LightningNotFoundException;
-import com.taiso.bike_api.exception.LightningStatusMismatchException;
-import com.taiso.bike_api.exception.LightningUserAlreadyExistsException;
-import com.taiso.bike_api.exception.UserNotFoundException;
 import com.taiso.bike_api.repository.LightningRepository;
 import com.taiso.bike_api.repository.LightningUserRepository;
 import com.taiso.bike_api.repository.UserRepository;
@@ -146,7 +141,66 @@ public class LightningMemberService {
 		
 	}
 
+	// 스스로 번개 나가기
+	@Transactional
+	public void exitLightning(Long lightningId, Authentication authentication) {
+		// 번개 존재 확인
+		LightningEntity lightningEntity = lightningRepository.findById(lightningId)
+				// 예외처리 -> 404
+				.orElseThrow(() -> new LightningNotFoundException("번개를 찾을 수 없습니다."));
 
-    
+		// 유저 아이디로 유저 찾기
+		UserEntity userEntity = userRepository.findByEmail(authentication.getName())
+				.orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
 
+		// 번개Id와 유저Id로 member에서 조회
+		LightningUserEntity lightningUser = lightningUserRepository
+				.findByLightning_LightningIdAndUser_UserId(lightningId, userEntity.getUserId())
+				.orElseThrow(() -> new LightningMemberNotFoundException("해당 번개에 참여한 기록이 없습니다."));
+
+		// 이미 탈퇴한 경우 예외 처리
+		if (lightningUser.getParticipantStatus() == LightningUserEntity.ParticipantStatus.탈퇴) {
+			throw new LightningMemberIllegalParticipantStatusException("이미 탈퇴한 회원입니다.");
+		}
+
+		// 상태를 '탈퇴'로 변경
+		lightningUser.setParticipantStatus(LightningUserEntity.ParticipantStatus.탈퇴);
+		lightningUserRepository.save(lightningUser);
+
+	}
+
+	// 번개 참여신청 취소하기
+	public void cancelJoinLightning(Long lightningId, Authentication authentication) {
+
+		// 번개 존재 확인
+		LightningEntity lightningEntity = lightningRepository.findById(lightningId)
+				// 예외처리 -> 404
+				.orElseThrow(() -> new LightningNotFoundException("번개를 찾을 수 없습니다."));
+
+		// 유저 아이디로 유저 찾기
+		UserEntity userEntity = userRepository.findByEmail(authentication.getName())
+				.orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
+
+		// 번개Id와 유저Id로 member에서 조회
+		LightningUserEntity lightningUser = lightningUserRepository
+				.findByLightning_LightningIdAndUser_UserId(lightningId, userEntity.getUserId())
+				.orElseThrow(() -> new LightningMemberNotFoundException("해당 번개에 참여한 기록이 없습니다."));
+
+		// 이미 탈퇴한 경우 예외 처리
+		if (lightningUser.getParticipantStatus() == LightningUserEntity.ParticipantStatus.탈퇴) {
+			throw new LightningMemberIllegalParticipantStatusException("이미 탈퇴된 회원입니다.");
+		}
+
+		// 이미 승인된 경우 예외 처리
+		if (lightningUser.getParticipantStatus() == LightningUserEntity.ParticipantStatus.승인) {
+			throw new LightningMemberIllegalParticipantStatusException("이미 승인된 회원입니다.");
+		}
+
+		// 신청대기 상태일 때만 작동
+		if (lightningUser.getParticipantStatus() == LightningUserEntity.ParticipantStatus.신청대기) {
+			lightningUser.setParticipantStatus(LightningUserEntity.ParticipantStatus.탈퇴);
+			lightningUserRepository.save(lightningUser);
+		}
+
+	}
 }

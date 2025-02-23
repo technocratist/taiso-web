@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import com.taiso.bike_api.domain.LightningEntity;
 import com.taiso.bike_api.domain.LightningTagCategoryEntity;
+import com.taiso.bike_api.dto.GetParticipatedLightningResponseDTO;
 import com.taiso.bike_api.dto.LightningRequestDTO;
 import com.taiso.bike_api.dto.LightningResponseDTO;
 import com.taiso.bike_api.repository.LightningRepository;
@@ -28,6 +29,7 @@ public class LightningService {
 
     @Autowired
     LightningTagCategoryRepository lightningTagCategoryRepository;
+    
 
     public LightningResponseDTO createLightning(LightningRequestDTO requestDTO, String userEmail) {
         // 태그 이름을 통해서 태그 엔티티 가져오기
@@ -71,5 +73,24 @@ public class LightningService {
         LightningEntity savedLightning = lightningRepository.save(lightningEntity);
 
         return LightningResponseDTO.builder().lightningId(savedLightning.getLightningId()).build();
+    }
+
+    
+    
+    
+    
+    
+    public GetParticipatedLightningResponseDTO getParticipatedLightnings(Long lightningId, String userEmail) {
+        // 사용자가 해당 번개에 정말 참여한 사람인지 확인
+        lightningUserRepository.findByLightningIdAndUserId(lightningId, userRepository.findByEmail(userEmail).get().getUserId())
+            .orElseThrow(() -> new IllegalArgumentException("해당 번개에 참여한 사용자가 아닙니다."));
+
+        // 해당 번개 정보 조회
+
+        // 사용자가 해당 번개 내에서 북마크한 사람 조회
+
+        // 조회된 사람들의 상세정보 조회
+
+
     }
 }

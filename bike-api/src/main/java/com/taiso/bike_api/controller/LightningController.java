@@ -1,13 +1,16 @@
 package com.taiso.bike_api.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.taiso.bike_api.dto.GetParticipatedLightningResponseDTO;
 import com.taiso.bike_api.dto.LightningRequestDTO;
 import com.taiso.bike_api.dto.LightningResponseDTO;
 import com.taiso.bike_api.service.LightningService;
@@ -49,4 +52,16 @@ public class LightningController {
     // }
     
     
+
+
+
+
+
+
+
+    public ResponseEntity<GetParticipatedLightningResponseDTO> getParticipatedLightning(
+    @PathVariable(name = "lightningId") Long lightningId
+    , @AuthenticationPrincipal String userEmail) {
+        return ResponseEntity.status(HttpStatus.OK).body(lightningService.getParticipatedLightnings(lightningId, userEmail));
+    }
 }

@@ -1,10 +1,13 @@
 package com.taiso.bike_api.service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import javax.management.relation.Role;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
@@ -16,6 +19,7 @@ import com.taiso.bike_api.domain.LightningEntity.Gender;
 import com.taiso.bike_api.domain.LightningEntity.Level;
 import com.taiso.bike_api.domain.LightningEntity.Region;
 import com.taiso.bike_api.domain.LightningTagCategoryEntity;
+import com.taiso.bike_api.domain.LightningUserEntity;
 import com.taiso.bike_api.domain.UserEntity;
 import com.taiso.bike_api.dto.LightningGetRequestDTO;
 import com.taiso.bike_api.dto.LightningGetResponseDTO;
@@ -58,14 +62,10 @@ public class LightningService {
         // 생성자의 정보 조회해오기
         UserEntity creator = userRepository.findByEmail(userEmail).get();
 
-        // 생성자를 번개 멤버에 추가하기 위한 set초기화
-        Set<UserEntity> users = new HashSet<>();
-        users.add(creator);
-
         // 루트가 존재하는지 확인하는 예외처리 필요
         // non null 컬럼에 null이 들어가는 경우의 예외처리
         // try{
-            LightningEntity lightningEntity = LightningEntity.builder()
+            LightningEntity lightning = LightningEntity.builder()
             .creatorId(creator.getUserId())
             .title(requestDTO.getTitle())
             .description(requestDTO.getDescription())
@@ -86,14 +86,25 @@ public class LightningService {
             .isClubOnly(requestDTO.getIsClubOnly())
             .clubId(requestDTO.getClubId())
             .tags(tags)
-            .users(users)
             .build();
         // } catch() {
 
         // }
-        
 
-        LightningEntity savedLightning = lightningRepository.save(lightningEntity);
+        // 번개 - 사용자 관계 설정
+        LightningUserEntity lightningUser = LightningUserEntity.builder()
+            .lightning(lightning)
+            .user(creator)
+            .joinedAt(LocalDateTime.now()) // 명시적으로 설정 가능
+            .role(LightningUserEntity.Role.번개생성자)
+            .participantStatus(LightningUserEntity.ParticipantStatus.승인)
+            .build();
+
+        // 관계 대입
+        lightning.getLightningUsers().add(lightningUser);
+        creator.getLightningUsers().add(lightningUser);
+
+        LightningEntity savedLightning = lightningRepository.save(lightning);
 
         return LightningResponseDTO.builder().lightningId(savedLightning.getLightningId()).build();
     }
@@ -106,7 +117,7 @@ public class LightningService {
                                                             requestDTO.getRegion(), 
                                                             requestDTO.getTags()));
 
-        log.info("테스트트");
+        log.info("테스트");
         LightningGetResponseDTO responseDTO = LightningGetResponseDTO.builder().lightnings(
             entities.stream().map(
                 entity -> ResponseComponentDTO.builder()
@@ -126,7 +137,7 @@ public class LightningService {
                                                     .map(component -> component.getName())
                                                     .collect(Collectors.toList()))
                                             .address(entity.getAddress())
-                                            .routeImgId(entity.getRoute().getRouteImgId())
+                                            .routeImgId(entity.getRoute() == null ? null : entity.getRoute().getRouteImgId())
                                             .build())
                                             .collect(Collectors.toList()))
                                             .build();

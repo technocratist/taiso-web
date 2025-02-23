@@ -175,7 +175,7 @@ public class LightningDetailService {
                 .bikeType(lightning.getBikeType().toString())
                 .region(lightning.getRegion().toString())
                 .distance(lightning.getDistance())
-                .routeId(lightning.getRouteId())
+                .routeId(lightning.getRoute().getRouteId())
                 .address(lightning.getAddress())
                 .isClubOnly(lightning.getIsClubOnly())
 //                .lightningUserId()

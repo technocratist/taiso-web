@@ -22,6 +22,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -127,12 +128,9 @@ public class LightningEntity {
     @Builder.Default
     private Set<LightningTagCategoryEntity> tags = new HashSet<>();
 
-    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
-    @JoinTable(name = "lightning_user",
-            joinColumns = @JoinColumn(name = "lightning_id"),
-            inverseJoinColumns = @JoinColumn(name = "user_id"))
+    @OneToMany(mappedBy = "lightning", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
-    private Set<UserEntity> users = new HashSet<>();
+    private Set<LightningUserEntity> lightningUsers = new HashSet<>();
     
     // ENUM 정의
     public enum LightningStatus {

@@ -26,8 +26,6 @@ import lombok.ToString;
 @Builder
 public class LightningRequestDTO {
 
-    private Long creatorId;
-
     private String title;
 
     private String description;

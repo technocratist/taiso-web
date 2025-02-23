@@ -5,6 +5,7 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.taiso.bike_api.domain.LightningEntity;
+import com.taiso.bike_api.domain.LightningTagCategoryEntity;
 import com.taiso.bike_api.domain.LightningUserEntity;
 import com.taiso.bike_api.domain.UserEntity;
 
@@ -14,5 +15,7 @@ public interface LightningUserRepository extends JpaRepository<LightningUserEnti
 
 	Optional<LightningUserEntity> findByLightningAndUser(LightningEntity lightningEntityException,
 			UserEntity userEntityException);
+
+    Optional<LightningTagCategoryEntity> findByLightningIdAndUserId(Long lightningId, Long userId);
 
 }

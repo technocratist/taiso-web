@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PathVariable;
 
+
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -41,6 +42,8 @@ public class LightningController {
     }
 
     @GetMapping("")
+    @Operation(summary = "번개 리스트 조회", description = "번개 리스트 조회 API")
+    //TODO 필터 기능의 reqeust값은 쿼리 파라미터로 변경
     public ResponseEntity<LightningGetResponseDTO> getLightning(@RequestBody LightningGetRequestDTO requestDTO) {
         return ResponseEntity.status(HttpStatus.OK).body(lightningService.getLightning(requestDTO));
     }

@@ -88,7 +88,13 @@ const KakaoMapRoute: React.FC<KakaoMapRouteProps> = ({ routePoints }) => {
     });
   };
 
-  return <div ref={mapRef} style={{ width: "100%", height: "400px" }} />;
+  return (
+    <div
+      ref={mapRef}
+      className="rounded-2xl shadow-lg"
+      style={{ width: "100%", height: "400px" }}
+    />
+  );
 };
 
 export default KakaoMapRoute;

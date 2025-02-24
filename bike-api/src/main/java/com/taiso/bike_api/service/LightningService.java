@@ -1,6 +1,5 @@
 package com.taiso.bike_api.service;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -129,7 +128,7 @@ public class LightningService {
 
         return LightningResponseDTO.builder().lightningId(savedLightning.getLightningId()).build();
     }
-    
+
     public LightningGetResponseDTO getLightning(LightningGetRequestDTO requestDTO) {
         List<LightningEntity> entities = lightningRepository.findAll(filterBy(
                                                             requestDTO.getGender(), 

@@ -241,6 +241,24 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
     }    
     
-    
+    // 번개 유저 DB에 해당 유저가 존재하지 않을 경우 예외 처리
+    @ExceptionHandler(LightningMemberNotFoundException.class)
+    public ResponseEntity<ErrorResponseDTO> LightningMemberNotFoundException(LightningMemberNotFoundException ex,
+                                                                                   HttpServletRequest request) {
+        log.error("LightningMemberNotFoundException: ", ex);
+        ErrorResponseDTO errorResponse = ErrorResponseDTO.makeErrorResponse(ex.getMessage(), HttpStatus.CONFLICT,
+                request.getRequestURI());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
+    }
+
+    // 번개 유저 상태 변경 권한 없음 예외 처리
+    @ExceptionHandler(LightningMemberIllegalParticipantStatusException.class)
+    public ResponseEntity<ErrorResponseDTO> LightningMemberIllegalParticipantStatusException(LightningMemberIllegalParticipantStatusException ex,
+                                                                             HttpServletRequest request) {
+        log.error("LightningMemberIllegalParticipantStatusException: ", ex);
+        ErrorResponseDTO errorResponse = ErrorResponseDTO.makeErrorResponse(ex.getMessage(), HttpStatus.CONFLICT,
+                request.getRequestURI());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
+    }
 
 }

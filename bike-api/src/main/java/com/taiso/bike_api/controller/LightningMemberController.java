@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -59,6 +60,20 @@ public class LightningMemberController {
     	lightningMemberService.lightningClose(lightningId, authentication);
 
 		return ResponseEntity.status(HttpStatus.CREATED).body(null);
+    }
+    
+    // 번개 참가 수락
+    @Operation(summary = "번개 참가 수락", description = "번개 참가 수락 API")
+    @PatchMapping("{lightningId}/join-requests/{userId}")	// 수락이랑 거절 같은 도착
+    public void lightningJoinRequests(
+    		@PathVariable(name = "lightningId") Long lightningId,
+    		@PathVariable(name = "userId") Long userId,
+			Authentication authentication
+    		) {
+    	// 번개 아이디, 참가 신청 아이디, 관리자 아이디
+    	lightningMemberService.JoinRequests(lightningId, userId, authentication);
+    	
+    	return;
     }
     
 

@@ -153,78 +153,80 @@ public class LightningMemberService {
     @Transactional
 	public void JoinRequests(Long lightningId, Long userId, Authentication authentication) {
 
-		// 번개 아이디로 엔티티 가져오기
+		// 1. 번개 이벤트 조회 (존재하지 않으면 404)
     	LightningEntity lightningEntity = lightningRepository.findById(lightningId)
     			// 예외처리 -> 404
                 .orElseThrow(() -> new LightningNotFoundException("번개를 찾을 수 없습니다."));	
     	
-    	// 유저 아이디로 엔티티 가져오기
+    	// 2. 현재 인증된 관리자(또는 승인 권한을 가진 사용자) 조회
         UserEntity userEntity = userRepository.findByEmail(authentication.getName())
         		// 사용자 찾을 수 없음 -> 404
                 .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
-
+        
+        // 3. 관리자가 해당 번개 이벤트의 생성자인지 확인 (승인 권한 확인) -> 403 FORBIDDEN
+    	if(!userEntity.getUserId().equals(lightningEntity.getCreatorId()) ) {
+    		throw new LightningCreatorMismatchException("유저와 번개 생성자가 같지 않음");
+    	}
+    	
+    	// 4. 승인 대상 참가 신청자 조회 (존재하지 않으면 404)
         LightningUserEntity joinUserEntity = lightningUserRepository.findById(userId)
 				// 사용자 찾을 수 없음 -> 404
 		        .orElseThrow(() -> new UserNotFoundException("참가 사용자를 찾을 수 없습니다."));
         
-        // 번개와 참가 신청하는 유저가 일치하지 않음
-//        LightningUserEntity lightningUser = lightningUserRepository.findByLightningAndUser(lightningEntity, userEntity)
-//                .orElseThrow(() -> new LightningUserMismatchException("번개와 참가 신청하는 유저가 일치하지 않음"));
-       
+        // 5. 해당 참가 신청자의 번개 이벤트가 요청한 번개 이벤트와 일치하는지 확인
         if (!joinUserEntity.getLightning().getLightningId().equals(lightningEntity.getLightningId())) {
             throw new LightningUserMismatchException("번개와 참가 신청하는 유저가 일치하지 않음");
         }
         
-	     // 유저 아이디와 생성자 불일치 권한 없음 -> 403 FORBIDDEN
-    	if(userEntity.getUserId() != lightningEntity.getCreatorId()) {
-    		throw new LightningCreatorMismatchException("유저와 번개 생성자가 같지 않음");
-    	}
-	   
-    	// 유저가 신청대기 상태가 아닌 경우
-    	if( !(joinUserEntity.getParticipantStatus() == ParticipantStatus.신청대기)) {
+        // 6. 참가 신청자의 상태가 '신청대기'인지 확인 (아니면 승인/거절 불가)
+        if( !(joinUserEntity.getParticipantStatus() == ParticipantStatus.신청대기)) {
     		throw new LightningUserStatusNotPendingException("신청대기 상태가 아닌 경우");
     	}
     	
-    	// 승인 처리
+    	// 7. 승인 처리
         joinUserEntity.setParticipantStatus(LightningUserEntity.ParticipantStatus.승인);
+
+        // JPA의 변경 감지(Dirty Checking)로 자동 반영되거나, 필요시 lightningUserRepository.save(joinUserEntity);
 	}
 
     // 번개 참가 거절 (탈퇴)
     @Transactional
 	public void JoinRejection(Long lightningId, Long userId, Authentication authentication) {
 
-    	// 번개 아이디로 엔티티 가져오기
+    	// 1. 번개 이벤트 조회 (존재하지 않으면 404)
     	LightningEntity lightningEntity = lightningRepository.findById(lightningId)
     			// 예외처리 -> 404
                 .orElseThrow(() -> new LightningNotFoundException("번개를 찾을 수 없습니다."));	
     	
-    	// 유저 아이디로 엔티티 가져오기
+    	// 2. 현재 인증된 관리자(또는 승인 권한을 가진 사용자) 조회
         UserEntity userEntity = userRepository.findByEmail(authentication.getName())
         		// 사용자 찾을 수 없음 -> 404
                 .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
 
+        // 3. 관리자가 해당 번개 이벤트의 생성자인지 확인 (승인 권한 확인) -> 403 FORBIDDEN
+    	if(!userEntity.getUserId().equals(lightningEntity.getCreatorId()) ) {
+    		throw new LightningCreatorMismatchException("유저와 번개 생성자가 같지 않음");
+    	}
+    	
+    	// 4. 승인 대상 참가 신청자 조회 (존재하지 않으면 404)
         LightningUserEntity joinUserEntity = lightningUserRepository.findById(userId)
 				// 사용자 찾을 수 없음 -> 404
 		        .orElseThrow(() -> new UserNotFoundException("참가 사용자를 찾을 수 없습니다."));
+    	
+        // 5. 해당 참가 신청자의 번개 이벤트가 요청한 번개 이벤트와 일치하는지 확인
+        if (!joinUserEntity.getLightning().getLightningId().equals(lightningEntity.getLightningId())) {
+            throw new LightningUserMismatchException("번개와 참가 신청하는 유저가 일치하지 않음");
+        }
         
-        // 번개와 참가 신청하는 유저가 일치하지 않음
-        LightningUserEntity lightningUser = lightningUserRepository.findByLightningAndUser(lightningEntity, userEntity)
-                .orElseThrow(() -> new LightningCreatorMismatchException("번개와 참가 신청하는 유저가 일치하지 않음"));
-       
-        
-	     // 유저 아이디와 생성자 불일치 권한 없음 -> 403 FORBIDDEN
-    	if(userEntity.getUserId() != lightningEntity.getCreatorId()) {
-    		throw new LightningCreatorMismatchException("유저와 번개 생성자가 같지 않음");
-    	}
-
-    	// 유저가 신청대기 상태가 아닌 경우
-    	if( !(joinUserEntity.getParticipantStatus() == ParticipantStatus.신청대기)) {
+        // 6. 참가 신청자의 상태가 '신청대기'인지 확인 (아니면 승인/거절 불가)
+        if( !(joinUserEntity.getParticipantStatus() == ParticipantStatus.신청대기)) {
     		throw new LightningUserStatusNotPendingException("신청대기 상태가 아닌 경우");
     	}
     	
-    	// 거절(탈퇴) 처리
+    	// 7. 거절(탈퇴) 처리
         joinUserEntity.setParticipantStatus(LightningUserEntity.ParticipantStatus.탈퇴);
-		
+
+        // JPA의 변경 감지(Dirty Checking)로 자동 반영되거나, 필요시 lightningUserRepository.save(joinUserEntity);
 	}
 
 

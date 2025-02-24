@@ -31,7 +31,7 @@ function MainNavbar() {
               />
             </g>
           </svg>
-          <div className="text-sm text-gray-600 mt-2">번개 참여하기</div>
+          <div className="text-sm text-base-content mt-2">번개 참여하기</div>
         </NavLink>
         <NavLink
           to="/club"
@@ -63,7 +63,7 @@ function MainNavbar() {
               fill="#84523c"
             />
           </svg>
-          <div className="text-sm text-gray-600 mt-2">클럽 보러가기</div>
+          <div className="text-sm text-base-content mt-2">클럽 보러가기</div>
         </NavLink>
         <NavLink
           to="/route"
@@ -143,7 +143,7 @@ function MainNavbar() {
               />
             </g>
           </svg>
-          <div className="text-sm text-gray-600 mt-2">루트 둘러보기</div>
+          <div className="text-sm text-base-content mt-2">루트 둘러보기</div>
         </NavLink>
       </div>
     </div>

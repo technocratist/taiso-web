@@ -153,14 +153,14 @@ function RouteList() {
       )}
       {!isLoading && hasMore && (
         <button
-          className="btn btn-primary btn-wide mt-4 mx-auto"
+          className="btn btn-wide mt-4 mx-auto no-animation"
           onClick={handleLoadMore}
         >
           더보기
         </button>
       )}
       {isLastPage && (
-        <div className="text-center text-gray-400 mt-4">
+        <div className="text-center text-gray-400 mt-4 mb-10">
           마지막 페이지입니다.
         </div>
       )}

@@ -6,7 +6,7 @@ function RoutePage() {
   return (
     <div className="min-h-screen flex flex-col">
       <MainNavbar />
-      <div className="flex-1 w-full mx-auto p-4">
+      <div className="flex-1 w-full mx-auto ">
         <div className="fixed bottom-8 right-10 z-50">
           <Link to="/route/post" className="btn btn-primary btn-circle ">
             <svg

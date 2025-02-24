@@ -140,49 +140,54 @@ public class LightningDetailService {
     }
 
     // 번개 디테일 조회
-    public LightningDetailGetResponseDTO getLightningDetail(Long lightningId) {
+public LightningDetailGetResponseDTO getLightningDetail(Long lightningId) {
 
-        // db에서 번개를 찾아옴
-        Optional<LightningEntity> temp = lightningDetailRepository.findById(lightningId);
+    // DB에서 번개를 찾아옴
+    Optional<LightningEntity> temp = lightningDetailRepository.findById(lightningId);
 
-        // 번개 미존재 처리
-        if(!temp.isPresent()) {
-            throw new LightningNotFoundException("존재하지 않는 번개 입니다.");
-        }
-
-        // 태그를 String 형태로 변환
-        Set<String> tagNames = temp.get().getTags().stream()
-                .map(LightningTagCategoryEntity::getName) // name 필드를 꺼내서 String으로 매핑
-                .collect(Collectors.toSet());
-
-        //entity -> dto
-        LightningEntity lightning = temp.get();
-        LightningDetailGetResponseDTO lightningDetailGetResponseDTO = LightningDetailGetResponseDTO.builder()
-                .lightningId(lightning.getLightningId())
-                .creatorId(lightning.getCreatorId())
-                .title(lightning.getTitle())
-                .description(lightning.getDescription())
-                .eventDate(lightning.getEventDate())
-                .duration(lightning.getDuration())
-                .createdAt(lightning.getCreatedAt())
-                .status(lightning.getStatus().toString())
-                .capacity(lightning.getCapacity())
-                .latitude(lightning.getLatitude())
-                .longitude(lightning.getLongitude())
-                .gender(lightning.getGender().toString())
-                .level(lightning.getLevel().toString())
-                .recruitType(lightning.getRecruitType().toString())
-                .bikeType(lightning.getBikeType().toString())
-                .region(lightning.getRegion().toString())
-                .distance(lightning.getDistance())
-                .routeId(lightning.getRouteId())
-                .address(lightning.getAddress())
-                .isClubOnly(lightning.getIsClubOnly())
-//                .lightningUserId()
-//                .tagId()
-                .lightningTag(tagNames)
-                .build();
-
-        return lightningDetailGetResponseDTO;
+    // 번개 미존재 처리
+    if (!temp.isPresent()) {
+        throw new LightningNotFoundException("존재하지 않는 번개 입니다.");
     }
+
+    // 태그를 String 형태로 변환
+    Set<String> tagNames = temp.get().getTags().stream()
+            .map(LightningTagCategoryEntity::getName) // name 필드를 꺼내서 String으로 매핑
+            .collect(Collectors.toSet());
+
+    // entity -> dto
+    LightningEntity lightning = temp.get();
+
+    // route 객체가 null인지 체크 후 처리
+    Long routeId = null;
+    if (lightning.getRoute() != null) {
+        routeId = lightning.getRoute().getRouteId();
+    }
+
+    LightningDetailGetResponseDTO lightningDetailGetResponseDTO = LightningDetailGetResponseDTO.builder()
+            .lightningId(lightning.getLightningId())
+            .creatorId(lightning.getCreatorId())
+            .title(lightning.getTitle())
+            .description(lightning.getDescription())
+            .eventDate(lightning.getEventDate())
+            .duration(lightning.getDuration())
+            .createdAt(lightning.getCreatedAt())
+            .status(lightning.getStatus().toString())
+            .capacity(lightning.getCapacity())
+            .latitude(lightning.getLatitude())
+            .longitude(lightning.getLongitude())
+            .gender(lightning.getGender().toString())
+            .level(lightning.getLevel().toString())
+            .recruitType(lightning.getRecruitType().toString())
+            .bikeType(lightning.getBikeType().toString())
+            .region(lightning.getRegion().toString())
+            .distance(lightning.getDistance())
+            .routeId(routeId)
+            .address(lightning.getAddress())
+            .isClubOnly(lightning.getIsClubOnly())
+            .lightningTag(tagNames)
+            .build();
+
+    return lightningDetailGetResponseDTO;
+}
 }

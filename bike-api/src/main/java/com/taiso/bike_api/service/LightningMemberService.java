@@ -74,7 +74,7 @@ public class LightningMemberService {
                 
              // 엔티티 저장
                 try {
-             	   lightningUserRepository.save(lightningUserEntity);  
+             	   lightningUserRepository.save(lightningUserEntity);
                 } catch (DataIntegrityViolationException e) {
                     throw new EmailAlreadyExistsException("무결성 제약 조건이 위배 저장 중 오류가 발생했습니다.");
                 }

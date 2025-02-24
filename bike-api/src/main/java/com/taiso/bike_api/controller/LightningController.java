@@ -43,6 +43,8 @@ public class LightningController {
     }
 
     @GetMapping("")
+    @Operation(summary = "번개 리스트 조회", description = "번개 리스트 조회 API")
+    //TODO 필터 기능의 reqeust값은 쿼리 파라미터로 변경
     public ResponseEntity<LightningGetResponseDTO> getLightning(@RequestBody LightningGetRequestDTO requestDTO) {
 
         LightningGetResponseDTO responseDTO = lightningService.getLightning(requestDTO);

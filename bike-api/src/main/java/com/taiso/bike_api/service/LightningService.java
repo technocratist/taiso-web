@@ -6,6 +6,10 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
@@ -21,8 +25,8 @@ import com.taiso.bike_api.domain.UserEntity;
 import com.taiso.bike_api.dto.LightingParticipationCheckResponseDTO;
 import com.taiso.bike_api.dto.LightningGetRequestDTO;
 import com.taiso.bike_api.dto.LightningGetResponseDTO;
-import com.taiso.bike_api.dto.LightningRequestDTO;
-import com.taiso.bike_api.dto.LightningResponseDTO;
+import com.taiso.bike_api.dto.LightningPostRequestDTO;
+import com.taiso.bike_api.dto.LightningPostResponseDTO;
 import com.taiso.bike_api.dto.ResponseComponentDTO;
 import com.taiso.bike_api.exception.LightningCreateMissingValueException;
 import com.taiso.bike_api.exception.LightningNotFoundException;
@@ -66,7 +70,7 @@ public class LightningService {
     @Autowired
     UserDetailRepository userDetailRepository;
 
-    public LightningResponseDTO createLightning(LightningRequestDTO requestDTO, String userEmail) {
+    public LightningPostResponseDTO createLightning(LightningPostRequestDTO requestDTO, String userEmail) {
         // 태그 이름을 통해서 태그 엔티티 가져오기
         Set<LightningTagCategoryEntity> tags = requestDTO.getTags().stream()
             .map(tagName -> lightningTagCategoryRepository.findByName(tagName)
@@ -82,6 +86,7 @@ public class LightningService {
             .orElseThrow(() -> new RouteNotFoundException("루트가 존재하지 않습니다."));
 
         // 번개 엔티티 빌드
+        // 필수 값이 누락되었을 경우 예외처리
         LightningEntity lightning;
 
         try{
@@ -126,20 +131,21 @@ public class LightningService {
 
         LightningEntity savedLightning = lightningRepository.save(lightning);
 
-        return LightningResponseDTO.builder().lightningId(savedLightning.getLightningId()).build();
+        return LightningPostResponseDTO.builder().lightningId(savedLightning.getLightningId()).build();
     }
 
-    public LightningGetResponseDTO getLightning(LightningGetRequestDTO requestDTO) {
-        List<LightningEntity> entities = lightningRepository.findAll(filterBy(
+    public LightningGetResponseDTO getLightning(LightningGetRequestDTO requestDTO, Pageable pageable) {
+
+        Page<LightningEntity> entities = lightningRepository.findAll(filterBy(
                                                             requestDTO.getGender(), 
                                                             requestDTO.getLevel(), 
                                                             requestDTO.getBikeType(), 
                                                             requestDTO.getRegion(), 
-                                                            requestDTO.getTags()));
+                                                            requestDTO.getTags())
+                                                            , pageable);
 
-        log.info("테스트");
         LightningGetResponseDTO responseDTO = LightningGetResponseDTO.builder().lightnings(
-            entities.stream().map(
+            entities.map(
                 entity -> ResponseComponentDTO.builder()
                                             .lightningId(entity.getLightningId())
                                             .creatorId(entity.getCreatorId())
@@ -158,8 +164,7 @@ public class LightningService {
                                                     .collect(Collectors.toList()))
                                             .address(entity.getAddress())
                                             .routeImgId(entity.getRoute() == null ? null : entity.getRoute().getRouteImgId())
-                                            .build())
-                                            .collect(Collectors.toList()))
+                                            .build()))
                                             .build();
 
         return responseDTO;

@@ -19,7 +19,6 @@ import lombok.ToString;
 @Getter
 @ToString
 public class LightningGetRequestDTO {
-    private String sort;
     private Gender gender;
     private Level level;
     private BikeType bikeType;

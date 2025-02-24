@@ -69,7 +69,7 @@ public class LightningMemberService {
                 
              // 엔티티 저장
                 try {
-             	   lightningUserRepository.save(lightningUserEntity);  
+             	   lightningUserRepository.save(lightningUserEntity);
                 } catch (DataIntegrityViolationException e) {
                     throw new EmailAlreadyExistsException("무결성 제약 조건이 위배 저장 중 오류가 발생했습니다.");
                 }
@@ -141,13 +141,20 @@ public class LightningMemberService {
 		
 	}
 
-	// 스스로 번개 나가기
-	@Transactional
-	public void exitLightning(Long lightningId, Authentication authentication) {
-		// 번개 존재 확인
-		LightningEntity lightningEntity = lightningRepository.findById(lightningId)
-				// 예외처리 -> 404
-				.orElseThrow(() -> new LightningNotFoundException("번개를 찾을 수 없습니다."));
+// 스스로 번개 나가기
+@Transactional
+public void exitLightning(Long lightningId, Authentication authentication) {
+    // 번개 존재 확인
+    LightningEntity lightningEntity = lightningRepository.findById(lightningId)
+            // 예외처리 -> 404
+            .orElseThrow(() -> new LightningNotFoundException("번개를 찾을 수 없습니다."));
+    // 추가 로직 작성...
+}
+
+// 번개 참여 신청
+public void JoinRequests(Long lightningId, Long userId, Authentication authentication) {
+    // 로직 작성...
+}
 
 		// 유저 아이디로 유저 찾기
 		UserEntity userEntity = userRepository.findByEmail(authentication.getName())

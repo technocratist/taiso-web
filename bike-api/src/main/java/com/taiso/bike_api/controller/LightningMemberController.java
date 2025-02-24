@@ -4,11 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.taiso.bike_api.dto.JoinParticipantsPostResponseDTO;
 import com.taiso.bike_api.service.LightningMemberService;
@@ -28,7 +24,7 @@ public class LightningMemberController {
 
 	@PostMapping("{lightningId}/participants")
   @Operation(summary = "번개 참가 및 참가 신청", description = "번개에 현재 사용자 참가 및 참가 신청 API")
-	public ResponseEntity<JoinParticipantsPostResponseDTO> join(
+	public ResponseEntity<JoinParticipantsPostResponseDTO> joinLightning(
     		@PathVariable(name = "lightningId") Long lightningId,
 			Authentication authentication
 			) {
@@ -60,6 +56,28 @@ public class LightningMemberController {
 
 		return ResponseEntity.status(HttpStatus.CREATED).body(null);
     }
+
+	@Operation(summary = "번개 나가기", description = "스스로 번개를 나가는 API")
+	@PatchMapping("/{lightningId}/exit")
+	public ResponseEntity<JoinParticipantsPostResponseDTO> exitMemberLightning (
+			@PathVariable(name = "lightningId") Long lightningId,
+			Authentication authentication) {
+
+		lightningMemberService.exitLightning(lightningId,authentication);
+
+		return ResponseEntity.status(HttpStatus.CREATED).body(null);
+	}
+
+	@Operation(summary = "번개 참가 신청 취소", description = "신청했던 번개 참가를 수락되기 전에 취소하는 API")
+	@PatchMapping("{lightningId}/participants")
+	public ResponseEntity<JoinParticipantsPostResponseDTO> cancelJoinLightning(
+			@PathVariable(name = "lightningId") Long lightningId,
+			Authentication authentication) {
+
+		lightningMemberService.cancelJoinLightning(lightningId,authentication);
+
+		return ResponseEntity.status(HttpStatus.CREATED).body(null);
+	}
     
     // 번개 참가 수락
     @Operation(summary = "번개 참가 수락", description = "번개 참가 수락 API")

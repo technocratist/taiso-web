@@ -221,7 +221,30 @@ public class GlobalExceptionHandler {
         ErrorResponseDTO errorResponse = ErrorResponseDTO.makeErrorResponse(ex.getMessage(), HttpStatus.CONFLICT,
                 request.getRequestURI());
         return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
+    }         
+    
+    // 번개와 참가 신청하는 유저가 일치하지 않음
+    @ExceptionHandler(LightningUserMismatchException.class)
+    public ResponseEntity<ErrorResponseDTO> handleLightningUserMismatchException(LightningUserMismatchException ex,
+            HttpServletRequest request) {
+        log.error("RouteDeleteAccessDeniedException: ", ex);
+        ErrorResponseDTO errorResponse = ErrorResponseDTO.makeErrorResponse(ex.getMessage(), HttpStatus.FORBIDDEN,
+                request.getRequestURI());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
     }    
+    
+    // 번개 참여 유저가 신청대기 상태가 아닌 경우 (승인 및 거절 시)
+    @ExceptionHandler(LightningUserStatusNotPendingException.class)
+    public ResponseEntity<ErrorResponseDTO> handleLightningUserStatusNotPendingException(LightningUserStatusNotPendingException ex,
+            HttpServletRequest request) {
+        log.error("RouteDeleteAccessDeniedException: ", ex);
+        ErrorResponseDTO errorResponse = ErrorResponseDTO.makeErrorResponse(ex.getMessage(), HttpStatus.CONFLICT,
+                request.getRequestURI());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
+    } 
+    
+    
+    
     
     
     

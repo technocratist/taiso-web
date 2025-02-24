@@ -15,4 +15,10 @@ public interface LightningUserRepository extends JpaRepository<LightningUserEnti
 	Optional<LightningUserEntity> findByLightningAndUser(LightningEntity lightningEntityException,
 			UserEntity userEntityException);
 
+	Optional<LightningEntity> findByLightningAndUser(LightningEntity lightningEntity,
+			LightningUserEntity joinUserEntity);
+
+
+
+
 }

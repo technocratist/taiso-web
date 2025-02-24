@@ -11,12 +11,15 @@ import com.taiso.bike_api.domain.LightningEntity;
 import com.taiso.bike_api.domain.LightningEntity.LightningStatus;
 import com.taiso.bike_api.domain.LightningEntity.RecruitType;
 import com.taiso.bike_api.domain.LightningUserEntity;
+import com.taiso.bike_api.domain.LightningUserEntity.ParticipantStatus;
 import com.taiso.bike_api.domain.UserEntity;
 import com.taiso.bike_api.exception.EmailAlreadyExistsException;
 import com.taiso.bike_api.exception.LightningCreatorMismatchException;
 import com.taiso.bike_api.exception.LightningNotFoundException;
 import com.taiso.bike_api.exception.LightningStatusMismatchException;
 import com.taiso.bike_api.exception.LightningUserAlreadyExistsException;
+import com.taiso.bike_api.exception.LightningUserMismatchException;
+import com.taiso.bike_api.exception.LightningUserStatusNotPendingException;
 import com.taiso.bike_api.exception.UserNotFoundException;
 import com.taiso.bike_api.repository.LightningRepository;
 import com.taiso.bike_api.repository.LightningUserRepository;
@@ -146,8 +149,81 @@ public class LightningMemberService {
 		
 	}
 
+    // 번개 참가 수락 -> 번개 아이디, 참가 신청 아이디, 관리자 아이디
+    @Transactional
 	public void JoinRequests(Long lightningId, Long userId, Authentication authentication) {
 
+		// 번개 아이디로 엔티티 가져오기
+    	LightningEntity lightningEntity = lightningRepository.findById(lightningId)
+    			// 예외처리 -> 404
+                .orElseThrow(() -> new LightningNotFoundException("번개를 찾을 수 없습니다."));	
+    	
+    	// 유저 아이디로 엔티티 가져오기
+        UserEntity userEntity = userRepository.findByEmail(authentication.getName())
+        		// 사용자 찾을 수 없음 -> 404
+                .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
+
+        LightningUserEntity joinUserEntity = lightningUserRepository.findById(userId)
+				// 사용자 찾을 수 없음 -> 404
+		        .orElseThrow(() -> new UserNotFoundException("참가 사용자를 찾을 수 없습니다."));
+        
+        // 번개와 참가 신청하는 유저가 일치하지 않음
+//        LightningUserEntity lightningUser = lightningUserRepository.findByLightningAndUser(lightningEntity, userEntity)
+//                .orElseThrow(() -> new LightningUserMismatchException("번개와 참가 신청하는 유저가 일치하지 않음"));
+       
+        if (!joinUserEntity.getLightning().getLightningId().equals(lightningEntity.getLightningId())) {
+            throw new LightningUserMismatchException("번개와 참가 신청하는 유저가 일치하지 않음");
+        }
+        
+	     // 유저 아이디와 생성자 불일치 권한 없음 -> 403 FORBIDDEN
+    	if(userEntity.getUserId() != lightningEntity.getCreatorId()) {
+    		throw new LightningCreatorMismatchException("유저와 번개 생성자가 같지 않음");
+    	}
+	   
+    	// 유저가 신청대기 상태가 아닌 경우
+    	if( !(joinUserEntity.getParticipantStatus() == ParticipantStatus.신청대기)) {
+    		throw new LightningUserStatusNotPendingException("신청대기 상태가 아닌 경우");
+    	}
+    	
+    	// 승인 처리
+        joinUserEntity.setParticipantStatus(LightningUserEntity.ParticipantStatus.승인);
+	}
+
+    // 번개 참가 거절 (탈퇴)
+    @Transactional
+	public void JoinRejection(Long lightningId, Long userId, Authentication authentication) {
+
+    	// 번개 아이디로 엔티티 가져오기
+    	LightningEntity lightningEntity = lightningRepository.findById(lightningId)
+    			// 예외처리 -> 404
+                .orElseThrow(() -> new LightningNotFoundException("번개를 찾을 수 없습니다."));	
+    	
+    	// 유저 아이디로 엔티티 가져오기
+        UserEntity userEntity = userRepository.findByEmail(authentication.getName())
+        		// 사용자 찾을 수 없음 -> 404
+                .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
+
+        LightningUserEntity joinUserEntity = lightningUserRepository.findById(userId)
+				// 사용자 찾을 수 없음 -> 404
+		        .orElseThrow(() -> new UserNotFoundException("참가 사용자를 찾을 수 없습니다."));
+        
+        // 번개와 참가 신청하는 유저가 일치하지 않음
+        LightningUserEntity lightningUser = lightningUserRepository.findByLightningAndUser(lightningEntity, userEntity)
+                .orElseThrow(() -> new LightningCreatorMismatchException("번개와 참가 신청하는 유저가 일치하지 않음"));
+       
+        
+	     // 유저 아이디와 생성자 불일치 권한 없음 -> 403 FORBIDDEN
+    	if(userEntity.getUserId() != lightningEntity.getCreatorId()) {
+    		throw new LightningCreatorMismatchException("유저와 번개 생성자가 같지 않음");
+    	}
+
+    	// 유저가 신청대기 상태가 아닌 경우
+    	if( !(joinUserEntity.getParticipantStatus() == ParticipantStatus.신청대기)) {
+    		throw new LightningUserStatusNotPendingException("신청대기 상태가 아닌 경우");
+    	}
+    	
+    	// 거절(탈퇴) 처리
+        joinUserEntity.setParticipantStatus(LightningUserEntity.ParticipantStatus.탈퇴);
 		
 	}
 

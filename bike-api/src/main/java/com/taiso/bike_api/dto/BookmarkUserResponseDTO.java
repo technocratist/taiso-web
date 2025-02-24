@@ -15,18 +15,10 @@ import lombok.ToString;
 @Getter
 @ToString
 @Builder
-public class GetParticipatedLightningResponseDTO {
-    private Long lightningId;
+public class BookmarkUserResponseDTO {
+    private Long userId;
 
-    private Long creatorId;
+    private String userName;
 
-    private String title;
-
-    private LocalDateTime eventDate;
-
-    private Integer duration;
-
-    private LocalDateTime createdAt;
-
-    private BookmarkedMemberResponseDTO bookmarkedMember;
+    private LocalDateTime joinedAt;
 }

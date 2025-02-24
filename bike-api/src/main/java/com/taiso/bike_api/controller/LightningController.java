@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import com.taiso.bike_api.dto.GetParticipatedLightningResponseDTO;
+import com.taiso.bike_api.dto.LightingParticipationCheckResponseDTO;
 
 import com.taiso.bike_api.dto.LightningGetRequestDTO;
 import com.taiso.bike_api.dto.LightningGetResponseDTO;
@@ -23,11 +23,9 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 
-
-
 @RestController
 @Slf4j
-@RequestMapping("/api/lightning")
+@RequestMapping("/api/lightnings")
 @Tag(name = "번개 컨트롤러", description = "번개 관련 API")
 public class LightningController {
 
@@ -39,23 +37,18 @@ public class LightningController {
     public ResponseEntity<LightningResponseDTO> createLighting(
         @RequestBody LightningRequestDTO requestDTO
         , @AuthenticationPrincipal String userEmail) {
-
-        LightningResponseDTO responseDTO = lightningService.createLightning(requestDTO, userEmail);
-
-        return ResponseEntity.status(HttpStatus.ACCEPTED).body(responseDTO);
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(lightningService.createLightning(requestDTO, userEmail));
     }
 
     @GetMapping("")
     public ResponseEntity<LightningGetResponseDTO> getLightning(@RequestBody LightningGetRequestDTO requestDTO) {
-
-        LightningGetResponseDTO responseDTO = lightningService.getLightning(requestDTO);
-        
-        return ResponseEntity.status(HttpStatus.ACCEPTED).body(responseDTO);
+        return ResponseEntity.status(HttpStatus.OK).body(lightningService.getLightning(requestDTO));
     }
 
-    public ResponseEntity<GetParticipatedLightningResponseDTO> getParticipatedLightning(
+    @GetMapping("/{lightningId}/participation")
+    public ResponseEntity<LightingParticipationCheckResponseDTO> getLightningParticipationCheck(
     @PathVariable(name = "lightningId") Long lightningId
     , @AuthenticationPrincipal String userEmail) {
-        return ResponseEntity.status(HttpStatus.OK).body(lightningService.getParticipatedLightnings(lightningId, userEmail));
+        return ResponseEntity.status(HttpStatus.OK).body(lightningService.getParticipationCheck(lightningId, userEmail));
     }
 }

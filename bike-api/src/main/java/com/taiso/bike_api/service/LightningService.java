@@ -2,12 +2,9 @@ package com.taiso.bike_api.service;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import javax.management.relation.Role;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
@@ -19,18 +16,26 @@ import com.taiso.bike_api.domain.LightningEntity.Gender;
 import com.taiso.bike_api.domain.LightningEntity.Level;
 import com.taiso.bike_api.domain.LightningEntity.Region;
 import com.taiso.bike_api.domain.LightningTagCategoryEntity;
-import com.taiso.bike_api.dto.GetParticipatedLightningResponseDTO;
 import com.taiso.bike_api.domain.LightningUserEntity;
+import com.taiso.bike_api.domain.RouteEntity;
 import com.taiso.bike_api.domain.UserEntity;
+import com.taiso.bike_api.dto.LightingParticipationCheckResponseDTO;
 import com.taiso.bike_api.dto.LightningGetRequestDTO;
 import com.taiso.bike_api.dto.LightningGetResponseDTO;
 import com.taiso.bike_api.dto.LightningRequestDTO;
 import com.taiso.bike_api.dto.LightningResponseDTO;
 import com.taiso.bike_api.dto.ResponseComponentDTO;
+import com.taiso.bike_api.exception.LightningCreateMissingValueException;
+import com.taiso.bike_api.exception.LightningNotFoundException;
+import com.taiso.bike_api.exception.LightningUserNotFoundException;
+import com.taiso.bike_api.exception.RouteNotFoundException;
+import com.taiso.bike_api.exception.UserNotFoundException;
+import com.taiso.bike_api.repository.BookmarkRepository;
 import com.taiso.bike_api.repository.LightningRepository;
 import com.taiso.bike_api.repository.LightningTagCategoryRepository;
 import com.taiso.bike_api.repository.LightningUserRepository;
 import com.taiso.bike_api.repository.RouteRepository;
+import com.taiso.bike_api.repository.UserDetailRepository;
 import com.taiso.bike_api.repository.UserRepository;
 
 import jakarta.persistence.criteria.Join;
@@ -54,7 +59,13 @@ public class LightningService {
     LightningTagCategoryRepository lightningTagCategoryRepository;
 
     @Autowired
-    LightningUserRepository lightningUserRepository;    
+    LightningUserRepository lightningUserRepository;
+
+    @Autowired
+    BookmarkRepository bookmarkRepository;
+
+    @Autowired
+    UserDetailRepository userDetailRepository;
 
     public LightningResponseDTO createLightning(LightningRequestDTO requestDTO, String userEmail) {
         // 태그 이름을 통해서 태그 엔티티 가져오기
@@ -67,10 +78,15 @@ public class LightningService {
         // 생성자의 정보 조회해오기
         UserEntity creator = userRepository.findByEmail(userEmail).get();
 
-        // 루트가 존재하는지 확인하는 예외처리 필요
-        // non null 컬럼에 null이 들어가는 경우의 예외처리
-        // try{
-            LightningEntity lightning = LightningEntity.builder()
+        // 루트가 존재하는지 확인하는 예외처리
+        RouteEntity route = routeRepository.findById(requestDTO.getRouteId())
+            .orElseThrow(() -> new RouteNotFoundException("루트가 존재하지 않습니다."));
+
+        // 번개 엔티티 빌드
+        LightningEntity lightning;
+
+        try{
+            lightning = LightningEntity.builder()
             .creatorId(creator.getUserId())
             .title(requestDTO.getTitle())
             .description(requestDTO.getDescription())
@@ -86,21 +102,21 @@ public class LightningService {
             .bikeType(requestDTO.getBikeType())
             .region(requestDTO.getRegion())
             .distance(requestDTO.getDistance())
-            .route(routeRepository.findById(requestDTO.getRouteId()).get())
+            .route(route)
             .address(requestDTO.getAddress())
             .isClubOnly(requestDTO.getIsClubOnly())
             .clubId(requestDTO.getClubId())
             .tags(tags)
             .build();
-        // } catch() {
+        } catch(Exception e) {
+            throw new LightningCreateMissingValueException("필수 값이 누락되었습니다.");
 
-        // }
+        }
 
         // 번개 - 사용자 관계 설정
         LightningUserEntity lightningUser = LightningUserEntity.builder()
             .lightning(lightning)
             .user(creator)
-            .joinedAt(LocalDateTime.now()) // 명시적으로 설정 가능
             .role(LightningUserEntity.Role.번개생성자)
             .participantStatus(LightningUserEntity.ParticipantStatus.승인)
             .build();
@@ -179,15 +195,27 @@ public class LightningService {
         };
     }
 
-    public GetParticipatedLightningResponseDTO getParticipatedLightnings(Long lightningId, String userEmail) {
-        // 사용자가 해당 번개에 정말 참여한 사람인지 확인
-        lightningUserRepository.findByLightningIdAndUserId(lightningId, userRepository.findByEmail(userEmail).get().getUserId())
-            .orElseThrow(() -> new IllegalArgumentException("해당 번개에 참여한 사용자가 아닙니다."));
+    public LightingParticipationCheckResponseDTO getParticipationCheck(Long lightningId, String userEmail) {
+        // 번개가 존재하는지 확인인
+        LightningEntity lightning = lightningRepository.findById(lightningId)
+            .orElseThrow(() -> new LightningNotFoundException("번개가 존재하지 않습니다."));
 
-        // 해당 번개 정보 조회
+        // 사용자가 존재하는지 확인
+        UserEntity user = userRepository.findByEmail(userEmail)
+            .orElseThrow(() -> new UserNotFoundException("사용자가 존재하지 않습니다."));
 
-        // 사용자가 해당 번개 내에서 북마크한 사람 조회
+        // 사용자가 번개에 참여했는지 확인
+        lightningUserRepository.findByLightningAndUser(lightning, user)
+            .orElseThrow(() -> new LightningUserNotFoundException("번개에 참여하지 않은 사용자입니다."));
 
-        // 조회된 사람들의 상세정보 조회
+        // 번개 정보 반환
+        return LightingParticipationCheckResponseDTO.builder()
+            .lightningId(lightning.getLightningId())
+            .title(lightning.getTitle())
+            .eventDate(lightning.getEventDate())
+            .duration(lightning.getDuration())
+            .latitude(lightning.getLatitude())
+            .longitude(lightning.getLongitude())
+            .build();
     }
 }

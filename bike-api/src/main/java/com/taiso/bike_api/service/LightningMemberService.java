@@ -146,6 +146,11 @@ public class LightningMemberService {
 		
 	}
 
+	public void JoinRequests(Long lightningId, Long userId, Authentication authentication) {
+
+		
+	}
+
 
     
 

@@ -243,7 +243,22 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
     } 
     
+    // 번개 리뷰를 찾을 수 없습니다. 
+    @ExceptionHandler(ReviewNotFoundException.class)
+    public ResponseEntity<ErrorResponseDTO> handleReviewNotFoundException(ReviewNotFoundException ex, HttpServletRequest request) {
+        ErrorResponseDTO errorResponse = ErrorResponseDTO.makeErrorResponse(ex.getMessage(), HttpStatus.FORBIDDEN, request.getRequestURI());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+    }
     
+    // 번개 리뷰 쓴 사람과 삭제하는 사람이 맞는지 확인
+    @ExceptionHandler(LightningUserReviewMismatchException.class)
+    public ResponseEntity<ErrorResponseDTO> handleLightningUserReviewMismatchException(LightningUserReviewMismatchException ex,
+            HttpServletRequest request) {
+        log.error("RouteDeleteAccessDeniedException: ", ex);
+        ErrorResponseDTO errorResponse = ErrorResponseDTO.makeErrorResponse(ex.getMessage(), HttpStatus.FORBIDDEN,
+                request.getRequestURI());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
+    }    
     
     
     

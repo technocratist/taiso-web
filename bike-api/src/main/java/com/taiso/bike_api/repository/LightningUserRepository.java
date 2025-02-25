@@ -16,4 +16,5 @@ public interface LightningUserRepository extends JpaRepository<LightningUserEnti
 			UserEntity userEntityException);
 
 	Optional<LightningUserEntity> findByLightning_LightningIdAndUser_UserId(Long lightningId, Long userId);
+
 }

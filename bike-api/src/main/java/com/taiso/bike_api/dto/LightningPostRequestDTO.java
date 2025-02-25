@@ -24,7 +24,7 @@ import lombok.ToString;
 @Getter
 @ToString
 @Builder
-public class LightningRequestDTO {
+public class LightningPostRequestDTO {
 
     private String title;
 

@@ -211,7 +211,25 @@ public class GlobalExceptionHandler {
         ErrorResponseDTO errorResponse = ErrorResponseDTO.makeErrorResponse(ex.getMessage(), HttpStatus.FORBIDDEN,
                 request.getRequestURI());
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
-    }    
+    }
+
+    // 번개에 해당 유저가 존재하지 않을 때 예외 처리
+    @ExceptionHandler(LightningUserNotFoundException.class)
+    public ResponseEntity<ErrorResponseDTO> handleLightningUserNotFoundException(LightningCreatorMismatchException ex,
+            HttpServletRequest request) {
+        ErrorResponseDTO errorResponse = ErrorResponseDTO.makeErrorResponse(ex.getMessage(), HttpStatus.NOT_FOUND,
+                request.getRequestURI());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+    }
+
+    // 번개에 해당 유저가 존재하지 않을 때 예외 처리
+    @ExceptionHandler(LightningCreateMissingValueException.class)
+    public ResponseEntity<ErrorResponseDTO> handleLightningCreateMissingValueException(LightningCreatorMismatchException ex,
+            HttpServletRequest request) {
+        ErrorResponseDTO errorResponse = ErrorResponseDTO.makeErrorResponse(ex.getMessage(), HttpStatus.NOT_FOUND,
+                request.getRequestURI());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+    }
     
     // 모집 상태가 아닌 번개에 참가 예외 처리
     @ExceptionHandler(LightningStatusMismatchException.class)
@@ -221,8 +239,8 @@ public class GlobalExceptionHandler {
         ErrorResponseDTO errorResponse = ErrorResponseDTO.makeErrorResponse(ex.getMessage(), HttpStatus.CONFLICT,
                 request.getRequestURI());
         return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
-    }
-
+    }    
+    
     // 번개 유저 DB에 해당 유저가 존재하지 않을 경우 예외 처리
     @ExceptionHandler(LightningMemberNotFoundException.class)
     public ResponseEntity<ErrorResponseDTO> LightningMemberNotFoundException(LightningMemberNotFoundException ex,

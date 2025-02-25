@@ -1,5 +1,6 @@
 package com.taiso.bike_api.dto;
-import java.util.List;
+import org.springframework.data.domain.Page;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -14,5 +15,5 @@ import lombok.ToString;
 @ToString
 @Builder
 public class LightningGetResponseDTO {
-    private List<ResponseComponentDTO> lightnings;
+    private Page<ResponseComponentDTO> lightnings;
 }

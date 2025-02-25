@@ -13,6 +13,6 @@ import lombok.ToString;
 @Getter
 @ToString
 @Builder
-public class LightningResponseDTO {
+public class LightningPostResponseDTO {
     private Long lightningId;
 }

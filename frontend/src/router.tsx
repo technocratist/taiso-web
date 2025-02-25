@@ -1,6 +1,5 @@
 import { createBrowserRouter } from "react-router-dom";
 import Root from "./root";
-import TestPage from "./pages/TestPage";
 import MainPage from "./pages/MainPage";
 import ProtectedRoute from "./ProtectedRoute";
 import LoginPage from "./pages/auth/LoginPage";
@@ -36,7 +35,6 @@ const router = createBrowserRouter([
         element: <ProtectedRoute />,
         children: [
           { index: true, element: <MainPage /> },
-          { path: "test", element: <TestPage /> },
           {
             path: "lightning",
             children: [

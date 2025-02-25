@@ -41,6 +41,7 @@ public class RouteController {
     private RouteCreateService routeCreateService;
 
 
+    // 루트 디테일 조회
     @GetMapping("/{routeId}")
     @Operation(summary = "루트 디테일 조회", description = "루트 디테일 조회하는 API")
     public ResponseEntity<RouteDetailResponseDTO> getRoute(@PathVariable Long routeId, Authentication authentication) {
@@ -48,6 +49,8 @@ public class RouteController {
         return ResponseEntity.status(HttpStatus.OK).body(route);
     }
 
+
+    // 루트 생성
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "루트 생성", description = "루트를 생성하는 API")
     public ResponseEntity<RoutePostResponseDTO> createRoute(
@@ -104,27 +107,30 @@ public class RouteController {
 
     }
 
+
+    // 루트 리스트 조회
     @GetMapping("/")
-    @Operation(summary = "루트 리스트 조회", description = "루트를 페이징하여 리스트로 불러오는 API")
-    public ResponseEntity<RouteListResponseDTO> getUsers(
+    @Operation(summary = "루트 리스트 조회", description = "루트를 페이징, 필터 처리하여 리스트로 불러오는 API")
+    public ResponseEntity<RouteListResponseDTO> getRouteList(
                                                     //필터정보 null 가능
+                                                    @RequestParam(defaultValue = "0") int page,
+                                                    @RequestParam(defaultValue = "8") int size,
                                                     @RequestParam(defaultValue = "") String sort,
                                                     @RequestParam(defaultValue = "") String distanceType,
                                                     @RequestParam(defaultValue = "") String altitudeType,
                                                     @RequestParam(defaultValue = "") String roadType,
-                                                    @RequestParam(defaultValue = "") String[] Tag) {
-
-        // 여기서 page, size의 변수값 수정으로 페이징 컨트롤 가능
-        int page = 0;
-        int size = 10;
+            @RequestParam(defaultValue = "") String[] Tag) {
 
         // 루트 데이터들을 페이징된 형태로 불러옴
-        RouteListResponseDTO routeListResponseDTO = routeService.getRouteList(page, size);
+        RouteListResponseDTO routeListResponseDTO = routeService.getRouteList(page, size, sort, distanceType,
+                altitudeType, roadType, Tag);
 
-        log.info("보내기 직전 : {}",routeListResponseDTO);
+        log.info("보내기 직전 : {}", routeListResponseDTO);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(routeListResponseDTO);
     }
+    
+    
 }
 
 

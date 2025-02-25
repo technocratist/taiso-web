@@ -1,17 +1,22 @@
 package com.taiso.bike_api.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.taiso.bike_api.dto.LightningGetRequestDTO;
+import com.taiso.bike_api.dto.LightningGetResponseDTO;
 import com.taiso.bike_api.dto.LightningRequestDTO;
 import com.taiso.bike_api.dto.LightningResponseDTO;
 import com.taiso.bike_api.service.LightningService;
 
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 
@@ -19,7 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @Slf4j
-@RequestMapping("/api/lightnings")
+@RequestMapping("/api/lightning")
 @Tag(name = "번개 컨트롤러", description = "번개 관련 API")
 public class LightningController {
 
@@ -27,24 +32,25 @@ public class LightningController {
     LightningService lightningService;
     
     @PostMapping("")
+    @Operation(summary = "번개 생성", description = "번개 생성 API")
     public ResponseEntity<LightningResponseDTO> createLighting(
         @RequestBody LightningRequestDTO requestDTO
         , @AuthenticationPrincipal String userEmail) {
 
-        lightningService.createLightning(requestDTO, userEmail);
+        LightningResponseDTO responseDTO = lightningService.createLightning(requestDTO, userEmail);
 
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(responseDTO);
     }
 
-    // 번개 리스트 조회
-    // 정렬, 성별, 레벨, 자전거 타입, 지역, 태그 등을 기준으로 정렬 및 필터링하여 리턴
-    // 해당 인풋값들은 필수는 아니며 기본정렬기준은 생성일순
-    // GET /api/lightnings
-    // @GetMapping("")
-    // public ResponseEntity<List<GetLightningResponseDTO>> getLightnings(@RequestBody ) {
+    @GetMapping("")
+    @Operation(summary = "번개 리스트 조회", description = "번개 리스트 조회 API")
+    //TODO 필터 기능의 reqeust값은 쿼리 파라미터로 변경
+    public ResponseEntity<LightningGetResponseDTO> getLightning(@RequestBody LightningGetRequestDTO requestDTO) {
 
-    //     return ResponseEntity.status(HttpStatus.SC_OK).body();
-    // }
+        LightningGetResponseDTO responseDTO = lightningService.getLightning(requestDTO);
+        
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(responseDTO);
+    }
     
     
 }

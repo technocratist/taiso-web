@@ -68,4 +68,25 @@ public class UserDetailService2 {
         userDetailRepository.save(userDetail);
     }
 
+    public UserDetailGetResponseDTO getUserDetail(String userEmail) {
+        // 사용자 정보 가져오기
+        UserEntity user = userRepository.findByEmail(userEmail).orElseThrow(() -> new UserNotFoundException("사용자 정보가 없습니다."));
+        
+        // UserDetailEntity 가져오기
+        UserDetailEntity userDetail = userDetailRepository.findByUserId(user.getUserId()).orElseThrow(() -> new UserNotFoundException("사용자 정보가 없습니다."));
+
+        // UserDetailGetResponseDTO 생성
+        return UserDetailGetResponseDTO.builder()
+                .userNickname(userDetail.getUserNickname())
+                .fullName(userDetail.getFullName())
+                .phoneNumber(userDetail.getPhoneNumber())
+                .bio(userDetail.getBio())
+                .level(userDetail.getLevel())
+                .FTP(userDetail.getFTP())
+                .height(userDetail.getHeight())
+                .weight(userDetail.getWeight())
+                .tags(userDetail.getTags().stream().map(tag -> tag.getName()).collect(Collectors.toSet()))
+                .build();
+    }
+
 }

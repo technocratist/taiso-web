@@ -1,5 +1,6 @@
 package com.taiso.bike_api.dto;
-import org.springframework.data.domain.Page;
+
+import java.time.LocalDateTime;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -14,6 +15,10 @@ import lombok.ToString;
 @Getter
 @ToString
 @Builder
-public class LightningGetResponseDTO {
-    private Page<ResponseComponentDTO> lightnings;
+public class BookmarkUserResponseDTO {
+    private Long userId;
+
+    private String userName;
+
+    private LocalDateTime joinedAt;
 }

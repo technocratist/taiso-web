@@ -5,7 +5,7 @@ function MainNavbar() {
     <div className="flex flex-col items-center justify-center">
       <div className="flex no-animation">
         <NavLink
-          to="/"
+          to="/lightning"
           end
           className={({ isActive }) =>
             ` ${

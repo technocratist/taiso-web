@@ -17,7 +17,7 @@ import io.jsonwebtoken.security.Keys;
 public class JwtTokenProvider {
 
     // 토큰 유효시간 (예: 7일) - 10분
-    private final long JWT_EXPIRATION = 1000L * 60 * 10; // 10분
+    private final long JWT_EXPIRATION = 1000L * 60 * 60 * 24 * 7; // 7일
 
     // 비밀키 객체 생성 (JWT_SECRET 문자열을 바이트 배열로 변환 후 키 객체 생성)
     private final Key key;

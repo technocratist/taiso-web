@@ -13,6 +13,7 @@ import RoutePage from "./pages/RoutePage";
 import ClubPage from "./pages/ClubPage";
 import RouteDetailPage from "./pages/route/RouteDetailPage";
 import NotFoundErrorPage from "./pages/error/NotFoundErrorPage";
+import LightningPage from "./pages/LightningPage";
 
 const router = createBrowserRouter([
   {
@@ -35,6 +36,14 @@ const router = createBrowserRouter([
         children: [
           { index: true, element: <MainPage /> },
           { path: "test", element: <TestPage /> },
+          {
+            path: "lightning",
+            children: [
+              { path: "", element: <LightningPage /> },
+              // { path: "post", element: <LightningPostPage /> },
+              // { path: ":lightningId", element: <LightningDetailPage /> },
+            ],
+          },
           {
             path: "route",
             children: [

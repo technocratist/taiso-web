@@ -286,6 +286,12 @@ public class GlobalExceptionHandler {
                 ex.getMessage(), HttpStatus.CONFLICT, request.getRequestURI());
         return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
     }
+
+    @ExceptionHandler(UserDetailNotFoundException.class)
+    public ResponseEntity<ErrorResponseDTO> handleUserDetailNotFoundException(UserDetailNotFoundException ex, HttpServletRequest request) {
+        ErrorResponseDTO errorResponse = ErrorResponseDTO.makeErrorResponse(ex.getMessage(), HttpStatus.NOT_FOUND, request.getRequestURI());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+    }
     
     // 번개 참가 신청자 존재하지 않음 예외 처리
     @ExceptionHandler(LightningUserMismatchException.class)

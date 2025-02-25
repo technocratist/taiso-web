@@ -48,14 +48,20 @@ public class ReviewService {
                 .orElseThrow(() -> new UserNotFoundException("리뷰 입력 사용자를 찾을 수 없습니다.")); 
         
         // 3. 리뷰 대상(리뷰 받는 사용자) 조회
-        UserEntity reviewedUser = userRepository.findById(userId)
+        UserEntity reviewed = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("리뷰 대상 사용자를 찾을 수 없습니다."));
-
-        // 4. UserReviewEntity 생성 및 저장
+        
+        // 4. 이미 리뷰가 작성되어 있는지 체크
+        userReviewRepository.findByLightningAndReviewed(lightningEntity, reviewed)
+                .ifPresent(existingReview -> {
+                    throw new LightningUserReviewMismatchException("이미 리뷰를 작성하였습니다.");
+                });
+        
+        // 5. UserReviewEntity 생성 및 저장
         UserReviewEntity review = UserReviewEntity.builder()
                 .lightning(lightningEntity)
                 .reviewer(reviewer)
-                .reviewed(reviewedUser)
+                .reviewed(reviewed)
                 .reviewContent(userReviewRequest.getReviewContent())
                 .reviewTag(userReviewRequest.getReviewTag())
                 .build();

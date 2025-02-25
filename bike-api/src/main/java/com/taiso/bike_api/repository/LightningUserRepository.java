@@ -10,10 +10,10 @@ import com.taiso.bike_api.domain.UserEntity;
 
 public interface LightningUserRepository extends JpaRepository<LightningUserEntity, Long> {
 
-	void save(LightningEntity lightningEntity);
+    void save(LightningEntity lightningEntity);
 
-	Optional<LightningUserEntity> findByLightningAndUser(LightningEntity lightningEntityException,
-			UserEntity userEntityException);
+    Optional<LightningUserEntity> findByLightningAndUser(LightningEntity lightningEntityException,
+            UserEntity userEntityException);
 
-	Optional<LightningUserEntity> findByLightning_LightningIdAndUser_UserId(Long lightningId, Long userId);
+    Optional<LightningUserEntity> findByLightning_LightningIdAndUser_UserId(Long lightningId, Long userId);
 }

@@ -81,17 +81,33 @@ public class LightningMemberController {
     
     // 번개 참가 수락
     @Operation(summary = "번개 참가 수락", description = "번개 참가 수락 API")
-    @PatchMapping("{lightningId}/join-requests/{userId}")	// 수락이랑 거절 같은 도착
-    public void lightningJoinRequests(
+    @PatchMapping("{lightningId}/join-requests/{userId}")
+    public ResponseEntity<JoinParticipantsPostResponseDTO> lightningJoinRequests(
     		@PathVariable(name = "lightningId") Long lightningId,
     		@PathVariable(name = "userId") Long userId,
 			Authentication authentication
     		) {
     	// 번개 아이디, 참가 신청 아이디, 관리자 아이디
     	lightningMemberService.JoinRequests(lightningId, userId, authentication);
-    	
-    	return;
+
+		return ResponseEntity.status(HttpStatus.CREATED).body(null);
     }
+    
+    // 번개 참가 거절 (탈퇴 처리)
+    @Operation(summary = "번개 참가 거절", description = "번개 참가 거절 API")
+    @PatchMapping("{lightningId}/join-rejection/{userId}")
+    public ResponseEntity<JoinParticipantsPostResponseDTO> LightningJoinRejection(
+    		@PathVariable(name = "lightningId") Long lightningId,
+    		@PathVariable(name = "userId") Long userId,
+			Authentication authentication
+    		) {
+    	// 번개 아이디, 참가 신청 아이디, 관리자 아이디
+    	lightningMemberService.JoinRejection(lightningId, userId, authentication);
+    	
+    	// 탈퇴 처리로 변경 완료
+		return ResponseEntity.status(HttpStatus.CREATED).body(null);
+    }
+    
     
 
     

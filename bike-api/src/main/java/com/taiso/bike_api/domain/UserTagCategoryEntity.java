@@ -40,13 +40,13 @@ public class UserTagCategoryEntity {
     @Column(name = "name", nullable = false, unique = true, length = 255)
     private String name;
 
-    @CreationTimestamp
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    // @CreationTimestamp
+    // @Column(name = "created_at", nullable = false, updatable = false)
+    // private LocalDateTime createdAt;
 
-    @UpdateTimestamp
-    @Column(name = "updated_at", nullable = false)
-    private LocalDateTime updatedAt;
+    // @UpdateTimestamp
+    // @Column(name = "updated_at", nullable = false)
+    // private LocalDateTime updatedAt;
 
     @ManyToMany(mappedBy = "tags")
     @Builder.Default

@@ -23,7 +23,4 @@ public class UserDetailRequestDTO {
     private String level;
     private String gender;
 
-
-
-
 }

@@ -234,10 +234,11 @@ public class GlobalExceptionHandler {
     
     // 모집 상태가 아닌 번개에 참가 예외 처리
     @ExceptionHandler(LightningStatusMismatchException.class)
-    public ResponseEntity<ErrorResponseDTO> handleLightningStatusMismatchException(LightningStatusMismatchException ex, HttpServletRequest request) {
+    public ResponseEntity<ErrorResponseDTO> handleLightningStatusMismatchException(LightningStatusMismatchException ex,
+            HttpServletRequest request) {
         log.error("LightningStatusMismatchException: ", ex);
-        ErrorResponseDTO errorResponse = ErrorResponseDTO.makeErrorResponse(
-                ex.getMessage(), HttpStatus.CONFLICT, request.getRequestURI());
+        ErrorResponseDTO errorResponse = ErrorResponseDTO.makeErrorResponse(ex.getMessage(), HttpStatus.CONFLICT,
+                request.getRequestURI());
         return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
     }
     
@@ -266,10 +267,15 @@ public class GlobalExceptionHandler {
                 request.getRequestURI());
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
     }    
-    
-    
-    
-    
+
+    // 번개 유저 DB에 해당 유저가 존재하지 않을 경우 예외 처리
+    @ExceptionHandler(TagsNotFoundException.class)
+    public ResponseEntity<ErrorResponseDTO> handleTagsNotFoundException(LightningMemberNotFoundException ex,
+                                                                                    HttpServletRequest request) {
+        ErrorResponseDTO errorResponse = ErrorResponseDTO.makeErrorResponse(ex.getMessage(), HttpStatus.CONFLICT,
+                request.getRequestURI());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
+    }
 
     // 번개 유저 상태 변경 권한 없음 예외 처리
     @ExceptionHandler(LightningMemberIllegalParticipantStatusException.class)

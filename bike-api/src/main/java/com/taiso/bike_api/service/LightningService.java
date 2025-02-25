@@ -165,6 +165,7 @@ public class LightningService {
         return responseDTO;
     }
 
+    // 페이징 처리 된 리스트 조회
     public LightningListResponseDTO getLightningList (int page, int size, String sort) {
 
         // 정렬 기준 설정

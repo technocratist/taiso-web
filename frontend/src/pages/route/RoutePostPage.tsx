@@ -150,8 +150,8 @@ function RoutePostPage() {
     };
 
     try {
-      await executePost(payload);
-      navigate("/");
+      const data: any = await executePost(payload);
+      navigate(`/route/${data.routeId}`);
     } catch (err) {
       console.error("Error posting route:", err);
       setServerError("루트 등록에 실패했습니다. 잠시 후 다시 시도해주세요.");
@@ -160,7 +160,7 @@ function RoutePostPage() {
 
   return (
     <div className="flex justify-center items-center relative sm:w-full w-[90%]">
-      <div className="w-full max-w-lg bg-base-100">
+      <div className="w-full max-w-lg bg-base-100 p-6">
         <h1 className="text-2xl font-bold text-center mb-4">루트 등록하기</h1>
         <form onSubmit={handleSubmit} noValidate>
           {/* 지도 파일 업로드 */}

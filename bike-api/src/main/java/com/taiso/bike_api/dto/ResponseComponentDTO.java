@@ -1,15 +1,12 @@
 package com.taiso.bike_api.dto;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.Set;
+import java.util.List;
 
 import com.taiso.bike_api.domain.LightningEntity.BikeType;
 import com.taiso.bike_api.domain.LightningEntity.Gender;
 import com.taiso.bike_api.domain.LightningEntity.Level;
 import com.taiso.bike_api.domain.LightningEntity.LightningStatus;
-import com.taiso.bike_api.domain.LightningEntity.RecruitType;
-import com.taiso.bike_api.domain.LightningEntity.Region;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -24,46 +21,20 @@ import lombok.ToString;
 @Getter
 @ToString
 @Builder
-public class LightningRequestDTO {
-
+public class ResponseComponentDTO {
+    private Long lightningId;
     private Long creatorId;
-
     private String title;
-
-    private String description;
-
     private LocalDateTime eventDate;
-
     private Integer duration;
-
+    private LocalDateTime createdAt;
     private LightningStatus status;
-
     private Integer capacity;
-
-    private BigDecimal latitude;
-
-    private BigDecimal longitude;
-
+    // private Integer currentParticipants;
     private Gender gender;
-
     private Level level;
-
-    private RecruitType recruitType;
-
     private BikeType bikeType;
-
-    private Region region;
-
-    private Long distance;
-
-    private Long routeId;
-
+    private List<String> tags;
     private String address;
-
-    private Boolean isClubOnly;
-
-    private Long clubId;
-
-    private Set<String> tags;
-
+    private String routeImgId;
 }

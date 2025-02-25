@@ -235,7 +235,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(LightningStatusMismatchException.class)
     public ResponseEntity<ErrorResponseDTO> handleLightningStatusMismatchException(LightningStatusMismatchException ex,
             HttpServletRequest request) {
-        log.error("RouteDeleteAccessDeniedException: ", ex);
+        log.error("LightningStatusMismatchException: ", ex);
         ErrorResponseDTO errorResponse = ErrorResponseDTO.makeErrorResponse(ex.getMessage(), HttpStatus.CONFLICT,
                 request.getRequestURI());
         return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
@@ -243,9 +243,18 @@ public class GlobalExceptionHandler {
     
     // 번개 유저 DB에 해당 유저가 존재하지 않을 경우 예외 처리
     @ExceptionHandler(LightningMemberNotFoundException.class)
-    public ResponseEntity<ErrorResponseDTO> LightningMemberNotFoundException(LightningMemberNotFoundException ex,
+    public ResponseEntity<ErrorResponseDTO> handleLightningMemberNotFoundException(LightningMemberNotFoundException ex,
                                                                                    HttpServletRequest request) {
         log.error("LightningMemberNotFoundException: ", ex);
+        ErrorResponseDTO errorResponse = ErrorResponseDTO.makeErrorResponse(ex.getMessage(), HttpStatus.CONFLICT,
+                request.getRequestURI());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
+    }
+
+    // 번개 유저 DB에 해당 유저가 존재하지 않을 경우 예외 처리
+    @ExceptionHandler(TagsNotFoundException.class)
+    public ResponseEntity<ErrorResponseDTO> handleTagsNotFoundException(LightningMemberNotFoundException ex,
+                                                                                    HttpServletRequest request) {
         ErrorResponseDTO errorResponse = ErrorResponseDTO.makeErrorResponse(ex.getMessage(), HttpStatus.CONFLICT,
                 request.getRequestURI());
         return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);

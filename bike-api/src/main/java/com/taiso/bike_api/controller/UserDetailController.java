@@ -16,13 +16,13 @@ import com.taiso.bike_api.service.UserDetailService2;
 public class UserDetailController {
 
     @Autowired
-    private UserDetailService2 UserDetailService2;
+    private UserDetailService2 userDetailService2;
 
-    @PostMapping("/users/me/details")
+    @PostMapping("/api/users/me/details")
     public ResponseEntity<Void> postMethodName(
         @RequestBody UserDetailPostRequestDTO requestDTO
         , @AuthenticationPrincipal String userEmail) {
-        UserDetailService2.saveUserDetail(requestDTO, userEmail);
+        userDetailService2.saveUserDetail(requestDTO, userEmail);
         return ResponseEntity.status(HttpStatus.CREATED).body(null);
     }
     

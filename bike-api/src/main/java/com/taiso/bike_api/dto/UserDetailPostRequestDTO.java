@@ -1,6 +1,8 @@
 package com.taiso.bike_api.dto;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 
 import com.taiso.bike_api.domain.LightningEntity.BikeType;
 import com.taiso.bike_api.domain.UserDetailEntity.Gender;
@@ -22,28 +24,30 @@ import lombok.ToString;
 public class UserDetailPostRequestDTO {
     private String userNickname;
     private Gender gender;
-    private LocalDateTime birthDate;
+    private LocalDate birthDate;
     private String phoneNumber;
     private String fullName;
-    private ActivityTime activityTime;
-    private ActivityDay activityDay;
-    private ActivityLocation activityLocation;
-    private BikeType bikeType;
+    private String bio;
+    private Set<ActivityTime> activityTime;
+    private Set<ActivityDay> activityDay;    
+    private Set<ActivityLocation> activityLocation;
+    private Set<BikeType> bikeType;
     private Level level;
     private Integer FTP;
     private Integer height;
     private Integer weight;
+    private Set<String> tags = new HashSet<>();
 
     public enum ActivityTime {
-        MORNING, AFTERNOON, EVENING
+        오전, 오후, 저녁
     }
 
     public enum ActivityDay {
-        MON, TUE, WED, THU, FRI, SAT, SUN
+        월, 화, 수, 목, 금, 토, 일
     }
 
     public enum ActivityLocation {
-        SEOUL, GYEONGGI, INCHEON, BUSAN, DAEGU, GWANGJU, DAEJEON, ULSAN, SEJONG, GYEONGSANGNAMDO, GYEONGSANGBUKDO,
-        JEOLLANAMDO, JEOLLABUKDO, CHUNGCHEONGNAMDO, CHUNGCHEONGBUKDO, GANGWONDO, JEJUDO
+        서울, 경기, 인천, 부산, 대구, 광주, 대전, 울산, 경상북도, 경상남도,
+        전라남도, 전라북도, 충청남도, 충청북도, 강원도, 제주도,
     }
 }

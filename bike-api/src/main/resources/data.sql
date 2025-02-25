@@ -32,6 +32,69 @@ VALUES ('따릉이', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 INSERT INTO lightning_tag_category (name, created_at, updated_at)
 VALUES ('친목', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 
+-- 4. user_tage 테이블에 태그 추가가
+INSERT INTO user_tag_category (category, name)
+VALUES ('활동시간', '오전');
+INSERT INTO user_tag_category (category, name)
+VALUES ('활동시간', '오후');
+INSERT INTO user_tag_category (category, name)
+VALUES ('활동시간', '저녁');
+INSERT INTO user_tag_category (category, name)
+VALUES ('활동요일', '월');
+INSERT INTO user_tag_category (category, name)
+VALUES ('활동요일', '화');
+INSERT INTO user_tag_category (category, name)
+VALUES ('활동요일', '수');
+INSERT INTO user_tag_category (category, name)
+VALUES ('활동요일', '목');
+INSERT INTO user_tag_category (category, name)
+VALUES ('활동요일', '금');
+INSERT INTO user_tag_category (category, name)
+VALUES ('활동요일', '토');
+INSERT INTO user_tag_category (category, name)
+VALUES ('활동요일', '일');
+INSERT INTO user_tag_category (category, name)
+VALUES ('활동지역', '서울');
+INSERT INTO user_tag_category (category, name)
+VALUES ('활동지역', '경기');
+INSERT INTO user_tag_category (category, name)
+VALUES ('활동지역', '인천');
+INSERT INTO user_tag_category (category, name)
+VALUES ('활동지역', '부산');
+INSERT INTO user_tag_category (category, name)
+VALUES ('활동지역', '대구');
+INSERT INTO user_tag_category (category, name)
+VALUES ('활동지역', '광주');
+INSERT INTO user_tag_category (category, name)
+VALUES ('활동지역', '대전');
+INSERT INTO user_tag_category (category, name)
+VALUES ('활동지역', '울산');
+INSERT INTO user_tag_category (category, name)
+VALUES ('활동지역', '경상북도');
+INSERT INTO user_tag_category (category, name)
+VALUES ('활동지역', '경상남도');
+INSERT INTO user_tag_category (category, name)
+VALUES ('활동지역', '전라북도');
+INSERT INTO user_tag_category (category, name)
+VALUES ('활동지역', '전라남도');
+INSERT INTO user_tag_category (category, name)
+VALUES ('활동지역', '충청북도');
+INSERT INTO user_tag_category (category, name)
+VALUES ('활동지역', '충청남도');
+INSERT INTO user_tag_category (category, name)
+VALUES ('활동지역', '강원도');
+INSERT INTO user_tag_category (category, name)
+VALUES ('활동지역', '제주도');
+INSERT INTO user_tag_category (category, name)
+VALUES ('자전거유형', '로드');
+INSERT INTO user_tag_category (category, name)
+VALUES ('자전거유형', '따릉이');
+INSERT INTO user_tag_category (category, name)
+VALUES ('자전거유형', '하이브리드');
+INSERT INTO user_tag_category (category, name)
+VALUES ('자전거유형', '자유');
+
+
 INSERT INTO ROUTE (
     ROUTE_ID, 
     ALTITUDE, 

@@ -1,13 +1,8 @@
 package com.taiso.bike_api.domain;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
-
-import com.taiso.bike_api.domain.LightningEntity.BikeType;
-import com.taiso.bike_api.dto.UserDetailPostRequestDTO.ActivityDay;
-import com.taiso.bike_api.dto.UserDetailPostRequestDTO.ActivityLocation;
-import com.taiso.bike_api.dto.UserDetailPostRequestDTO.ActivityTime;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -64,7 +59,7 @@ public class UserDetailEntity {
     private String phoneNumber;
 
     @Column(name = "birth_date")
-    private LocalDateTime birthDate;
+    private LocalDate birthDate;
 
     @Column(name = "bio", length = 500)
     private String bio;
@@ -76,22 +71,6 @@ public class UserDetailEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "level", length = 20)
     private Level level;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "activity_time", length = 10)
-    private ActivityTime activityTime;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "activity_day", length = 10)
-    private ActivityDay activityDay;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "activity_location", length = 20)
-    private ActivityLocation activityLocation;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "bike_type", length = 20)
-    private BikeType bikeType;
 
     @Column(name = "FTP")
     private Integer FTP;

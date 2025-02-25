@@ -1,6 +1,7 @@
 package com.taiso.bike_api;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +17,7 @@ import com.taiso.bike_api.repository.UserDetailRepository;
 import com.taiso.bike_api.repository.UserRepository;
 import com.taiso.bike_api.repository.UserRoleRepository;
 import com.taiso.bike_api.repository.UserStatusRepository;
+import com.taiso.bike_api.repository.UserTagCategoryRepository;
 
 import jakarta.transaction.Transactional;
     
@@ -39,7 +41,10 @@ public class InitLoader implements CommandLineRunner {
     private UserDetailRepository userDetailRepository;
 
     @Autowired
-    private LightningUserRepository lightningUserRepository;    
+    private LightningUserRepository lightningUserRepository;
+
+    @Autowired
+    private UserTagCategoryRepository userTagCategoryRepository;
 
 
     @Override
@@ -82,7 +87,7 @@ public class InitLoader implements CommandLineRunner {
                 .FTP(134)
                 .gender(UserDetailEntity.Gender.valueOf("여자"))
                 .level(UserDetailEntity.Level.valueOf("초보자"))
-                .birthDate(LocalDateTime.now())
+                .birthDate(LocalDate.now())
                 .fullName("권혜연")
                 .phoneNumber("010-5529-7835")
                 .height(158)
@@ -141,7 +146,6 @@ public class InitLoader implements CommandLineRunner {
         	    .build();
         
         lightningUserRepository.save(lightningEntity2);
-        
         
     }
 }

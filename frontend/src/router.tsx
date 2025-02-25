@@ -1,6 +1,5 @@
 import { createBrowserRouter } from "react-router-dom";
 import Root from "./root";
-import TestPage from "./pages/TestPage";
 import MainPage from "./pages/MainPage";
 import ProtectedRoute from "./ProtectedRoute";
 import LoginPage from "./pages/auth/LoginPage";
@@ -13,6 +12,8 @@ import RoutePage from "./pages/RoutePage";
 import ClubPage from "./pages/ClubPage";
 import RouteDetailPage from "./pages/route/RouteDetailPage";
 import NotFoundErrorPage from "./pages/error/NotFoundErrorPage";
+import LightningPage from "./pages/LightningPage";
+import LightningPostPage from "./pages/lightning/LightningPostPage";
 
 const router = createBrowserRouter([
   {
@@ -34,7 +35,14 @@ const router = createBrowserRouter([
         element: <ProtectedRoute />,
         children: [
           { index: true, element: <MainPage /> },
-          { path: "test", element: <TestPage /> },
+          {
+            path: "lightning",
+            children: [
+              { path: "", element: <LightningPage /> },
+              { path: "post", element: <LightningPostPage /> },
+              // { path: ":lightningId", element: <LightningDetailPage /> },
+            ],
+          },
           {
             path: "route",
             children: [

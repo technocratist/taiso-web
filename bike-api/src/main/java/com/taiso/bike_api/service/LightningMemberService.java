@@ -11,6 +11,7 @@ import com.taiso.bike_api.domain.LightningEntity;
 import com.taiso.bike_api.domain.LightningEntity.LightningStatus;
 import com.taiso.bike_api.domain.LightningEntity.RecruitType;
 import com.taiso.bike_api.domain.LightningUserEntity;
+import com.taiso.bike_api.domain.LightningUserEntity.ParticipantStatus;
 import com.taiso.bike_api.domain.UserEntity;
 import com.taiso.bike_api.exception.EmailAlreadyExistsException;
 import com.taiso.bike_api.exception.LightningCreatorMismatchException;
@@ -19,6 +20,8 @@ import com.taiso.bike_api.exception.LightningMemberNotFoundException;
 import com.taiso.bike_api.exception.LightningNotFoundException;
 import com.taiso.bike_api.exception.LightningStatusMismatchException;
 import com.taiso.bike_api.exception.LightningUserAlreadyExistsException;
+import com.taiso.bike_api.exception.LightningUserMismatchException;
+import com.taiso.bike_api.exception.LightningUserStatusNotPendingException;
 import com.taiso.bike_api.exception.UserNotFoundException;
 import com.taiso.bike_api.repository.LightningRepository;
 import com.taiso.bike_api.repository.LightningUserRepository;
@@ -37,7 +40,6 @@ public class LightningMemberService {
 	
     @Autowired
     private UserRepository userRepository;
-	
 	
     // 번개 참가 서비스 
     @Transactional
@@ -145,24 +147,74 @@ public class LightningMemberService {
         lightningUserRepository.save(lightningUser);
     }
 
-    // 번개 참여 신청 (예시)
+    // 번개 참가 수락 (관리자 승인)
     @Transactional
-    public void JoinRequests(Long lightningId, Long userId, Authentication authentication) {
-        // 실제 로직 예시
+    public void JoinRequests(Long lightningId, Long joinRequestId, Authentication authentication) {
+        // 1. 번개 이벤트 조회 (존재하지 않으면 404)
+        LightningEntity lightningEntity = lightningRepository.findById(lightningId)
+                .orElseThrow(() -> new LightningNotFoundException("번개를 찾을 수 없습니다."));	
+        
+        // 2. 현재 인증된 관리자(또는 승인 권한을 가진 사용자) 조회
+        UserEntity userEntity = userRepository.findByEmail(authentication.getName())
+                .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
+        
+        // 3. 관리자가 해당 번개 이벤트의 생성자인지 확인 (승인 권한 확인) -> 403 FORBIDDEN
+        if (!userEntity.getUserId().equals(lightningEntity.getCreatorId())) {
+            throw new LightningCreatorMismatchException("유저와 번개 생성자가 같지 않음");
+        }
+        
+        // 4. 승인 대상 참가 신청자 조회 (존재하지 않으면 404)
+        LightningUserEntity joinUserEntity = lightningUserRepository.findById(joinRequestId)
+                .orElseThrow(() -> new UserNotFoundException("참가 사용자를 찾을 수 없습니다."));
+        
+        // 5. 해당 참가 신청자의 번개 이벤트가 요청한 번개 이벤트와 일치하는지 확인
+        if (!joinUserEntity.getLightning().getLightningId().equals(lightningEntity.getLightningId())) {
+            throw new LightningUserMismatchException("번개와 참가 신청하는 유저가 일치하지 않음");
+        }
+        
+        // 6. 참가 신청자의 상태가 '신청대기'인지 확인 (아니면 승인/거절 불가)
+        if (joinUserEntity.getParticipantStatus() != ParticipantStatus.신청대기) {
+            throw new LightningUserStatusNotPendingException("신청대기 상태가 아닌 경우");
+        }
+        
+        // 7. 승인 처리
+        joinUserEntity.setParticipantStatus(LightningUserEntity.ParticipantStatus.승인);
+        // JPA의 변경 감지(Dirty Checking)로 자동 반영됨
+    }
+    
+    // 번개 참가 거절 (탈퇴 처리)
+    @Transactional
+    public void JoinRejection(Long lightningId, Long joinRequestId, Authentication authentication) {
+        // 1. 번개 이벤트 조회 (존재하지 않으면 404)
+        LightningEntity lightningEntity = lightningRepository.findById(lightningId)
+                .orElseThrow(() -> new LightningNotFoundException("번개를 찾을 수 없습니다."));	
+        
+        // 2. 현재 인증된 관리자(또는 승인 권한을 가진 사용자) 조회
         UserEntity userEntity = userRepository.findByEmail(authentication.getName())
                 .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
 
-        LightningUserEntity lightningUser = lightningUserRepository
-                .findByLightning_LightningIdAndUser_UserId(lightningId, userEntity.getUserId())
-                .orElseThrow(() -> new LightningMemberNotFoundException("해당 번개에 참여한 기록이 없습니다."));
-
-        // 이미 탈퇴한 경우 예외 처리
-        if (lightningUser.getParticipantStatus() == LightningUserEntity.ParticipantStatus.탈퇴) {
-            throw new LightningMemberIllegalParticipantStatusException("이미 탈퇴한 회원입니다.");
+        // 3. 관리자가 해당 번개 이벤트의 생성자인지 확인 (승인 권한 확인) -> 403 FORBIDDEN
+        if (!userEntity.getUserId().equals(lightningEntity.getCreatorId())) {
+            throw new LightningCreatorMismatchException("유저와 번개 생성자가 같지 않음");
         }
-
-        // 필요한 비즈니스 로직 수행
-        // ...
+        
+        // 4. 승인 대상 참가 신청자 조회 (존재하지 않으면 404)
+        LightningUserEntity joinUserEntity = lightningUserRepository.findById(joinRequestId)
+                .orElseThrow(() -> new UserNotFoundException("참가 사용자를 찾을 수 없습니다."));
+        
+        // 5. 해당 참가 신청자의 번개 이벤트가 요청한 번개 이벤트와 일치하는지 확인
+        if (!joinUserEntity.getLightning().getLightningId().equals(lightningEntity.getLightningId())) {
+            throw new LightningUserMismatchException("번개와 참가 신청하는 유저가 일치하지 않음");
+        }
+        
+        // 6. 참가 신청자의 상태가 '신청대기'인지 확인 (아니면 승인/거절 불가)
+        if (joinUserEntity.getParticipantStatus() != ParticipantStatus.신청대기) {
+            throw new LightningUserStatusNotPendingException("신청대기 상태가 아닌 경우");
+        }
+        
+        // 7. 거절(탈퇴) 처리
+        joinUserEntity.setParticipantStatus(LightningUserEntity.ParticipantStatus.탈퇴);
+        // JPA의 변경 감지(Dirty Checking)로 자동 반영됨
     }
 
     // 번개 참여신청 취소하기
@@ -197,5 +249,4 @@ public class LightningMemberService {
             lightningUserRepository.save(lightningUser);
         }
     }
-
 }

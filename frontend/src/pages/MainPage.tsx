@@ -4,6 +4,7 @@ function MainPage() {
   return (
     <div>
       <MainNavbar />
+      thisismainpagehelloeveryoneandwelcometomymainpageandthisisjustatestwhyyoulookatthis
     </div>
   );
 }

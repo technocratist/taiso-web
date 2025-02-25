@@ -1,6 +1,7 @@
 import { useState } from "react";
 import authService from "../services/authService";
 import { useAuthStore } from "../stores/useAuthStore";
+import { Link } from "react-router";
 
 function Navbar() {
   const { logout } = useAuthStore();
@@ -24,7 +25,9 @@ function Navbar() {
     <>
       <div className="navbar">
         <div className="flex-1">
-          <a className="btn btn-ghost text-xl no-animation">taiso</a>
+          <Link to="/" className="btn btn-ghost text-xl no-animation font-mono">
+            taiso
+          </Link>
         </div>
         <div className="flex-none gap-2">
           <ul className="menu menu-horizontal px-1">

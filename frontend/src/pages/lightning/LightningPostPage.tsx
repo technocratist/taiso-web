@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import MapModal from "../../components/MapModal";
+import RouteModal from "../../components/RouteModal";
 
 // 옵션 상수들
 const STATUS_OPTIONS = ["모집", "마감"];
@@ -70,6 +71,13 @@ function LightningPostPage() {
 
   // 태그 토글 함수
   const handleTagToggle = (option: string) => {
+    // 더미 데이터 설정
+    setTags([]);
+    setLatitude("");
+    setLongitude("");
+    setRouteId("");
+    // 더미 데이터 설정 끝
+
     if (tags.includes(option)) {
       setTags(tags.filter((t) => t !== option));
     } else {
@@ -164,6 +172,17 @@ function LightningPostPage() {
         </div>
       </div>
       {/* 루트 등록 모달 */}
+      <input type="checkbox" id="route_modal" className="modal-toggle" />
+      <div className="modal" role="dialog">
+        <div className="modal-box">
+          <RouteModal />
+          <div className="modal-action">
+            <label htmlFor="route_modal" className="btn">
+              Close!
+            </label>
+          </div>
+        </div>
+      </div>
       {/* 번개 등록 폼 */}
       <div className="flex justify-center items-center relative sm:w-full w-[90%]">
         <div className="w-full max-w-lg bg-base-100 p-6">
@@ -314,7 +333,7 @@ function LightningPostPage() {
                 )}
               </div>
               <label htmlFor="map_modal" className="btn">
-                모달열기
+                주소 찾는 모달 열기
               </label>
             </div>
 
@@ -484,27 +503,9 @@ function LightningPostPage() {
                   </span>
                 )}
               </div>
-              <div className="form-control">
-                <label htmlFor="routeId" className="label">
-                  <span className="label-text">경로 ID</span>
-                </label>
-                <input
-                  id="routeId"
-                  type="number"
-                  placeholder="예: 2"
-                  value={routeId}
-                  onChange={(e) => {
-                    setRouteId(e.target.value);
-                    setFormErrors((prev) => ({ ...prev, routeId: "" }));
-                  }}
-                  className="input input-bordered placeholder:text-sm"
-                />
-                {formErrors.routeId && (
-                  <span className="text-red-500 mt-2 block">
-                    {formErrors.routeId}
-                  </span>
-                )}
-              </div>
+              <label htmlFor="route_modal" className="btn">
+                경로 등록
+              </label>
             </div>
 
             {/* 주소 */}

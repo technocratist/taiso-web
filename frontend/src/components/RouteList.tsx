@@ -21,13 +21,6 @@ function RouteList() {
   const navigate = useNavigate();
 
   const fetchRouteList = async () => {
-    //더미 데이터 설정
-    setSort("latest");
-    setDistanceType("total");
-    setAltitudeType("total");
-    setRoadType("total");
-    setTag([]);
-    // 더미 데이터 설정 끝
     try {
       setIsLoading(true);
       const data = await routeService.getRouteList(

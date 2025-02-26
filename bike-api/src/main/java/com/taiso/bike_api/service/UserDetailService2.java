@@ -9,8 +9,10 @@ import org.springframework.stereotype.Service;
 import com.taiso.bike_api.domain.UserDetailEntity;
 import com.taiso.bike_api.domain.UserEntity;
 import com.taiso.bike_api.domain.UserTagCategoryEntity;
+import com.taiso.bike_api.dto.UserDetailGetResponseDTO;
 import com.taiso.bike_api.dto.UserDetailPostRequestDTO;
 import com.taiso.bike_api.exception.TagsNotFoundException;
+import com.taiso.bike_api.exception.UserDetailNotFoundException;
 import com.taiso.bike_api.exception.UserNotFoundException;
 import com.taiso.bike_api.repository.UserDetailRepository;
 import com.taiso.bike_api.repository.UserRepository;
@@ -49,10 +51,14 @@ public class UserDetailService2 {
         .orElseThrow(() -> new TagsNotFoundException("태그 정보가 없습니다.")))
         .collect(Collectors.toSet());
 
+        log.info("{}", requestDTO.getFTP());
+
         // UserDetailEntity 생성
         UserDetailEntity userDetail = UserDetailEntity.builder()
                 .userId(user.getUserId())
                 .user(user)
+                .gender(requestDTO.getGender())
+                .birthDate(requestDTO.getBirthDate())
                 .userNickname(requestDTO.getUserNickname())
                 .fullName(requestDTO.getFullName())
                 .phoneNumber(requestDTO.getPhoneNumber())
@@ -66,6 +72,31 @@ public class UserDetailService2 {
 
         // UserDetailEntity 저장
         userDetailRepository.save(userDetail);
+    }
+
+    public UserDetailGetResponseDTO getUserDetail(String userEmail) {
+        // 사용자 정보 가져오기
+        UserEntity user = userRepository.findByEmail(userEmail).orElseThrow(() -> new UserNotFoundException("사용자 정보가 없습니다."));
+        
+        // UserDetailEntity 가져오기
+        UserDetailEntity userDetail = userDetailRepository.findByUserId(user.getUserId()).orElseThrow(() -> new UserDetailNotFoundException("사용자 상세정보가 없습니다."));
+
+        // UserDetailGetResponseDTO 생성
+        return UserDetailGetResponseDTO.builder()
+                .userId(userDetail.getUserId())
+                .gender(userDetail.getGender())
+                .birthDate(userDetail.getBirthDate())
+                .userNickname(userDetail.getUserNickname())
+                .fullName(userDetail.getFullName())
+                .phoneNumber(userDetail.getPhoneNumber())
+                .bio(userDetail.getBio())
+                .level(userDetail.getLevel())
+                .gender(userDetail.getGender())
+                .FTP(userDetail.getFTP())
+                .height(userDetail.getHeight())
+                .weight(userDetail.getWeight())
+                .tags(userDetail.getTags().stream().map(tag -> tag.getName()).collect(Collectors.toSet()))
+                .build();
     }
 
 }

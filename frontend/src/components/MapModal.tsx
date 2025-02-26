@@ -12,10 +12,16 @@ interface LatLng {
   lng: number;
 }
 
-const MeetingLocationSelector: React.FC = () => {
+interface MeetingLocationSelectorProps {
+  onSelectLocation: (address: string, coords: LatLng) => void;
+}
+
+const MeetingLocationSelector: React.FC<MeetingLocationSelectorProps> = ({
+  onSelectLocation,
+}) => {
+  const modalRef = useRef<HTMLDialogElement>(null);
   const mapRef = useRef<HTMLDivElement>(null);
   const [map, setMap] = useState<any>(null);
-  // 마커 상태 대신 useRef를 사용하여 mutable하게 관리합니다.
   const markerRef = useRef<any>(null);
   const [inputAddress, setInputAddress] = useState<string>("");
   const [selectedAddress, setSelectedAddress] = useState<string>("");
@@ -25,19 +31,19 @@ const MeetingLocationSelector: React.FC = () => {
     if (window.kakao && mapRef.current) {
       const container = mapRef.current;
       const options = {
-        center: new window.kakao.maps.LatLng(37.553614, 126.878814), // 초기 지도 중심 좌표
+        center: new window.kakao.maps.LatLng(37.553614, 126.878814),
         level: 10,
       };
       const mapInstance = new window.kakao.maps.Map(container, options);
 
-      // 지도 타입 컨트롤 생성 및 지도에 추가 (오른쪽 상단)
+      // 지도 타입 컨트롤 (오른쪽 상단)
       const mapTypeControl = new window.kakao.maps.MapTypeControl();
       mapInstance.addControl(
         mapTypeControl,
         window.kakao.maps.ControlPosition.TOPRIGHT
       );
 
-      // 줌 컨트롤 생성 및 지도에 추가 (오른쪽)
+      // 줌 컨트롤 (오른쪽)
       const zoomControl = new window.kakao.maps.ZoomControl();
       mapInstance.addControl(
         zoomControl,
@@ -57,7 +63,7 @@ const MeetingLocationSelector: React.FC = () => {
             lng: clickedLatLng.getLng(),
           });
 
-          // 이미 마커가 있다면 위치만 업데이트, 없으면 새로 생성
+          // 이미 마커가 있다면 위치 업데이트, 없으면 새로 생성
           if (markerRef.current) {
             markerRef.current.setPosition(clickedLatLng);
           } else {
@@ -84,7 +90,7 @@ const MeetingLocationSelector: React.FC = () => {
         }
       );
     }
-  }, []); // 컴포넌트가 마운트될 때 한 번만 실행
+  }, []);
 
   // 입력한 주소로 좌표 검색 및 마커 표시
   const handleAddressSearch = () => {
@@ -114,51 +120,74 @@ const MeetingLocationSelector: React.FC = () => {
     });
   };
 
-  // 선택한 장소를 등록하는 함수 (백엔드 API 연동 등 추가 가능)
+  // 선택한 장소를 등록하고 부모 컴포넌트에 전달
   const handleRegisterLocation = () => {
     if (selectedCoords && selectedAddress) {
-      alert(
-        `모임 시작 장소 등록: ${selectedAddress} (${selectedCoords.lat.toFixed(
-          6
-        )}, ${selectedCoords.lng.toFixed(6)})`
-      );
+      onSelectLocation(selectedAddress, selectedCoords);
+      modalRef.current?.close();
     } else {
       alert("먼저 장소를 선택해주세요.");
     }
   };
 
   return (
-    <div className="bg-base-100 rounded-lg ">
-      <h2 className="text-2xl font-bold mb-4">모임 시작 장소 등록</h2>
-      <div className="flex items-center mb-4">
-        <input
-          type="text"
-          placeholder="주소를 입력하세요"
-          value={inputAddress}
-          onChange={(e) => setInputAddress(e.target.value)}
-          className="input input-bordered w-[300px] mr-2"
-        />
-        <button onClick={handleAddressSearch} className="btn btn-primary">
-          주소 검색
+    <>
+      {/* 모달 열기 버튼 */}
+      <button
+        className="btn"
+        onClick={() => modalRef.current?.showModal()}
+        type="button"
+      >
+        모임 장소 선택
+      </button>
+
+      {/* 모달 */}
+      <dialog ref={modalRef} className="modal">
+        <div className="modal-box">
+          <h2 className="text-2xl font-bold mb-4">모임 시작 장소 등록</h2>
+          <div className="flex items-center mb-4">
+            <input
+              type="text"
+              placeholder="주소를 입력하세요"
+              value={inputAddress}
+              onChange={(e) => setInputAddress(e.target.value)}
+              className="input input-bordered w-[300px] mr-2"
+            />
+            <button onClick={handleAddressSearch} className="btn btn-primary">
+              주소 검색
+            </button>
+          </div>
+          {/* 지도 표시 영역 */}
+          <div ref={mapRef} className="w-full h-[400px] mx-auto mb-4"></div>
+          <div className="mt-4">
+            <p className="mb-2">선택한 주소: {selectedAddress || "없음"}</p>
+            <p className="mb-4">
+              좌표:{" "}
+              {selectedCoords
+                ? `${selectedCoords.lat.toFixed(
+                    6
+                  )}, ${selectedCoords.lng.toFixed(6)}`
+                : "없음"}
+            </p>
+            <button
+              type="button"
+              onClick={handleRegisterLocation}
+              className="btn btn-secondary"
+            >
+              장소 등록
+            </button>
+          </div>
+        </div>
+        {/* 모달 백드롭 (바깥쪽 클릭 시 모달이 닫힘) */}
+        <button
+          type="button"
+          className="modal-backdrop cursor-auto"
+          onClick={() => modalRef.current?.close()}
+        >
+          close
         </button>
-      </div>
-      {/* 지도 표시 영역 */}
-      <div ref={mapRef} className="w-full h-[400px] mx-auto mb-4"></div>
-      <div className="mt-4">
-        <p className="mb-2">선택한 주소: {selectedAddress || "없음"}</p>
-        <p className="mb-4">
-          좌표:{" "}
-          {selectedCoords
-            ? `${selectedCoords.lat.toFixed(6)}, ${selectedCoords.lng.toFixed(
-                6
-              )}`
-            : "없음"}
-        </p>
-        <button onClick={handleRegisterLocation} className="btn btn-secondary">
-          장소 등록
-        </button>
-      </div>
-    </div>
+      </dialog>
+    </>
   );
 };
 

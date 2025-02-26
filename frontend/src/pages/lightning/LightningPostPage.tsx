@@ -2,9 +2,8 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import RouteModal from "../../components/RouteModal";
 import MeetingLocationSelector from "../../components/MapModal";
-import {
-  LightningRequest,
-  lightningService,
+import lightningService, {
+  LightningPostRequest,
 } from "../../services/lightningService";
 
 // 옵션 상수들
@@ -134,7 +133,7 @@ function LightningPostPage() {
     if (!validateForm()) return;
 
     // 숫자형 필드 변환 후 payload 구성
-    const payload: LightningRequest = {
+    const payload: LightningPostRequest = {
       title: formData.title,
       description: formData.description,
       eventDate: formData.eventDate,

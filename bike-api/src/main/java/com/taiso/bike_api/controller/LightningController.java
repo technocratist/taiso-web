@@ -1,16 +1,10 @@
 package com.taiso.bike_api.controller;
 
-import com.taiso.bike_api.dto.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -18,6 +12,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.taiso.bike_api.dto.LightingParticipationCheckResponseDTO;
+import com.taiso.bike_api.dto.LightningListResponseDTO;
+import com.taiso.bike_api.dto.LightningPostRequestDTO;
+import com.taiso.bike_api.dto.LightningPostResponseDTO;
 import com.taiso.bike_api.service.LightningService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -55,9 +53,9 @@ public class LightningController {
     @GetMapping("/")
     @Operation(summary = "번개 리스트 조회", description = "번개 리스트 조회 API")
     public ResponseEntity<LightningListResponseDTO> getLightningList(
-              @RequestParam(defaultValue = "0") int page
-            , @RequestParam(defaultValue = "8") int size
-            , @RequestParam(defaultValue = "") String sort) {
+              @RequestParam(name = "page", defaultValue = "0") int page
+            , @RequestParam(name = "size", defaultValue = "8") int size
+            , @RequestParam(name = "sort", defaultValue = "") String sort) {
 
         LightningListResponseDTO lightningListResponseDTO = lightningService.getLightningList(page, size, sort);
 

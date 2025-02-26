@@ -1,5 +1,6 @@
 package com.taiso.bike_api.controller;
 
+import com.taiso.bike_api.dto.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -17,11 +18,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.taiso.bike_api.dto.LightingParticipationCheckResponseDTO;
-import com.taiso.bike_api.dto.LightningGetRequestDTO;
-import com.taiso.bike_api.dto.LightningGetResponseDTO;
-import com.taiso.bike_api.dto.LightningPostRequestDTO;
-import com.taiso.bike_api.dto.LightningPostResponseDTO;
 import com.taiso.bike_api.service.LightningService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -45,22 +41,36 @@ public class LightningController {
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(lightningService.createLightning(requestDTO, userEmail));
     }
 
-    @GetMapping("")
-    @Operation(summary = "번개 리스트 조회", description = "번개 리스트 조회 API")
-    public ResponseEntity<LightningGetResponseDTO> getLightning(
-        @RequestParam(name = "page" ,defaultValue = "0") int page
-        , @RequestParam(name = "size", defaultValue = "10") int size
-        , @ModelAttribute LightningGetRequestDTO requestDTO) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt,DESC".split(",")[0]).descending());
+//    @GetMapping("/")
+//    @Operation(summary = "번개 리스트 조회", description = "번개 리스트 조회 API")
+//    public ResponseEntity<LightningGetResponseDTO> getLightning(
+//                      @RequestParam(name = "page" ,defaultValue = "0") int page
+//                    , @RequestParam(name = "size", defaultValue = "10") int size
+//                    , @ModelAttribute LightningGetRequestDTO requestDTO) {
+//        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt,DESC".split(",")[0]).descending());
+//
+//        return ResponseEntity.status(HttpStatus.OK).body(lightningService.getLightning(requestDTO, pageable));
+//    }
 
-        return ResponseEntity.status(HttpStatus.OK).body(lightningService.getLightning(requestDTO, pageable));
+    @GetMapping("/")
+    @Operation(summary = "번개 리스트 조회", description = "번개 리스트 조회 API")
+    public ResponseEntity<LightningListResponseDTO> getLightningList(
+              @RequestParam(defaultValue = "0") int page
+            , @RequestParam(defaultValue = "8") int size
+            , @RequestParam(defaultValue = "") String sort) {
+
+        LightningListResponseDTO lightningListResponseDTO = lightningService.getLightningList(page, size, sort);
+
+        log.info("보내기 직전 : {}", lightningListResponseDTO);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(lightningListResponseDTO);
     }
 
     @GetMapping("/{lightningId}/participation")
     @Operation(summary = "번개 참가 확인", description = "번개 참가 확인 API")
     public ResponseEntity<LightingParticipationCheckResponseDTO> getLightningParticipationCheck(
-    @PathVariable(name = "lightningId") Long lightningId
-    , @AuthenticationPrincipal String userEmail) {
+                @PathVariable(name = "lightningId") Long lightningId
+              , @AuthenticationPrincipal String userEmail) {
         return ResponseEntity.status(HttpStatus.OK).body(lightningService.getParticipationCheck(lightningId, userEmail));
     }
 }

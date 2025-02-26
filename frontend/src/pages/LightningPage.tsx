@@ -1,16 +1,13 @@
-import { useState } from "react";
-import DateCarousel from "../components/DateCarousel";
+
+import { Link } from "react-router-dom";
 import MainNavbar from "../components/MainNavbar";
 import LightningList from "../components/LightningList";
-import { Link } from "react-router";
+import { useState } from "react";
+import DateCarousel from "../components/DateCarousel";
 
 function LightningPage() {
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-
-  console.log(selectedDate);
-
   return (
-    <div className="flex flex-col items-center justify-center gap-4">
+    <div className="min-h-screen flex flex-col">
       <MainNavbar />
       <Link to="/lightning/post" className="btn">
         루트 등록 test
@@ -18,6 +15,25 @@ function LightningPage() {
       <DateCarousel onDateChange={(date) => setSelectedDate(date)} />
       <div>{selectedDate?.toDateString()}</div>
       <LightningList selectedDate={selectedDate} />
+      <div className="flex-1 w-full mx-auto ">
+        <div className="fixed bottom-8 right-10 z-50">
+          {/*번개 생성 버튼*/}
+          <Link to="/lightning/post" className="btn btn-primary btn-circle ">
+            <svg
+              data-slot="icon"
+              fill="currentColor"
+              className="size-8"
+              viewBox="0 0 20 20"
+              xmlns="http://www.w3.org/2000/svg"
+              aria-hidden="true"
+            >
+              <path d="M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5v-4.5Z"></path>
+            </svg>
+          </Link>
+        </div>
+
+        <LightningList />
+      </div>
     </div>
   );
 }

@@ -5,9 +5,12 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.taiso.bike_api.dto.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
@@ -20,12 +23,6 @@ import com.taiso.bike_api.domain.LightningTagCategoryEntity;
 import com.taiso.bike_api.domain.LightningUserEntity;
 import com.taiso.bike_api.domain.RouteEntity;
 import com.taiso.bike_api.domain.UserEntity;
-import com.taiso.bike_api.dto.LightingParticipationCheckResponseDTO;
-import com.taiso.bike_api.dto.LightningGetRequestDTO;
-import com.taiso.bike_api.dto.LightningGetResponseDTO;
-import com.taiso.bike_api.dto.LightningPostRequestDTO;
-import com.taiso.bike_api.dto.LightningPostResponseDTO;
-import com.taiso.bike_api.dto.ResponseComponentDTO;
 import com.taiso.bike_api.exception.LightningCreateMissingValueException;
 import com.taiso.bike_api.exception.LightningNotFoundException;
 import com.taiso.bike_api.exception.LightningUserNotFoundException;
@@ -167,6 +164,53 @@ public class LightningService {
 
         return responseDTO;
     }
+
+    // 페이징 처리 된 리스트 조회
+    public LightningListResponseDTO getLightningList (int page, int size, String sort) {
+
+        // 정렬 기준 설정
+        Sort sortObj = Sort.unsorted();
+        if (!sort.isEmpty()) {
+            sortObj = Sort.by(sort).ascending();
+        }
+
+        // 페이지 요청 생성
+        Pageable pageable = PageRequest.of(page, size, sortObj);
+
+        Page<LightningEntity> lightningPage = lightningRepository.findAll(pageable);
+
+        // 응답 DTO생성
+        List<ResponseComponentDTO> lightningDTO = lightningPage.getContent().stream()
+                .map(lightning -> new ResponseComponentDTO(
+                        lightning.getLightningId(),
+                        lightning.getCreatorId(),
+                        lightning.getTitle(),
+                        lightning.getEventDate(),
+                        lightning.getDuration(),
+                        lightning.getCreatedAt(),
+                        lightning.getStatus(),
+                        lightning.getCapacity(),
+                        lightning.getGender(),
+                        lightning.getLevel(),
+                        lightning.getBikeType(),
+                        lightning.getTags().stream()
+                                .map(LightningTagCategoryEntity::getName) // LightningTagCategoryEntity에서 태그 이름 추출
+                                .collect(Collectors.toList()),
+                        lightning.getAddress(),
+                        lightning.getRoute() != null ? lightning.getRoute().getRouteImgId() : null
+                ))
+                .collect(Collectors.toList());
+
+        return LightningListResponseDTO.builder()
+                .content(lightningDTO)
+                .pageNo(lightningPage.getNumber() + 1)
+                .pageSize(lightningPage.getSize())
+                .totalElements(lightningPage.getTotalElements())
+                .totalPages(lightningPage.getTotalPages())
+                .last(lightningPage.isLast())
+                .build();
+    }
+
 
     // 가져올 번개리스트를 필터링하기 위한 필터를 반환하는 메서드
     // gender값이 null인 경우는 자동으로 필터링 기준에서 제외 하는 방식

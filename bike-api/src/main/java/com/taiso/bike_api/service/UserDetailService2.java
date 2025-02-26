@@ -51,10 +51,14 @@ public class UserDetailService2 {
         .orElseThrow(() -> new TagsNotFoundException("태그 정보가 없습니다.")))
         .collect(Collectors.toSet());
 
+        log.info("{}", requestDTO.getFTP());
+
         // UserDetailEntity 생성
         UserDetailEntity userDetail = UserDetailEntity.builder()
                 .userId(user.getUserId())
                 .user(user)
+                .gender(requestDTO.getGender())
+                .birthDate(requestDTO.getBirthDate())
                 .userNickname(requestDTO.getUserNickname())
                 .fullName(requestDTO.getFullName())
                 .phoneNumber(requestDTO.getPhoneNumber())
@@ -80,6 +84,8 @@ public class UserDetailService2 {
         // UserDetailGetResponseDTO 생성
         return UserDetailGetResponseDTO.builder()
                 .userId(userDetail.getUserId())
+                .gender(userDetail.getGender())
+                .birthDate(userDetail.getBirthDate())
                 .userNickname(userDetail.getUserNickname())
                 .fullName(userDetail.getFullName())
                 .phoneNumber(userDetail.getPhoneNumber())

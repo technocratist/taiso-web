@@ -36,5 +36,4 @@ public class UserDetailController {
         return ResponseEntity.status(HttpStatus.OK).body(userDetailService2.getUserDetail(userEmail));
     }
     
-    
 }

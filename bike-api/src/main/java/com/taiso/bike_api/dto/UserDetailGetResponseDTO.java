@@ -5,7 +5,6 @@ import java.util.Set;
 
 import com.taiso.bike_api.domain.UserDetailEntity.Gender;
 import com.taiso.bike_api.domain.UserDetailEntity.Level;
-import com.taiso.bike_api.domain.UserTagCategoryEntity;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

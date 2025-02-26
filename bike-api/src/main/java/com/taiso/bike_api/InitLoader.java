@@ -44,10 +44,6 @@ public class InitLoader implements CommandLineRunner {
     @Autowired
     private LightningUserRepository lightningUserRepository;
 
-    @Autowired
-    private UserTagCategoryRepository userTagCategoryRepository;
-
-
     @Override
     @Transactional
     public void run(String... args) throws Exception {

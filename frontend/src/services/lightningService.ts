@@ -65,6 +65,8 @@ export interface LightningPostResponse {
 export interface LightningDetailGetResponse {
     lightningId: number;
     creatorId: number;
+
+
     title: String;
     description: String;
     eventDate: String;

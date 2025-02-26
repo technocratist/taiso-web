@@ -85,8 +85,6 @@ function LightningList() {
   return (
 
     <div className="flex flex-col ">
-
-        <div className="divider">lightning</div>
         <div className="flex flex-wrap justify-center gap-2">
           {lightningList.map((lightning) => (
             <div key={lightning.lightningId} className="card card-side bg-base-100 shadow-xl w-full">

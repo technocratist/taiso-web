@@ -17,5 +17,4 @@ public interface LightningUserRepository extends JpaRepository<LightningUserEnti
 
 	Optional<LightningUserEntity> findByLightning_LightningIdAndUser_UserId(Long lightningId, Long userId);
 
-
 }

@@ -1,11 +1,20 @@
+
 import { Link } from "react-router-dom";
 import MainNavbar from "../components/MainNavbar";
 import LightningList from "../components/LightningList";
+import { useState } from "react";
+import DateCarousel from "../components/DateCarousel";
 
 function LightningPage() {
   return (
     <div className="min-h-screen flex flex-col">
       <MainNavbar />
+      <Link to="/lightning/post" className="btn">
+        루트 등록 test
+      </Link>
+      <DateCarousel onDateChange={(date) => setSelectedDate(date)} />
+      <div>{selectedDate?.toDateString()}</div>
+      <LightningList selectedDate={selectedDate} />
       <div className="flex-1 w-full mx-auto ">
         <div className="fixed bottom-8 right-10 z-50">
           {/*번개 생성 버튼*/}

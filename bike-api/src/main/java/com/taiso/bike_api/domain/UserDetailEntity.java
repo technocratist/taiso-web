@@ -1,6 +1,6 @@
 package com.taiso.bike_api.domain;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -52,7 +52,6 @@ public class UserDetailEntity {
     @Column(name = "user_background_img")
     private String userBackgroundImg;
 
-
     @Column(name = "full_name", length = 500)
     private String fullName;
 
@@ -60,7 +59,7 @@ public class UserDetailEntity {
     private String phoneNumber;
 
     @Column(name = "birth_date")
-    private LocalDateTime birthDate;
+    private LocalDate birthDate;
 
     @Column(name = "bio", length = 500)
     private String bio;

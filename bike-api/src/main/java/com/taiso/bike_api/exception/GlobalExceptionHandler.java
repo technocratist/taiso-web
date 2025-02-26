@@ -234,10 +234,11 @@ public class GlobalExceptionHandler {
     
     // 모집 상태가 아닌 번개에 참가 예외 처리
     @ExceptionHandler(LightningStatusMismatchException.class)
-    public ResponseEntity<ErrorResponseDTO> handleLightningStatusMismatchException(LightningStatusMismatchException ex, HttpServletRequest request) {
+    public ResponseEntity<ErrorResponseDTO> handleLightningStatusMismatchException(LightningStatusMismatchException ex,
+            HttpServletRequest request) {
         log.error("LightningStatusMismatchException: ", ex);
-        ErrorResponseDTO errorResponse = ErrorResponseDTO.makeErrorResponse(
-                ex.getMessage(), HttpStatus.CONFLICT, request.getRequestURI());
+        ErrorResponseDTO errorResponse = ErrorResponseDTO.makeErrorResponse(ex.getMessage(), HttpStatus.CONFLICT,
+                request.getRequestURI());
         return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
     }
     
@@ -247,6 +248,32 @@ public class GlobalExceptionHandler {
         log.error("LightningMemberNotFoundException: ", ex);
         ErrorResponseDTO errorResponse = ErrorResponseDTO.makeErrorResponse(
                 ex.getMessage(), HttpStatus.CONFLICT, request.getRequestURI());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
+    } 
+    
+    // 번개 리뷰를 찾을 수 없습니다. 
+    @ExceptionHandler(ReviewNotFoundException.class)
+    public ResponseEntity<ErrorResponseDTO> handleReviewNotFoundException(ReviewNotFoundException ex, HttpServletRequest request) {
+        ErrorResponseDTO errorResponse = ErrorResponseDTO.makeErrorResponse(ex.getMessage(), HttpStatus.FORBIDDEN, request.getRequestURI());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+    }
+    
+    // 번개 리뷰 쓴 사람과 삭제하는 사람이 맞는지 확인
+    @ExceptionHandler(LightningUserReviewMismatchException.class)
+    public ResponseEntity<ErrorResponseDTO> handleLightningUserReviewMismatchException(LightningUserReviewMismatchException ex,
+            HttpServletRequest request) {
+        log.error("RouteDeleteAccessDeniedException: ", ex);
+        ErrorResponseDTO errorResponse = ErrorResponseDTO.makeErrorResponse(ex.getMessage(), HttpStatus.FORBIDDEN,
+                request.getRequestURI());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
+    }    
+
+    // 번개 유저 DB에 해당 유저가 존재하지 않을 경우 예외 처리
+    @ExceptionHandler(TagsNotFoundException.class)
+    public ResponseEntity<ErrorResponseDTO> handleTagsNotFoundException(LightningMemberNotFoundException ex,
+                                                                                    HttpServletRequest request) {
+        ErrorResponseDTO errorResponse = ErrorResponseDTO.makeErrorResponse(ex.getMessage(), HttpStatus.CONFLICT,
+                request.getRequestURI());
         return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
     }
 
@@ -267,4 +294,13 @@ public class GlobalExceptionHandler {
                 ex.getMessage(), HttpStatus.NOT_FOUND, request.getRequestURI());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
     }
+}
+
+    // 리뷰가 하나도 없을때 예외 처리
+    @ExceptionHandler(UserReviewNotFoundException.class)
+    public ResponseEntity<ErrorResponseDTO> handleUserReviewNotFoundException(UserReviewNotFoundException ex, HttpServletRequest request) {
+        ErrorResponseDTO errorResponse = ErrorResponseDTO.makeErrorResponse(ex.getMessage(), HttpStatus.NOT_FOUND, request.getRequestURI());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+    }
+
 }

@@ -1,15 +1,13 @@
 import { useNavigate, useParams } from "react-router";
-import lightningService, { LightningDetailGetResponse } from "../../services/routeService";
+import lightningService, { LightningDetailGetResponse } from "../../services/lightningService";
 import { useEffect, useState } from "react";
 import { useAuthStore } from "../../stores/useAuthStore";
 
 function LightningDetailPage() {
-   const { ligtningId } = useParams();
-   const [ligtningDetail, setLigtningDetail] = useState<LightningDetailGetResponse | null>
-    null
-   );
+   const { lightningId } = useParams();
+   const [lightningDetail, setLightningDetail] = useState<LightningDetailGetResponse | null>(null);
+
    const [isLoading, setIsLoading] = useState(true);
-   const [likePending, setLikePending] = useState(false);
    const { user } = useAuthStore();
    const navigate = useNavigate();
 
@@ -40,41 +38,33 @@ function LightningDetailPage() {
 
     return (
         <div className="flex flex-col mt-2 gap-2 md:w-full w-[90%]">
-          <div>
-          //
-            <ImageWithSkeleton src={ligtningDetail.routeImgId} alt={ligtningDetail.title} />
-          </div>
-
           <div className="flex items-center gap-1">
-            <h2 className="text-4xl font-bold">{ligtningDetail?.title}</h2>
-               {ligtningDetail.?.tag.map((tag, index) => (
+            <h2 className="text-4xl font-bold">{lightningDetail?.title}</h2>
+               {lightningDetail?.lightningTag.map((tag, index) => (
               <div key={index} className="badge badge-outline badge-primary">
                 {tag}
               </div>
               ))}
               <div className="badge badge-outline badge-primary">
-                {ligtningDetail?.gender}
+                {lightningDetail?.gender}
               </div>
               <div className="badge badge-outline badge-primary">
-                {ligtningDetail?.level}
+                {lightningDetail?.level}
               </div>
               <div className="badge badge-outline badge-primary">
-                {ligtningDetail?.bikeType}
+                {lightningDetail?.bikeType}
               </div>
               <div className="badge badge-outline badge-primary">
-                {ligtningDetail?.region}
+                {lightningDetail?.region}
               </div>
               <div className="badge badge-outline badge-primary">
-                {ligtningDetail?.recruitType}
+                {lightningDetail?.recruitType}
               </div>
 
             <div className="avatar">
               <div className="w-24 rounded-full">
-              //
-                <img src={ligtningDetail.creatorId} alt={ligtningDetail.creatorId} />
               </div>
-                <span>{ligtningDetail.creatorId}</span>
-                <p>{ligtningDetail.description}</p>
+                <span>{lightningDetail?.description}</span>
             </div>
           </div>
 
@@ -85,8 +75,8 @@ function LightningDetailPage() {
 
           <div className="flex items-center gap-1 hover:bg-base-200 p-1 rounded-md w-fit">
             <div>
-                <span>{format(eventDate)}</span>
-                <h3>{ligtningDetail.address}</h3>
+                <span>{formatDate(lightningDetail?.eventDate)}</span>
+                <h3>{lightningDetail?.address}</h3>
             </div>
             <svg
               data-slot="icon"
@@ -98,45 +88,30 @@ function LightningDetailPage() {
             >
               <path d="M3 3.5A1.5 1.5 0 0 1 4.5 2h6.879a1.5 1.5 0 0 1 1.06.44l4.122 4.12A1.5 1.5 0 0 1 17 7.622V16.5a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 3 16.5v-13Z" />
             </svg>
-            <div className="text-sm link">{routeDetail?.fileName}</div>
+            <div className="text-sm link">{lightningDetail?.address}</div>
           </div>
-          {routeDetail && (
-            <KakaoMapRoute
-              key={routeDetail.routeId}
-              routePoints={routeDetail.routePoint}
-            />
-          )}
-          {routeDetail && <AltitudeChart routePoints={routeDetail.routePoint} />}
 
 
           <div className="flex items-center justify-center gap-1">
-          //
-            <span>참가 마감 인원까지 {routeDetail.capacity}명 남았습니다.</span>
-            {(() => {
-               switch (lightning.status) {
-                 case '모집':
-                   return <button className="btn btn-outline btn-success w-[200px]">번개 참가</button>;
-                 case '마감':
-                   return <button className="btn btn-outline btn-error w-[200px]">번개 마감</button>;
-                 case '종료':
-                   return <button className="btn w-[200px]" disabled>번개 종료</button>;
-                 default:
-                   return <button className="btn w-[200px]" disabled>번개 종료</button>;
-               }
-             })()}
-
-            <p>참가인원</p>
-            //
-            {ligtningDetail?.lightningUserId.map((member, index) => (
-                <div className="avatar">
-                  <div className="w-24 rounded-full">
-                  //
-                    <img src={ligtningDetail.lightningUserId} alt={ligtningDetail.lightningUserId} />
-                  </div>
-                    <span>{ligtningDetail.lightningUserId}</span>
-                </div>
-            ))}
+            <span>참가 마감 인원까지 {lightningDetail?.capacity}명 남았습니다.</span>
+            {lightningDetail?.status ? (
+              (() => {
+                switch (lightningDetail.status) {
+                  case '모집':
+                    return <button className="btn btn-outline btn-success w-[200px]">번개 참가</button>;
+                  case '마감':
+                    return <button className="btn btn-outline btn-error w-[200px]">번개 마감</button>;
+                  case '종료':
+                    return <button className="btn w-[200px]" disabled>번개 종료</button>;
+                  default:
+                    return <button className="btn w-[200px]" disabled>번개 종료</button>;
+                }
+              })()
+            ) : (
+              <button className="btn w-[200px]" disabled>상태 불명</button> // 예시로, 상태가 없으면 "상태 불명" 버튼 표시
+            )}
           </div>
+
         </div>
     );
 }

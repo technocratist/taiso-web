@@ -62,6 +62,42 @@ export interface LightningPostResponse {
   lightningId: number;
 }
 
+export interface LightningDetailGetResponse {
+    lightningId: number;
+    creatorId: number;
+    title: String;
+    description: String;
+    eventDate: String;
+    duration: number;
+    createdAt: String;
+    status: String;
+    capacity: number;
+    latitude: number;
+    longitude: number;
+
+    gender: String;
+    level: String;
+    bikeType: String;
+    region: String;
+    recruitType: String;
+
+    distance: number;
+    routeId: number;
+    address: String;
+
+    // 클럽 관련
+    isClubOnly: Boolean;
+    clubId: number;
+
+    // 번개 참여자
+    lightningUserId: number;
+
+    // 번개 태그
+    tagId: number;
+    lightningTag: String[];
+    }
+
+
 const createLightning = async (
   payload: LightningPostRequest
 ): Promise<LightningPostResponse> => {
@@ -77,12 +113,13 @@ const getLightningList = async (
 };
 
 const getLightningDetail = async (
-  ligtningId: number
+  lightningId: number
 ): Promise<LightningDetailGetResponse> => {
-  return await get(`/lightnings/${ligtningId}`);
+  return await get(`/lightnings/${lightningId}`);
 };
 
 export default {
   createLightning,
   getLightningList,
+  getLightningDetail,
 };

@@ -90,9 +90,7 @@ function LightningList() {
         <div className="flex flex-wrap justify-center gap-2">
           {lightningList.map((lightning) => (
             <div key={lightning.lightningId} className="card card-side bg-base-100 shadow-xl w-full">
-              <figure>
-                <ImageWithSkeleton src={lightning.routeImgId} alt={lightning.title} />
-              </figure>
+                 <ImageWithSkeleton src={lightning.routeImgId} alt={lightning.title} />
               <div className="card-body">
                 <div>
                   <p>{formatDate(lightning.eventDate)} ({lightning.duration}분)</p>
@@ -106,23 +104,29 @@ function LightningList() {
                   </div>
                 </div>
                <div className="card-actions justify-end">
-                 {(() => {
-                   switch (lightning.status) {
-                     case '모집':
-                       return <button className="btn btn-outline btn-success w-[200px]">번개 참가</button>;
-                     case '마감':
-                       return <button className="btn btn-outline btn-error w-[200px]">번개 마감</button>;
-                     case '종료':
-                       return <button className="btn w-[200px]" disabled>번개 종료</button>;
-                     default:
-                       return <button className="btn w-[200px]" disabled>번개 종료</button>;
-                   }
-                 })()}
+                   <Link
+                       to={`/lightning/${lightning.lightningId}`}
+                       key={lightning.lightningId}
+                       className="group"
+                     >
+                     {(() => {
+                       switch (lightning.status) {
+                         case '모집':
+                           return <button className="btn btn-outline btn-success w-[200px]">번개 참가</button>;
+                         case '마감':
+                           return <button className="btn btn-outline btn-error w-[200px]">번개 마감</button>;
+                         case '종료':
+                           return <button className="btn w-[200px]" disabled>번개 종료</button>;
+                         default:
+                           return <button className="btn w-[200px]" disabled>번개 종료</button>;
+                       }
+                     })()}
+                   </Link>
                </div>
               </div>
             </div>
           ))}
-        </div>
+
            {isLoading && (
              <div className="flex w-full justify-center mt-4">
              <div className="loading loading-dots loading-lg"></div>
@@ -142,7 +146,7 @@ function LightningList() {
             </div>
           )}
         </div>
-
+    </div>
   );
 }
 

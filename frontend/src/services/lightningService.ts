@@ -41,63 +41,33 @@ export interface LightningPostRequest {
   description: String;
   eventDate: String;
   duration: number;
-  status: String;
   capacity: number;
   latitude: number;
   longitude: number;
-  gender: String;
-  level: String;
-  recruitType: String;
-  bikeType: String;
-  region: String;
+  status: string;
+  gender: string;
+  level: string;
+  recruitType: string;
+  bikeType: string;
+  region: string;
   distance: number;
   routeId: number;
-  address: String;
-  isClubOnly: Boolean;
-  clubId: number;
-  tags: String[];
+  address: string;
+  isClubOnly: boolean;
+  clubId: number | null;
+  tags: string[];
 }
 
 export interface LightningPostResponse {
   lightningId: number;
 }
 
-export interface LightningDetailGetResponse {
-    lightningId: number
-    creatorId: number
-    title: String
-    description: String
-    eventDate: String
-    duration: number
-    createdAt: String
-    // updatedAt: String
-    status: String
-    capacity: number
-    latitude: number
-    longitude: number
-    gender: String
-    level: String
-    bikeType: String
-    region: String
-    recruitType: String
+const createLightning = async (
+  payload: LightningPostRequest
+): Promise<LightningPostResponse> => {
+  return await post("/lightnings", payload);
+};
 
-    distance: number
-    routeId: number
-    address: String
-    // 연결 클럽
-    isClubOnly: Boolean
-    clubId: number
-    // 번개 참여자
-    lightningUserId: number
-    //  List<LightningDetailMemberDTO> member;
-    // 번개 태그
-    tagId: number
-    lightningTag: String[]
-}
-
-
-// 번개 정보 리스트 JSON 불러오기
-// 정렬 없음
 const getLightningList = async (
   page: number,
   size: number,
@@ -113,6 +83,6 @@ const getLightningDetail = async (
 };
 
 export default {
+  createLightning,
   getLightningList,
-  getLightningDetail,
 };

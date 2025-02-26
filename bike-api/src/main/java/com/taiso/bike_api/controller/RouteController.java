@@ -113,13 +113,13 @@ public class RouteController {
     @Operation(summary = "루트 리스트 조회", description = "루트를 페이징, 필터 처리하여 리스트로 불러오는 API")
     public ResponseEntity<RouteListResponseDTO> getRouteList(
                                                     //필터정보 null 가능
-                                                    @RequestParam(defaultValue = "0") int page,
-                                                    @RequestParam(defaultValue = "8") int size,
-                                                    @RequestParam(defaultValue = "") String sort,
-                                                    @RequestParam(defaultValue = "") String distanceType,
-                                                    @RequestParam(defaultValue = "") String altitudeType,
-                                                    @RequestParam(defaultValue = "") String roadType,
-                                                    @RequestParam(defaultValue = "") String[] Tag) {
+                                                    @RequestParam(name = "page", defaultValue = "0") int page,
+                                                    @RequestParam(name = "size", defaultValue = "8") int size,
+                                                    @RequestParam(name = "sort", defaultValue = "") String sort,
+                                                    @RequestParam(name = "distanceType", defaultValue = "") String distanceType,
+                                                    @RequestParam(name = "altitudeType", defaultValue = "") String altitudeType,
+                                                    @RequestParam(name = "roadType", defaultValue = "") String roadType,
+                                                    @RequestParam(name="tag",defaultValue = "") String[] Tag) {
 
         // 루트 데이터들을 페이징된 형태로 불러옴
         RouteListResponseDTO routeListResponseDTO = routeService.getRouteList(page, size, sort, distanceType,

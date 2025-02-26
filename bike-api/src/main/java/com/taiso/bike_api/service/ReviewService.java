@@ -5,6 +5,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import com.taiso.bike_api.domain.LightningEntity;
+import com.taiso.bike_api.domain.UserDetailEntity;
 import com.taiso.bike_api.domain.UserEntity;
 import com.taiso.bike_api.domain.UserReviewEntity;
 import com.taiso.bike_api.dto.UserReviewRequestDTO;
@@ -13,6 +14,7 @@ import com.taiso.bike_api.exception.LightningUserReviewMismatchException;
 import com.taiso.bike_api.exception.ReviewNotFoundException;
 import com.taiso.bike_api.exception.UserNotFoundException;
 import com.taiso.bike_api.repository.LightningRepository;
+import com.taiso.bike_api.repository.UserDetailRepository;
 import com.taiso.bike_api.repository.UserRepository;
 import com.taiso.bike_api.repository.UserReviewRepository;
 
@@ -30,7 +32,10 @@ public class ReviewService {
 	private UserRepository userRepository;
 	
 	@Autowired
-	private UserReviewRepository userReviewRepository;
+    private UserReviewRepository userReviewRepository;
+    
+    @Autowired
+    private UserDetailRepository userDetailRepository;
 	
 	// 리뷰 입력 서비스
     @Transactional
@@ -42,20 +47,23 @@ public class ReviewService {
     			// 예외처리 -> 404
                 .orElseThrow(() -> new LightningNotFoundException("번개를 찾을 수 없습니다."));	
     	
-    	// 2. 현재 로그인한 사용자 (리뷰 작성자) 조회
         UserEntity reviewer = userRepository.findByEmail(authentication.getName())
         		// 사용자 찾을 수 없음 -> 404
-                .orElseThrow(() -> new UserNotFoundException("리뷰 입력 사용자를 찾을 수 없습니다.")); 
+                .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다.")); 
+
+    	// 2. 현재 로그인한 사용자 (리뷰 작성자) 조회
+        UserDetailEntity reviewerDetail = userDetailRepository.findById(reviewer.getUserId())
+        		// 사용자 찾을 수 없음 -> 404
+                .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다.")); 
         
         // 3. 리뷰 대상(리뷰 받는 사용자) 조회
-        UserEntity reviewedUser = userRepository.findById(userId)
+        UserDetailEntity reviewedUser = userDetailRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("리뷰 대상 사용자를 찾을 수 없습니다."));
 
         // 4. UserReviewEntity 생성 및 저장
         UserReviewEntity review = UserReviewEntity.builder()
                 .lightning(lightningEntity)
-                .reviewer(reviewer)
-                .reviewed(reviewedUser)
+                .reviewer(reviewerDetail)                .reviewed(reviewedUser)
                 .reviewContent(userReviewRequest.getReviewContent())
                 .reviewTag(userReviewRequest.getReviewTag())
                 .build();

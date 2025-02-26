@@ -5,12 +5,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.taiso.bike_api.dto.UserDetailGetResponseDTO;
+import com.taiso.bike_api.dto.UserDetailPatchRequestDTO;
 import com.taiso.bike_api.dto.UserDetailPostRequestDTO;
 import com.taiso.bike_api.service.UserDetailService2;
 
@@ -36,4 +38,8 @@ public class UserDetailController {
         return ResponseEntity.status(HttpStatus.OK).body(userDetailService2.getUserDetail(userEmail));
     }
     
+    @PatchMapping("/me/details")
+    public ResponseEntity<Void> patchUserDetail(@AuthenticationPrincipal String userEmail, UserDetailPatchRequestDTO requestDTO) {
+        return ResponseEntity.status(HttpStatus.OK).body(null);
+    }
 }

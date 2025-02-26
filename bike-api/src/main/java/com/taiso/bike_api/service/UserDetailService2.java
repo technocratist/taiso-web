@@ -1,5 +1,7 @@
 package com.taiso.bike_api.service;
 
+import java.lang.reflect.Field;
+import java.time.LocalDate;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -7,9 +9,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.taiso.bike_api.domain.UserDetailEntity;
+import com.taiso.bike_api.domain.UserDetailEntity.Gender;
+import com.taiso.bike_api.domain.UserDetailEntity.Level;
 import com.taiso.bike_api.domain.UserEntity;
 import com.taiso.bike_api.domain.UserTagCategoryEntity;
 import com.taiso.bike_api.dto.UserDetailGetResponseDTO;
+import com.taiso.bike_api.dto.UserDetailPatchRequestDTO;
 import com.taiso.bike_api.dto.UserDetailPostRequestDTO;
 import com.taiso.bike_api.exception.TagsNotFoundException;
 import com.taiso.bike_api.exception.UserDetailNotFoundException;
@@ -18,6 +23,7 @@ import com.taiso.bike_api.repository.UserDetailRepository;
 import com.taiso.bike_api.repository.UserRepository;
 import com.taiso.bike_api.repository.UserTagCategoryRepository;
 
+import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
@@ -99,4 +105,45 @@ public class UserDetailService2 {
                 .build();
     }
 
+    @Transactional
+    public void patchUserDetail(String userEmail, UserDetailPatchRequestDTO requestDTO) {
+        // 사용자의 상세정보 가져오기
+        UserDetailEntity userDetail = userDetailRepository.findByUserId(userRepository.findByEmail(userEmail).get().getUserId()).get();
+
+        // 수정하기
+        if(requestDTO.getNickname() != null) {
+            userDetail.setUserNickname(requestDTO.getNickname());
+        }
+        if(requestDTO.getUserProfileImg() != null) {
+            userDetail.setUserProfileImg(requestDTO.getUserProfileImg());
+        }
+        if(requestDTO.getUserBackgroundImg() != null) {
+            userDetail.setUserBackgroundImg(requestDTO.getUserBackgroundImg());
+        }
+        if(requestDTO.getPhoneNumber() != null) {
+            userDetail.setPhoneNumber(requestDTO.getPhoneNumber());
+        }
+        if(requestDTO.getBirthDate() != null) {
+            userDetail.setBirthDate(requestDTO.getBirthDate());
+        }
+        if(requestDTO.getBio() != null) {
+            userDetail.setBio(requestDTO.getBio());
+        }
+        if(requestDTO.getGender() != null) {
+            userDetail.setGender(requestDTO.getGender());
+        }
+        if(requestDTO.getLevel() != null) {
+            userDetail.setLevel(requestDTO.getLevel());
+        }
+        if(requestDTO.getHeight() != null) {
+            userDetail.setHeight(requestDTO.getHeight());
+        }
+        if(requestDTO.getWeight() != null) {
+            userDetail.setWeight(requestDTO.getWeight());
+        }
+        if(requestDTO.getFTP() != null) {
+            userDetail.setFTP(requestDTO.getFTP());
+        }
+        
+    }
 }

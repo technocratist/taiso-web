@@ -40,7 +40,7 @@ const router = createBrowserRouter([
             children: [
               { path: "", element: <LightningPage /> },
               { path: "post", element: <LightningPostPage /> },
-              // { path: ":lightningId", element: <LightningDetailPage /> },
+              { path: ":lightningId", element: <LightningDetailPage /> },
             ],
           },
           {

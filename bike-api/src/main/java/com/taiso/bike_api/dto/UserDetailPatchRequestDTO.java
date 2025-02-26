@@ -26,6 +26,6 @@ public class UserDetailPatchRequestDTO {
     private Gender gender;
     private Level level;
     private Integer height;
-    private Integer Weight;
+    private Integer weight;
     private Integer FTP;
 }

@@ -1,7 +1,5 @@
 package com.taiso.bike_api.service;
 
-import java.lang.reflect.Field;
-import java.time.LocalDate;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -9,8 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.taiso.bike_api.domain.UserDetailEntity;
-import com.taiso.bike_api.domain.UserDetailEntity.Gender;
-import com.taiso.bike_api.domain.UserDetailEntity.Level;
 import com.taiso.bike_api.domain.UserEntity;
 import com.taiso.bike_api.domain.UserTagCategoryEntity;
 import com.taiso.bike_api.dto.UserDetailGetResponseDTO;
@@ -110,6 +106,8 @@ public class UserDetailService2 {
         // 사용자의 상세정보 가져오기
         UserDetailEntity userDetail = userDetailRepository.findByUserId(userRepository.findByEmail(userEmail).get().getUserId()).get();
 
+        log.info("{}", requestDTO);
+
         // 수정하기
         if(requestDTO.getNickname() != null) {
             userDetail.setUserNickname(requestDTO.getNickname());
@@ -144,6 +142,10 @@ public class UserDetailService2 {
         if(requestDTO.getFTP() != null) {
             userDetail.setFTP(requestDTO.getFTP());
         }
-        
+
+        log.info("{}", userDetail);
+
+        userDetailRepository.save(userDetail);
+
     }
 }

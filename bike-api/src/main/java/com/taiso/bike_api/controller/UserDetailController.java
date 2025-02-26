@@ -16,10 +16,13 @@ import com.taiso.bike_api.dto.UserDetailPatchRequestDTO;
 import com.taiso.bike_api.dto.UserDetailPostRequestDTO;
 import com.taiso.bike_api.service.UserDetailService2;
 
+import lombok.extern.slf4j.Slf4j;
+
 
 
 @RestController
 @RequestMapping("/api/users")
+@Slf4j
 public class UserDetailController {
 
     @Autowired
@@ -38,8 +41,11 @@ public class UserDetailController {
         return ResponseEntity.status(HttpStatus.OK).body(userDetailService2.getUserDetail(userEmail));
     }
     
-    @PatchMapping("/me/details")
-    public ResponseEntity<Void> patchUserDetail(@AuthenticationPrincipal String userEmail, UserDetailPatchRequestDTO requestDTO) {
+    @PatchMapping("/me/detail")
+    public ResponseEntity<Void> patchUserDetail(@AuthenticationPrincipal String userEmail, @RequestBody UserDetailPatchRequestDTO requestDTO) {
+        log.info("{}", requestDTO);
+        userDetailService2.patchUserDetail(userEmail, requestDTO);
         return ResponseEntity.status(HttpStatus.OK).body(null);
     }
+    
 }

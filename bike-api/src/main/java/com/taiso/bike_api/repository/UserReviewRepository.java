@@ -14,4 +14,5 @@ public interface UserReviewRepository extends JpaRepository<UserReviewEntity, Lo
 
 	Optional<UserReviewEntity> findByReviewerAndReviewed(UserEntity reviewer, UserEntity reviewedUser);
 
+  List<UserReviewEntity> findByReviewed_UserId(Long userId);
 }

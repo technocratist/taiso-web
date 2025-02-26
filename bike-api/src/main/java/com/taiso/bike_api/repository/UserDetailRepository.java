@@ -10,5 +10,6 @@ import com.taiso.bike_api.domain.UserEntity;
 public interface UserDetailRepository extends JpaRepository<UserDetailEntity, Long> {
 
     Optional<UserDetailEntity> findByUser(UserEntity user);
+
     
 }

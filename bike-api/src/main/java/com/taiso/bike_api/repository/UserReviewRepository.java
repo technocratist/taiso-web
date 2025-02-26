@@ -6,6 +6,7 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.taiso.bike_api.domain.LightningEntity;
+import com.taiso.bike_api.domain.UserDetailEntity;
 import com.taiso.bike_api.domain.UserEntity;
 import com.taiso.bike_api.domain.UserReviewEntity;
 import com.taiso.bike_api.dto.UserReviewRequestDTO;
@@ -14,11 +15,13 @@ public interface UserReviewRepository extends JpaRepository<UserReviewEntity, Lo
 
 	Optional<UserReviewRequestDTO> findByReviewTag(String reviewTag);
 
-	Optional<UserReviewEntity> findByReviewerAndReviewed(UserEntity reviewer, UserEntity reviewedUser);
-
 	List<UserReviewEntity> findByReviewer(UserEntity userEntity);
 	
-    Optional<UserReviewEntity> findByLightningAndReviewed(LightningEntity lightning, UserEntity reviewed);
+	List<UserReviewEntity> findByReviewer_UserId(Long userId);
+
+	// 리뷰 삭제 repository
+	Optional<UserReviewEntity> findByReviewerAndReviewed(UserDetailEntity reviewer, UserDetailEntity reviewedUser);
+
 
 
 }

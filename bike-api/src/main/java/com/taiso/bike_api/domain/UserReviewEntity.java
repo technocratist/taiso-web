@@ -43,11 +43,11 @@ public class UserReviewEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "reviewer_id", nullable = false)
-    private UserEntity reviewer;
+    private UserDetailEntity reviewer;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "reviewed_id", nullable = false)
-    private UserEntity reviewed;
+    private UserDetailEntity reviewed;
 
     @Column(name = "review_content", length = 500)
     private String reviewContent;

@@ -28,6 +28,7 @@ public class ReviewController {
 	@Autowired
     private ReviewService reviewService;
 	
+	// 리뷰 생성
 	@PostMapping("{lightningId}/reviews")
 	public ResponseEntity<LightningsReviewsPostResponseDTO> LightningReviews(
 			@PathVariable(name = "lightningId") Long lightningId,
@@ -41,6 +42,7 @@ public class ReviewController {
 		return ResponseEntity.status(HttpStatus.CREATED).body(null);
 	}
 	
+	// 리뷰 삭제
 	@DeleteMapping("{lightningId}/reviews")
 	public ResponseEntity<LightningsReviewsPostResponseDTO> lightningReviewsDelete(
 			@PathVariable(name = "lightningId") Long lightningId,

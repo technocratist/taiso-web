@@ -21,19 +21,28 @@ import lombok.ToString;
 @AllArgsConstructor
 public class UserLightningReviewResponseDTO {
 
+	// 리뷰 아이디
     private Long reviewId;
-    
-	private UserEntity reviewer;
-
-    private UserEntity reviewed;
-
+    // 리뷰 한 사람 아이디
+	private Long reviewer;
+	// 리뷰 받은사람 아이디
+    private Long reviewed;
+    // 번개 아이디
+	private Long lightningId;
+	
+    // 리뷰 내용
     private String reviewContent;
-
-	private LightningEntity lightning;
-
+	// 리뷰 태그
     private ReviewTag reviewTag;
-
     private LocalDateTime createdAt;
+    
+	// 닉네임&프사 (출력용)
+    private String reviewedNickname;
+    private String reviewerNickname;
+    private String reviewerProfileImg;
+    private String reviewedProfileImg;
+    
+    
 	
 	
 }

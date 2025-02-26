@@ -68,17 +68,18 @@ public class UserController {
     }
 
     
-    // 리뷰 목록 출력
+    // 리뷰 목록 출력 - 내가 작성한 회원 리뷰 조회
     @GetMapping("/lightnings/reviews")
     @Operation(summary = "내 페이지 정보 조회", description = "회원 프로필 페이지 정보 조회")
-    public void reviews(
-//    		public ResponseEntity<List<UserLightningReviewResponseDTO>> reviews(
+//    public void reviews(
+    public ResponseEntity<List<UserLightningReviewResponseDTO>> reviews(
 			Authentication authentication
     		) {
     	List<UserLightningReviewResponseDTO> response = userReviewService.myLightningReviews(authentication);
+
     	
-    	
-//    	return ResponseEntity.status(HttpStatus.OK).body(response);
+//    	log.info("Controller response == {}",response);
+    	return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
 }

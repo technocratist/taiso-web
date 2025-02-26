@@ -5,10 +5,10 @@ export interface LightningRequest {
   description: string;
   eventDate: string;
   duration: number;
-  status: string;
   capacity: number;
   latitude: number;
   longitude: number;
+  status: string;
   gender: string;
   level: string;
   recruitType: string;
@@ -18,7 +18,7 @@ export interface LightningRequest {
   routeId: number;
   address: string;
   isClubOnly: boolean;
-  clubId: number;
+  clubId: number | null;
   tags: string[];
 }
 
@@ -29,7 +29,7 @@ export interface LightningResponse {
 const createLightning = async (
   payload: LightningRequest
 ): Promise<LightningResponse> => {
-  return await post("/lightning/post", payload);
+  return await post("/lightnings", payload);
 };
 
 export const lightningService = {

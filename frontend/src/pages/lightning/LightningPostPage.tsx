@@ -2,6 +2,10 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import RouteModal from "../../components/RouteModal";
 import MeetingLocationSelector from "../../components/MapModal";
+import {
+  LightningRequest,
+  lightningService,
+} from "../../services/lightningService";
 
 // 옵션 상수들
 const GENDER_OPTIONS = ["자유", "남성", "여성"];
@@ -51,17 +55,16 @@ function LightningPostPage() {
     description: "",
     eventDate: "",
     duration: "",
-    status: "",
     capacity: "",
     latitude: "",
     longitude: "",
-    gender: "",
+    gender: "자유",
     level: "",
-    recruitType: "",
+    recruitType: "참가형",
     bikeType: "",
     region: "",
     distance: "",
-    routeId: "",
+    routeId: "1",
     address: "",
     isClubOnly: false,
     clubId: "",
@@ -75,6 +78,7 @@ function LightningPostPage() {
   const navigate = useNavigate();
 
   console.log(formData);
+  console.log(formErrors);
 
   // 태그 토글 함수
   const handleTagToggle = (option: string) => {
@@ -93,7 +97,6 @@ function LightningPostPage() {
     if (!formData.description.trim()) errors.description = "설명은 필수입니다.";
     if (!formData.eventDate) errors.eventDate = "이벤트 날짜는 필수입니다.";
     if (!formData.duration) errors.duration = "지속 시간은 필수입니다.";
-    if (!formData.status) errors.status = "모집 상태를 선택해주세요.";
     if (!formData.capacity) errors.capacity = "최대 인원 수를 입력해주세요.";
     if (!formData.latitude) errors.latitude = "위도를 입력해주세요.";
     if (!formData.longitude) errors.longitude = "경도를 입력해주세요.";
@@ -131,15 +134,15 @@ function LightningPostPage() {
     if (!validateForm()) return;
 
     // 숫자형 필드 변환 후 payload 구성
-    const payload = {
+    const payload: LightningRequest = {
       title: formData.title,
       description: formData.description,
       eventDate: formData.eventDate,
       duration: Number(formData.duration),
-      status: formData.status,
       capacity: Number(formData.capacity),
       latitude: Number(formData.latitude),
       longitude: Number(formData.longitude),
+      status: "모집",
       gender: formData.gender,
       level: formData.level,
       recruitType: formData.recruitType,
@@ -157,6 +160,8 @@ function LightningPostPage() {
     try {
       setLoading(true);
       await new Promise((resolve) => setTimeout(resolve, 1500));
+      const response = await lightningService.createLightning(payload);
+      console.log("Response:", response);
       navigate("/lightning");
     } catch (error) {
       console.error("이벤트 등록 에러:", error);
@@ -410,28 +415,39 @@ function LightningPostPage() {
             {/* 모집 유형, 자전거 종류 */}
             <div className="grid grid-cols-2 gap-4 mb-4">
               <div className="form-control">
-                <label htmlFor="recruitType" className="label">
+                <label className="label">
                   <span className="label-text">모집 유형</span>
                 </label>
-                <select
-                  id="recruitType"
-                  value={formData.recruitType}
-                  onChange={(e) => {
-                    setFormData({
-                      ...formData,
-                      recruitType: e.target.value,
-                    });
-                    setFormErrors((prev) => ({ ...prev, recruitType: "" }));
-                  }}
-                  className="select select-bordered"
-                >
-                  <option value="">선택하세요</option>
+                <div className="flex gap-2 flex-wrap">
                   {RECRUIT_TYPE_OPTIONS.map((option) => (
-                    <option key={option} value={option}>
-                      {option}
-                    </option>
+                    <div
+                      className="tooltip no-animation"
+                      data-tip={
+                        option === "참가형"
+                          ? "참가자가 자유롭게 참가 할 수 있어요!"
+                          : "참가자가 신청을 하면 승낙을 해야 해요!"
+                      }
+                    >
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setFormData({ ...formData, recruitType: option });
+                          setFormErrors((prev) => ({
+                            ...prev,
+                            recruitType: "",
+                          }));
+                        }}
+                        className={`btn btn-sm ${
+                          formData.recruitType === option
+                            ? "btn-primary"
+                            : "btn-outline"
+                        }`}
+                      >
+                        {option}
+                      </button>
+                    </div>
                   ))}
-                </select>
+                </div>
                 {formErrors.recruitType && (
                   <span className="text-red-500 mt-2 block">
                     {formErrors.recruitType}
@@ -439,25 +455,28 @@ function LightningPostPage() {
                 )}
               </div>
               <div className="form-control">
-                <label htmlFor="bikeType" className="label">
+                <label className="label">
                   <span className="label-text">자전거 종류</span>
                 </label>
-                <select
-                  id="bikeType"
-                  value={formData.bikeType}
-                  onChange={(e) => {
-                    setFormData({ ...formData, bikeType: e.target.value });
-                    setFormErrors((prev) => ({ ...prev, bikeType: "" }));
-                  }}
-                  className="select select-bordered"
-                >
-                  <option value="">선택하세요</option>
+                <div className="flex gap-2 flex-wrap">
                   {BIKE_TYPE_OPTIONS.map((option) => (
-                    <option key={option} value={option}>
+                    <button
+                      key={option}
+                      type="button"
+                      onClick={() => {
+                        setFormData({ ...formData, bikeType: option });
+                        setFormErrors((prev) => ({ ...prev, bikeType: "" }));
+                      }}
+                      className={`btn btn-sm ${
+                        formData.bikeType === option
+                          ? "btn-primary"
+                          : "btn-outline"
+                      }`}
+                    >
                       {option}
-                    </option>
+                    </button>
                   ))}
-                </select>
+                </div>
                 {formErrors.bikeType && (
                   <span className="text-red-500 mt-2 block">
                     {formErrors.bikeType}
@@ -517,7 +536,7 @@ function LightningPostPage() {
               )}
             </div>
 
-            {/* 클럽 전용 여부 및 클럽 ID */}
+            {/* 클럽 전용 여부 및 클럽 ID
             <div className="form-control mb-4">
               <label className="cursor-pointer label">
                 <span className="label-text">클럽 전용 이벤트</span>
@@ -553,7 +572,7 @@ function LightningPostPage() {
                   )}
                 </div>
               )}
-            </div>
+            </div> */}
 
             {/* 태그 */}
             <div className="form-control mb-4">

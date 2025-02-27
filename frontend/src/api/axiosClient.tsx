@@ -3,6 +3,7 @@
 // /// <reference types="vite/client" />
 
 import axios, { AxiosResponse, AxiosError } from "axios";
+import { useAuthStore } from "../stores/useAuthStore";
 // import { useAuthStore } from "../stores/useAuthStore";
 
 const axiosClient = axios.create({
@@ -32,8 +33,8 @@ axiosClient.interceptors.response.use(
           break;
         case 401:
           console.error("인증 오류: 로그인 상태가 만료되었습니다.");
-          // // Instead of calling a hook, retrieve logout from the store's state.
-          // useAuthStore.getState().logout();
+          // Instead of calling a hook, retrieve logout from the store's state.
+          useAuthStore.getState().logout();
           break;
         case 403:
           console.error("권한 없음: 접근할 수 없는 리소스입니다.");

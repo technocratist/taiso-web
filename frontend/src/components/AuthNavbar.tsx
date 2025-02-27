@@ -1,28 +1,16 @@
-import { useState } from "react";
-import authService from "../services/authService";
-import { useAuthStore } from "../stores/useAuthStore";
 import { Link } from "react-router";
 
-function Navbar() {
-  const { logout } = useAuthStore();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-
-  const { isAuthenticated } = useAuthStore();
-
-  const handleLogout = () => {
-    authService.logout();
-    logout();
-  };
-
+function AuthNavbar() {
   const handleThemeToggle = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.checked) {
-      // 테마를 synthwave로 변경
+      // 다크 테마 적용
       document.documentElement.setAttribute("data-theme", "dark");
     } else {
-      // 기본 테마(light)로 변경
+      // 라이트 테마 적용
       document.documentElement.setAttribute("data-theme", "light");
     }
   };
+
   return (
     <>
       <div className="navbar -mt-1">
@@ -32,25 +20,12 @@ function Navbar() {
           </Link>
         </div>
         <div className="flex-none gap-2">
-          <ul className="menu menu-horizontal px-1">
-            {isAuthenticated && (
-              <li>
-                <div onClick={handleLogout}>logout</div>
-              </li>
-            )}
-            <li>
-              <div>asd</div>
-            </li>
-          </ul>
           <label className="swap swap-rotate mr-2">
-            {/* this hidden checkbox controls the state */}
             <input
               type="checkbox"
               className="theme-controller"
-              value="synthwave"
               onChange={handleThemeToggle}
             />
-
             {/* sun icon */}
             <svg
               className="swap-off h-8 w-8 fill-current"
@@ -69,49 +44,11 @@ function Navbar() {
               <path d="M21.64,13a1,1,0,0,0-1.05-.14,8.05,8.05,0,0,1-3.37.73A8.15,8.15,0,0,1,9.08,5.49a8.59,8.59,0,0,1,.25-2A1,1,0,0,0,8,2.36,10.14,10.14,0,1,0,22,14.05,1,1,0,0,0,21.64,13Zm-9.5,6.69A8.14,8.14,0,0,1,7.08,5.22v.27A10.15,10.15,0,0,0,17.22,15.63a9.79,9.79,0,0,0,2.1-.22A8.11,8.11,0,0,1,12.14,19.73Z" />
             </svg>
           </label>
-          <div
-            onClick={() => setIsSidebarOpen(true)}
-            className="btn btn-ghost btn-circle avatar cursor-pointer"
-          >
-            <div className="w-10 rounded-full">
-              <img
-                alt="Avatar"
-                src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp"
-              />
-            </div>
-          </div>
         </div>
       </div>
-
-      <div
-        className={`fixed top-0 right-0 z-50 h-full w-64 bg-base-100 shadow-lg transition-transform duration-300 ${
-          isSidebarOpen ? "translate-x-0" : "translate-x-full"
-        }`}
-      >
-        <div className="p-4">
-          <h2 className="text-xl font-bold mb-4">Menu</h2>
-          <ul className="menu">
-            <li>
-              <a>Profile</a>
-            </li>
-            <li>
-              <a>Settings</a>
-            </li>
-            <li>
-              <a onClick={handleLogout}>Logout</a>
-            </li>
-          </ul>
-          <button
-            onClick={() => setIsSidebarOpen(false)}
-            className="mt-4 btn btn-sm"
-          >
-            Close
-          </button>
-        </div>
-      </div>
-      <div className="w-screen h-[1.5px] bg-base-200 shadow-2xl -mt-1 mb-2"></div>
+      <div className="w-screen h-[2px] bg-base-200 shadow-2xl -mt-1 mb-2"></div>
     </>
   );
 }
 
-export default Navbar;
+export default AuthNavbar;

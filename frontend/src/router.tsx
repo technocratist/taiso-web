@@ -13,8 +13,8 @@ import NotFoundErrorPage from "./pages/error/NotFoundErrorPage";
 import LightningPage from "./pages/LightningPage";
 import LightningPostPage from "./pages/lightning/LightningPostPage";
 import RoutePostPage from "./pages/route/RoutePostPage";
-import LightningDetailPage from "./pages/lightning/LightningDetailPage";
-
+import LightningDetailPage from "./pages/lightning/lightningDetailPage";
+import AuthRoute from "./AuthRoute";
 
 const router = createBrowserRouter([
   {
@@ -23,14 +23,12 @@ const router = createBrowserRouter([
     children: [
       // 인증 없이 접근 가능한 페이지들
       { path: "", element: <MainPage /> },
-      { path: "landing", element: <LandingPage /> },
-      { path: "login", element: <LoginPage /> },
-      { path: "register", element: <RegisterPage /> },
       { path: "oauth/callback", element: <OAuthCallback /> },
       {
         path: "lightning",
         children: [
           { path: "", element: <LightningPage /> },
+          { path: ":lightningId", element: <LightningDetailPage /> },
           // 인증 필요한 post 라우트는 아래 ProtectedRoute에서 다룸
         ],
       },
@@ -59,6 +57,16 @@ const router = createBrowserRouter([
           },
         ],
       },
+    ],
+  },
+  // 로그인 등 인증로직 처리
+  {
+    path: "auth",
+    element: <AuthRoute />,
+    children: [
+      { path: "landing", element: <LandingPage /> },
+      { path: "login", element: <LoginPage /> },
+      { path: "register", element: <RegisterPage /> },
     ],
   },
   {

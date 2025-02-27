@@ -1,8 +1,15 @@
-import { NavLink } from "react-router-dom";
+import { Link, NavLink } from "react-router-dom";
+import { useAuthStore } from "../stores/useAuthStore";
 
 function MainNavbar() {
+  const { isAuthenticated } = useAuthStore();
   return (
     <div className="flex flex-col items-center justify-center">
+      {!isAuthenticated && (
+        <div className="text-center text-sm text-gray-500">
+          <Link to="/auth/landing">로그인 하고 번개에 참여해보세요!</Link>
+        </div>
+      )}
       <div className="flex no-animation">
         <NavLink
           to="/lightning"

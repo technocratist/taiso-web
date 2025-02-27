@@ -21,11 +21,6 @@ import lombok.ToString;
 public class LightningDetailGetResponseDTO {
 
     private Long lightningId;
-    private Long creatorId;
-
-    // 번개 생성자 상세 정보 추가
-    private String creatorNickname;
-    private String creatorProfileImg;
 
     private String title;
     private String description;
@@ -52,15 +47,16 @@ public class LightningDetailGetResponseDTO {
     private Long distance;
     private String address;
 
-    private Long routeId;
-    // 루트 관련 정보 추가
-    private String routeName;
-    private String routeImgId;
-    // 루트 포인트 가져와야할까..?
+    private Long creatorId;
+    // 번개 생성자 정보
+    private LightningDetailCreatorDTO creator;
+
+    // 루트 관련 정보
+    private LightningDetailRouteDTO route;
 
     // 클럽 관련
     private Boolean isClubOnly;
-    private Long clubId;
+    private LightningDetailClubDTO club;
 
     // 번개 참여자
     private Long lightningUserId;

@@ -42,11 +42,11 @@ function DateCarousel({ range = 7, onDateChange }: DateCarouselProps) {
     setOffset((prev) => prev + 1);
   };
 
-  /** 날짜가 오늘인지 판별 */
-  const isToday = (date: Date): boolean => {
-    const today = new Date();
-    return date.toDateString() === today.toDateString();
-  };
+  // /** 날짜가 오늘인지 판별 */
+  // const isToday = (date: Date): boolean => {
+  //   const today = new Date();
+  //   return date.toDateString() === today.toDateString();
+  // };
 
   /** 요일이 토/일인지 판별 */
   const isWeekend = (date: Date): boolean => {
@@ -95,7 +95,7 @@ function DateCarousel({ range = 7, onDateChange }: DateCarouselProps) {
           let circleClasses =
             "w-10 h-10 flex items-center justify-center rounded-full transition-colors no-animation";
           // 토/일이면 텍스트 빨간색, 아니면 검정색
-          let textClasses = isWeekend(d) ? "text-red-500" : "text-black";
+          const textClasses = isWeekend(d) ? "text-red-500" : "text-black";
 
           // 선택된 날짜면 파란색 배경, 흰색 글자, 굵은 글씨 적용
           if (selectedDate.toDateString() === d.toDateString()) {

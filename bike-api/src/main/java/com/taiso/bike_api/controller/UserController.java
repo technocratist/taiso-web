@@ -7,8 +7,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
@@ -37,7 +37,7 @@ public class UserController {
     @Autowired
     private UserReviewService userReviewService;
 
-    @PostMapping("/me/details")
+    @PatchMapping("/me/details")
     @Operation(summary = "내 페이지 정보 수정", description = "상세 프로필 페이지 정보 수정")
     public ResponseEntity<UserDetailResponseDTO> updateUserDetail(@RequestPart(value = "userDetailData") UserDetailRequestDTO userDetailRequestDTO
                                                                 , @RequestPart(value = "profileImg", required = false) MultipartFile profileImg

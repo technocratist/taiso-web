@@ -22,5 +22,4 @@ public interface LightningUserRepository extends JpaRepository<LightningUserEnti
 	// CompletedReviews
 	Optional<LightningUserEntity> findByLightningAndUser(LightningEntity lightning, UserDetailEntity reviewed);
 
-
 }

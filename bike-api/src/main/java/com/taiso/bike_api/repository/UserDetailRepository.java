@@ -11,5 +11,5 @@ public interface UserDetailRepository extends JpaRepository<UserDetailEntity, Lo
 
     Optional<UserDetailEntity> findByUser(UserEntity user);
 
-    
+    Optional<UserDetailEntity> findByUserId(Long userId);
 }

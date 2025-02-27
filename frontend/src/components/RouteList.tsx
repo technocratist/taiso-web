@@ -43,7 +43,8 @@ function RouteList() {
       } else {
         setHasMore(true);
       }
-    } catch (err) {
+    } catch (error) {
+      console.error(error);
       navigate("/error");
     } finally {
       setIsLoading(false);
@@ -59,12 +60,12 @@ function RouteList() {
     setPage((prev) => prev + 1);
   };
 
-  // 예: 필터 변경 시 페이지를 초기화하고 기존 목록을 지워 새로 불러옴 (필요한 경우)
-  const handleFilterChange = (newSort: string) => {
-    setSort(newSort);
-    setPage(0);
-    setRouteList([]);
-  };
+  // // 예: 필터 변경 시 페이지를 초기화하고 기존 목록을 지워 새로 불러옴 (필요한 경우)
+  // const handleFilterChange = (newSort: string) => {
+  //   setSort(newSort);
+  //   setPage(0);
+  //   setRouteList([]);
+  // };
 
   return (
     <div className="flex flex-col ">

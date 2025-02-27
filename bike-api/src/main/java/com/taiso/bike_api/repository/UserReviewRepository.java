@@ -25,4 +25,5 @@ public interface UserReviewRepository extends JpaRepository<UserReviewEntity, Lo
 	List<UserReviewEntity> findByLightning_LightningId(Long lightningId);
 
 
+  	List<UserReviewEntity> findByReviewed_UserId(Long userId);
 }

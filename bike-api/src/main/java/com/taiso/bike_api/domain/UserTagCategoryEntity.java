@@ -1,11 +1,7 @@
 package com.taiso.bike_api.domain;
 
-import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
-
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -40,13 +36,13 @@ public class UserTagCategoryEntity {
     @Column(name = "name", nullable = false, unique = true, length = 255)
     private String name;
 
-    @CreationTimestamp
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    // @CreationTimestamp
+    // @Column(name = "created_at", nullable = false, updatable = false)
+    // private LocalDateTime createdAt;
 
-    @UpdateTimestamp
-    @Column(name = "updated_at", nullable = false)
-    private LocalDateTime updatedAt;
+    // @UpdateTimestamp
+    // @Column(name = "updated_at", nullable = false)
+    // private LocalDateTime updatedAt;
 
     @ManyToMany(mappedBy = "tags")
     @Builder.Default

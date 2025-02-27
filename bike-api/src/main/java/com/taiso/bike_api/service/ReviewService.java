@@ -9,8 +9,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import com.taiso.bike_api.domain.LightningEntity;
+
 import com.taiso.bike_api.domain.LightningEntity.LightningStatus;
 import com.taiso.bike_api.domain.LightningUserEntity;
+
 import com.taiso.bike_api.domain.UserDetailEntity;
 import com.taiso.bike_api.domain.UserEntity;
 import com.taiso.bike_api.domain.UserReviewEntity;
@@ -24,7 +26,9 @@ import com.taiso.bike_api.exception.LightningUserReviewMismatchException;
 import com.taiso.bike_api.exception.ReviewNotFoundException;
 import com.taiso.bike_api.exception.UserNotFoundException;
 import com.taiso.bike_api.repository.LightningRepository;
+
 import com.taiso.bike_api.repository.LightningUserRepository;
+
 import com.taiso.bike_api.repository.UserDetailRepository;
 import com.taiso.bike_api.repository.UserRepository;
 import com.taiso.bike_api.repository.UserReviewRepository;
@@ -69,6 +73,7 @@ public class ReviewService {
     	UserDetailEntity reviewerDetail = userDetailRepository.findById(reviewer.getUserId())
         		// 사용자 찾을 수 없음 -> 404
                 .orElseThrow(() -> new UserNotFoundException("현재 리뷰 입력 사용자를 찾을 수 없습니다.")); 
+
         
         // 3. 리뷰 대상(리뷰 받는 사용자) 조회
         UserDetailEntity reviewedUser = userDetailRepository.findById(userId)

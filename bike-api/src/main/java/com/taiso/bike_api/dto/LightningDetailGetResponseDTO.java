@@ -2,6 +2,7 @@ package com.taiso.bike_api.dto;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Set;
 
 import lombok.AllArgsConstructor;
@@ -20,7 +21,6 @@ import lombok.ToString;
 public class LightningDetailGetResponseDTO {
 
     private Long lightningId;
-    private Long creatorId;
 
     private String title;
     private String description;
@@ -29,7 +29,7 @@ public class LightningDetailGetResponseDTO {
     private Integer duration;
 
     private LocalDateTime createdAt;
-//  private LocalDateTime updatedAt;
+    private LocalDateTime updatedAt;
 
     private String status;
     private Integer capacity;
@@ -45,22 +45,23 @@ public class LightningDetailGetResponseDTO {
     private String recruitType;
 
     private Long distance;
-    private Long routeId;
     private String address;
+
+    private Long creatorId;
+    // 번개 생성자 정보
+    private LightningDetailCreatorDTO creator;
+
+    // 루트 관련 정보
+    private LightningDetailRouteDTO route;
 
     // 클럽 관련
     private Boolean isClubOnly;
-    private Long clubId;
+    private LightningDetailClubDTO club;
 
     // 번개 참여자
     private Long lightningUserId;
-//    List<LightningDetailMemberDTO> member;
+    private List<LightningDetailMemberDTO> member;
 
     // 번개 태그
-    private Long tagId;
     private Set<String> lightningTag;
-
-
-
-
 }

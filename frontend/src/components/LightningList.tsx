@@ -86,6 +86,8 @@ function LightningList() {
       .replace("오후", "");
   };
 
+  // 선택용 날짜/요일 출력
+
   return (
     <div className="flex flex-col">
       <div className="divider">lightning</div>

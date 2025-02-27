@@ -44,8 +44,15 @@ public class RouteController {
     // 루트 디테일 조회
     @GetMapping("/{routeId}")
     @Operation(summary = "루트 디테일 조회", description = "루트 디테일 조회하는 API")
-    public ResponseEntity<RouteDetailResponseDTO> getRoute(@PathVariable Long routeId, Authentication authentication) {
-        RouteDetailResponseDTO route = routeService.getRouteById(routeId, authentication.getName());
+    public ResponseEntity<RouteDetailResponseDTO> getRoute(@PathVariable(name = "routeId") Long routeId,
+            Authentication authentication) {
+        String userEmail = null;
+        if (authentication != null) {
+            userEmail = authentication.getName();
+        }
+
+        RouteDetailResponseDTO route = routeService.getRouteById(routeId, userEmail);
+
         return ResponseEntity.status(HttpStatus.OK).body(route);
     }
 

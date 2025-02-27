@@ -7,6 +7,8 @@ function Navbar() {
   const { logout } = useAuthStore();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
+  const { isAuthenticated } = useAuthStore();
+
   const handleLogout = () => {
     authService.logout();
     logout();
@@ -23,7 +25,7 @@ function Navbar() {
   };
   return (
     <>
-      <div className="navbar">
+      <div className="navbar -mt-1">
         <div className="flex-1">
           <Link to="/" className="btn btn-ghost text-xl no-animation font-mono">
             taiso
@@ -102,6 +104,13 @@ function Navbar() {
           </button>
         </div>
       </div>
+      <div className="w-screen h-[2px] bg-base-200 shadow-2xl -mt-1 mb-2"></div>
+
+      {!isAuthenticated && (
+        <div className="text-center text-sm text-gray-500">
+          <Link to="/landing">로그인 하고 번개에 참여해보세요!</Link>
+        </div>
+      )}
     </>
   );
 }

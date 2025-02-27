@@ -17,7 +17,6 @@ function ProtectedRoute() {
   // 인증된 경우 하위 라우트를 렌더링
   return (
     <>
-      <Navbar />
       <Outlet />
     </>
   );

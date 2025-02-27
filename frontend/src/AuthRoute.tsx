@@ -10,10 +10,10 @@ function AuthRoute() {
     return <Navigate to="/" />;
   }
   return (
-    <>
+    <div className="flex flex-col items-center justify-center max-w-screen-lg mx-auto">
       <AuthNavbar />
       <Outlet />
-    </>
+    </div>
   );
 }
 

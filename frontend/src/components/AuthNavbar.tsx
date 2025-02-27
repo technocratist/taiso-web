@@ -13,9 +13,12 @@ function AuthNavbar() {
 
   return (
     <>
-      <div className="navbar -mt-1">
+      <div className="navbar -mt-[2px]">
         <div className="flex-1">
-          <Link to="/" className="btn btn-ghost text-xl no-animation font-mono">
+          <Link
+            to="/"
+            className="btn btn-ghost text-xl no-animation  font-mono"
+          >
             taiso
           </Link>
         </div>
@@ -46,7 +49,7 @@ function AuthNavbar() {
           </label>
         </div>
       </div>
-      <div className="w-screen h-[2px] bg-base-200 shadow-2xl -mt-1 mb-2"></div>
+      <div className="w-screen h-[1.5px] bg-base-200 -mt-[2px] mb-2"></div>
     </>
   );
 }

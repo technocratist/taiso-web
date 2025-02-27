@@ -1,5 +1,6 @@
 import { Navigate, Outlet } from "react-router";
 import { useAuthStore } from "./stores/useAuthStore";
+import Navbar from "./components/Navbar";
 
 function AuthRoute() {
   const { isAuthenticated } = useAuthStore();
@@ -9,6 +10,7 @@ function AuthRoute() {
   }
   return (
     <>
+      <Navbar />
       <Outlet />
     </>
   );

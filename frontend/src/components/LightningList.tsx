@@ -31,7 +31,6 @@ function LightningList() {
   // 비동기 데이터 불러오기
   const fetchLightningList = async () => {
     try {
-      // 서비스 설정 필요
       setIsLoading(true);
       const data = await lightningService.getLightningList(
         page,
@@ -72,7 +71,7 @@ function LightningList() {
   };
 
   // 날짜 포멧팅
-  const formatDate = (date) => {
+  const formatDate = (date: string | number | Date) => {
     const options = {
       month: "long",
       day: "numeric",
@@ -87,10 +86,8 @@ function LightningList() {
       .replace("오후", "");
   };
 
-  // 선택용 날짜/요일 출력
-
   return (
-    <div className="flex flex-col ">
+    <div className="flex flex-col">
       <div className="divider">lightning</div>
       <div className="flex flex-wrap justify-center gap-2">
         {lightningList.map((lightning) => (
@@ -98,10 +95,12 @@ function LightningList() {
             key={lightning.lightningId}
             className="card card-side bg-base-100 shadow-xl w-full"
           >
-            <ImageWithSkeleton
-              src={lightning.routeImgId}
-              alt={lightning.title}
-            />
+            <figure>
+              <ImageWithSkeleton
+                src={lightning.routeImgId}
+                alt={lightning.title}
+              />
+            </figure>
             <div className="card-body">
               <div>
                 <p>
@@ -127,7 +126,6 @@ function LightningList() {
               <div className="card-actions justify-end">
                 <Link
                   to={`/lightning/${lightning.lightningId}`}
-                  key={lightning.lightningId}
                   className="group"
                 >
                   {(() => {
@@ -163,26 +161,25 @@ function LightningList() {
             </div>
           </div>
         ))}
-
-        {isLoading && (
-          <div className="flex w-full justify-center mt-4">
-            <div className="loading loading-dots loading-lg"></div>
-          </div>
-        )}
-        {!isLoading && hasMore && (
-          <button
-            className="btn btn-wide mt-4 mx-auto no-animation"
-            onClick={handleLoadMore}
-          >
-            더보기
-          </button>
-        )}
-        {isLastPage && (
-          <div className="text-center text-gray-400 mt-4 mb-10">
-            마지막 페이지입니다.
-          </div>
-        )}
       </div>
+      {isLoading && (
+        <div className="flex w-full justify-center mt-4">
+          <div className="loading loading-dots loading-lg"></div>
+        </div>
+      )}
+      {!isLoading && hasMore && (
+        <button
+          className="btn btn-wide mt-4 mx-auto no-animation"
+          onClick={handleLoadMore}
+        >
+          더보기
+        </button>
+      )}
+      {isLastPage && (
+        <div className="text-center text-gray-400 mt-4 mb-10">
+          마지막 페이지입니다.
+        </div>
+      )}
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import MainNavbar from "../components/MainNavbar";
-import LightningList from "../components/LightningList";
+// import LightningList from "../components/LightningList";
 import DateCarousel from "../components/DateCarousel";
 import { useState } from "react";
 
@@ -32,7 +32,7 @@ function LightningPage() {
           </Link>
         </div>
 
-        <LightningList />
+        {/* <LightningList /> */}
       </div>
     </div>
   );

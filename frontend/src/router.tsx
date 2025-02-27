@@ -20,34 +20,26 @@ const router = createBrowserRouter([
     path: "/",
     element: <Root />,
     children: [
-      // 로그인 페이지는 공용 레이아웃에 포함하지만 보호되지 않음
+      // 인증 없이 접근 가능한 페이지들
       {
         element: <AuthRoute />,
         children: [
+          { path: "", element: <MainPage /> },
           { path: "landing", element: <LandingPage /> },
           { path: "login", element: <LoginPage /> },
           { path: "register", element: <RegisterPage /> },
           { path: "oauth/callback", element: <OAuthCallback /> },
-        ],
-      },
-      // 로그인 후에만 접근 가능한 페이지들
-      {
-        element: <ProtectedRoute />,
-        children: [
-          { index: true, element: <MainPage /> },
           {
             path: "lightning",
             children: [
               { path: "", element: <LightningPage /> },
-              { path: "post", element: <LightningPostPage /> },
-              // { path: ":lightningId", element: <LightningDetailPage /> },
+              // 인증 필요한 post 라우트는 아래 ProtectedRoute에서 다룸
             ],
           },
           {
             path: "route",
             children: [
               { path: "", element: <RoutePage /> },
-              { path: "post", element: <RoutePostPage /> },
               { path: ":routeId", element: <RouteDetailPage /> },
             ],
           },
@@ -55,7 +47,20 @@ const router = createBrowserRouter([
             path: "club",
             children: [{ path: "", element: <ClubPage /> }],
           },
-          // 추가적인 인증이 필요한 페이지들을 여기에 추가
+        ],
+      },
+      // 인증 후에만 접근 가능한 post 관련 페이지들
+      {
+        element: <ProtectedRoute />,
+        children: [
+          {
+            path: "lightning",
+            children: [{ path: "post", element: <LightningPostPage /> }],
+          },
+          {
+            path: "route",
+            children: [{ path: "post", element: <RoutePostPage /> }],
+          },
         ],
       },
     ],

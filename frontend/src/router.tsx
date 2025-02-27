@@ -5,8 +5,6 @@ import ProtectedRoute from "./ProtectedRoute";
 import LoginPage from "./pages/auth/LoginPage";
 import RegisterPage from "./pages/auth/RegisterPage";
 import LandingPage from "./pages/auth/LandingPage";
-import AuthRoute from "./AuthRoute";
-import RoutePostPage from "./pages/route/RoutePostPage";
 import OAuthCallback from "./components/OAuthCallback";
 import RoutePage from "./pages/RoutePage";
 import ClubPage from "./pages/ClubPage";
@@ -14,48 +12,51 @@ import RouteDetailPage from "./pages/route/RouteDetailPage";
 import NotFoundErrorPage from "./pages/error/NotFoundErrorPage";
 import LightningPage from "./pages/LightningPage";
 import LightningPostPage from "./pages/lightning/LightningPostPage";
+import RoutePostPage from "./pages/route/RoutePostPage";
+import LightningDetailPage from "./pages/lightning/LightningDetailPage";
+
 
 const router = createBrowserRouter([
   {
     path: "/",
     element: <Root />,
     children: [
-      // 로그인 페이지는 공용 레이아웃에 포함하지만 보호되지 않음
+      // 인증 없이 접근 가능한 페이지들
+      { path: "", element: <MainPage /> },
+      { path: "landing", element: <LandingPage /> },
+      { path: "login", element: <LoginPage /> },
+      { path: "register", element: <RegisterPage /> },
+      { path: "oauth/callback", element: <OAuthCallback /> },
       {
-        element: <AuthRoute />,
+        path: "lightning",
         children: [
-          { path: "landing", element: <LandingPage /> },
-          { path: "login", element: <LoginPage /> },
-          { path: "register", element: <RegisterPage /> },
-          { path: "oauth/callback", element: <OAuthCallback /> },
+          { path: "", element: <LightningPage /> },
+          // 인증 필요한 post 라우트는 아래 ProtectedRoute에서 다룸
         ],
       },
-      // 로그인 후에만 접근 가능한 페이지들
+      {
+        path: "route",
+        children: [
+          { path: "", element: <RoutePage /> },
+          { path: ":routeId", element: <RouteDetailPage /> },
+        ],
+      },
+      {
+        path: "club",
+        children: [{ path: "", element: <ClubPage /> }],
+      },
+      // 인증 후에만 접근 가능한 post 관련 페이지들
       {
         element: <ProtectedRoute />,
         children: [
-          { index: true, element: <MainPage /> },
           {
             path: "lightning",
-            children: [
-              { path: "", element: <LightningPage /> },
-              { path: "post", element: <LightningPostPage /> },
-              // { path: ":lightningId", element: <LightningDetailPage /> },
-            ],
+            children: [{ path: "post", element: <LightningPostPage /> }],
           },
           {
             path: "route",
-            children: [
-              { path: "", element: <RoutePage /> },
-              { path: "post", element: <RoutePostPage /> },
-              { path: ":routeId", element: <RouteDetailPage /> },
-            ],
+            children: [{ path: "post", element: <RoutePostPage /> }],
           },
-          {
-            path: "club",
-            children: [{ path: "", element: <ClubPage /> }],
-          },
-          // 추가적인 인증이 필요한 페이지들을 여기에 추가
         ],
       },
     ],

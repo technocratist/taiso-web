@@ -29,6 +29,8 @@ public class LightningDetailController {
 
         LightningDetailGetResponseDTO lightningDetailGetResponseDTO = lightningDetailService.getLightningDetail(lightningId);
 
+        log.info("컨트롤러 최종 DTO : {}",lightningDetailGetResponseDTO);
+
         return ResponseEntity.status(HttpStatus.CREATED).body(lightningDetailGetResponseDTO);
     }
 

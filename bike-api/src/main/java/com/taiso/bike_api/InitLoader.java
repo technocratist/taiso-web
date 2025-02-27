@@ -3,22 +3,16 @@ package com.taiso.bike_api;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.Set;
 
+import com.taiso.bike_api.domain.*;
+import com.taiso.bike_api.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
-
-import com.taiso.bike_api.domain.LightningEntity;
-import com.taiso.bike_api.domain.LightningUserEntity;
-import com.taiso.bike_api.domain.UserDetailEntity;
-import com.taiso.bike_api.domain.UserEntity;
-import com.taiso.bike_api.repository.LightningUserRepository;
-import com.taiso.bike_api.repository.UserDetailRepository;
-import com.taiso.bike_api.repository.UserRepository;
-import com.taiso.bike_api.repository.UserRoleRepository;
-import com.taiso.bike_api.repository.UserStatusRepository;
-import com.taiso.bike_api.repository.UserTagCategoryRepository;
 
 import jakarta.transaction.Transactional;
     
@@ -43,6 +37,12 @@ public class InitLoader implements CommandLineRunner {
 
     @Autowired
     private LightningUserRepository lightningUserRepository;
+
+    @Autowired
+    private RouteRepository routeRepository;
+
+    @Autowired
+    private ClubRepository clubRepository;
 
     @Override
     @Transactional
@@ -115,12 +115,25 @@ public class InitLoader implements CommandLineRunner {
                 .distance(10L)
                 .address("서울특별시 중구")
                 .isClubOnly(false)
-                // clubId 및 routeId가 필요한 경우, 적절한 값을 넣어주세요.
                 .build();
         
         lightningUserRepository.save(lightningEntity);
+
+     // 클럽 예시 생성
+        ClubEntity clubEntity = ClubEntity.builder()
+                .clubProfileImageId(null)
+                .clubName("잠수교폭주족")
+                .clubLeader(user)
+                .clubShortDescription("지구 끝까지 달리자")
+                .clubDescription("활동 참여 분기 1회 이하는 강퇴 합니다.")
+                .maxUser(20)
+                .build();
+        clubRepository.save(clubEntity);
         
      // lightningEntity 수락형 예시 생성
+        Optional<RouteEntity> temp = routeRepository.findById(1L);
+        RouteEntity route = temp.get();
+
         LightningEntity lightningEntity2 = LightningEntity.builder()
         	    .creatorId(1L)
         	    .title("새로운 번개 이벤트")
@@ -138,7 +151,9 @@ public class InitLoader implements CommandLineRunner {
         	    .region(LightningEntity.Region.서울)
         	    .distance(15L)
         	    .address("부산광역시 해운대구")
-        	    .isClubOnly(true)
+                .isClubOnly(true)
+                .clubId(1L)
+                .route(route)
         	    // clubId 및 routeId가 필요한 경우, 적절한 값을 넣어주세요.
         	    .build();
         
@@ -156,6 +171,25 @@ public class InitLoader implements CommandLineRunner {
 
         // 사용자 저장 후 ID가 할당됨
         userRepository.saveAndFlush(user2);
+
+        // UserDetailEntity 저장
+        UserDetailEntity userDetail2 = UserDetailEntity.builder()
+                .userNickname("수달")
+                .bio("자기소개를 입력해주세요.")
+                .FTP(134)
+                .gender(UserDetailEntity.Gender.valueOf("남자"))
+                .level(UserDetailEntity.Level.valueOf("초보자"))
+                .birthDate(LocalDate.now())
+                .fullName("송종근")
+                .phoneNumber("010-1102-4567")
+                .height(158)
+                .weight(48)
+                .FTP(140)
+                .user(user2)  // user 객체를 연결
+                .build();
+
+        // userDetail 저장
+        userDetailRepository.save(userDetail2);
         
         
      // 이미 생성된 번개 이벤트 lightningEntity를 활용하여 신청대기 상태의 번개 참가 유저 생성
@@ -180,6 +214,5 @@ public class InitLoader implements CommandLineRunner {
 
         // 데이터베이스에 저장
         lightningUserRepository.save(lightningUserEntity2);
-
     }
 }

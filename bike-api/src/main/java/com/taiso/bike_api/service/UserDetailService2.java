@@ -3,6 +3,7 @@ package com.taiso.bike_api.service;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.taiso.bike_api.exception.UserDetailNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -13,7 +14,6 @@ import com.taiso.bike_api.dto.UserDetailGetResponseDTO;
 import com.taiso.bike_api.dto.UserDetailPatchRequestDTO;
 import com.taiso.bike_api.dto.UserDetailPostRequestDTO;
 import com.taiso.bike_api.exception.TagsNotFoundException;
-import com.taiso.bike_api.exception.UserDetailNotFoundException;
 import com.taiso.bike_api.exception.UserNotFoundException;
 import com.taiso.bike_api.repository.UserDetailRepository;
 import com.taiso.bike_api.repository.UserRepository;

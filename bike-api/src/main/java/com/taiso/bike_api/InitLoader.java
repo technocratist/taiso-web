@@ -242,7 +242,7 @@ public class InitLoader implements CommandLineRunner {
         	    .description("이 번개 이벤트는 3번째 예시 입니다.")
         	    .eventDate(LocalDateTime.now().plusDays(3)) // 모레 이벤트
         	    .duration(130) // 130분
-        	    .status(LightningEntity.LightningStatus.마감)
+        	    .status(LightningEntity.LightningStatus.종료)
         	    .capacity(15)
         	    .latitude(new BigDecimal("33.1226"))
         	    .longitude(new BigDecimal("133.3336"))

@@ -191,6 +191,24 @@ public class InitLoader implements CommandLineRunner {
         // userDetail 저장
         userDetailRepository.save(userDetail2);
         
+     // UserDetailEntity 저장2
+        UserDetailEntity userDetail2 = UserDetailEntity.builder()
+                .userNickname("Speed")
+                .bio("나는 열정적인 라이더입니다.")
+                .FTP(134)
+                .gender(UserDetailEntity.Gender.valueOf("남자"))
+                .level(UserDetailEntity.Level.valueOf("입문자"))
+                .birthDate(LocalDate.now())
+                .fullName("김철수")
+                .phoneNumber("010-9876-5432")
+                .height(199)
+                .weight(55)
+                .FTP(120)
+                .user(user2)  // user 객체를 연결
+                .build();
+
+        // userDetail 저장2
+        userDetailRepository.save(userDetail2);
         
      // 이미 생성된 번개 이벤트 lightningEntity를 활용하여 신청대기 상태의 번개 참가 유저 생성
         LightningUserEntity lightningUserEntity1 = LightningUserEntity.builder()
@@ -214,5 +232,103 @@ public class InitLoader implements CommandLineRunner {
 
         // 데이터베이스에 저장
         lightningUserRepository.save(lightningUserEntity2);
+
+
+        
+        // 테스트 아이디 추가 3번째 아이디 ------------------------
+        UserEntity user3 = UserEntity.builder()
+                .email("test3@test.com")
+                .password(passwordEncoder.encode("asdf1234!"))
+                .role(userRoleRepository.findByRoleName("USER").get())
+                .status(userStatusRepository.findByStatusName("ACTIVE").get())
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .build();
+        
+        // 사용자 저장 후 ID가 할당됨
+        userRepository.saveAndFlush(user3);
+        
+     // UserDetailEntity3 저장 유저 디테일 3번째 예시
+        UserDetailEntity userDetail3 = UserDetailEntity.builder()
+                .userNickname("따릉이폭주")
+                .bio("달립니다.")
+                .FTP(111)
+                .gender(UserDetailEntity.Gender.valueOf("남자"))
+                .level(UserDetailEntity.Level.valueOf("고수"))
+                .birthDate(LocalDate.now())
+                .fullName("최성현")
+                .phoneNumber("010-4321-1234")
+                .height(200)
+                .weight(65)
+                .FTP(121)
+                .user(user3)  // user 객체를 연결
+                .build();
+
+        // userDetail 저장3
+        userDetailRepository.save(userDetail3);
+        
+     // lightningEntity 3번째 번개 이벤트 예시 작성
+        LightningEntity lightningEntity3 = LightningEntity.builder()
+        	    .creatorId(1L)
+        	    .title("3번째 번개 이벤트")
+        	    .description("이 번개 이벤트는 3번째 예시 입니다.")
+        	    .eventDate(LocalDateTime.now().plusDays(3)) // 모레 이벤트
+        	    .duration(130) // 130분
+        	    .status(LightningEntity.LightningStatus.종료)
+        	    .capacity(15)
+        	    .latitude(new BigDecimal("33.1226"))
+        	    .longitude(new BigDecimal("133.3336"))
+        	    .gender(LightningEntity.Gender.자유)
+        	    .level(LightningEntity.Level.중급)
+        	    .recruitType(LightningEntity.RecruitType.참가형)
+        	    .bikeType(LightningEntity.BikeType.로드)
+        	    .region(LightningEntity.Region.서울)
+        	    .distance(15L)
+        	    .address("서울특별시 삼성역")
+        	    .isClubOnly(false)
+        	    // clubId 및 routeId가 필요한 경우, 적절한 값을 넣어주세요.
+        	    .build();
+        
+        lightningUserRepository.save(lightningEntity3);
+        
+     // 유저1 -> 3번째 번개에 참여 
+        LightningUserEntity lightningUserEntity3 = LightningUserEntity.builder()
+                .participantStatus(LightningUserEntity.ParticipantStatus.완료)  // 신청대기 상태 설정
+                .role(LightningUserEntity.Role.번개생성자)                            // 번개생성자 설정
+                .lightning(lightningEntity3)                                     // 해당 번개 이벤트 할당
+                .user(user)                                                    // user1 할당
+                .build();        
+     // 번개 참가 유저 저장 
+     lightningUserRepository.save(lightningUserEntity3);
+
+     // 유저2 -> 3번째 번개에 참여 
+        LightningUserEntity lightningUserEntity4 = LightningUserEntity.builder()
+                .participantStatus(LightningUserEntity.ParticipantStatus.완료)  // 신청대기 상태 설정
+                .role(LightningUserEntity.Role.참여자)                            // 참여자로 설정
+                .lightning(lightningEntity3)                                     // 해당 번개 이벤트 할당
+                .user(user2)                                                    // user2 할당
+                .build();        
+     // 번개 참가 유저 저장 
+     lightningUserRepository.save(lightningUserEntity4);
+
+     // 유저3 -> 3번째 번개에 참여 
+        LightningUserEntity lightningUserEntity5 = LightningUserEntity.builder()
+                .participantStatus(LightningUserEntity.ParticipantStatus.완료)  // 신청대기 상태 설정
+                .role(LightningUserEntity.Role.참여자)                            // 참여자로 설정
+                .lightning(lightningEntity3)                                     // 해당 번개 이벤트 할당
+                .user(user3)                                                    // user3 할당
+                .build();        
+     // 번개 참가 유저 저장 
+     lightningUserRepository.save(lightningUserEntity5);
+     
+        
+     // 테스트 3번째 예시들 추가 완료 부분 --------------------
+        
+        
+        
+        
+        
+        
+
     }
 }

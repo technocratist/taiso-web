@@ -15,6 +15,7 @@ import LightningPostPage from "./pages/lightning/LightningPostPage";
 import RoutePostPage from "./pages/route/RoutePostPage";
 import LightningDetailPage from "./pages/lightning/lightningDetailPage";
 import AuthRoute from "./AuthRoute";
+import UserOnboardingPage from "./pages/auth/UserOnboardingPage";
 
 const router = createBrowserRouter([
   {
@@ -23,6 +24,7 @@ const router = createBrowserRouter([
     children: [
       // 인증 없이 접근 가능한 페이지들
       { path: "", element: <MainPage /> },
+      { path: "onboarding", element: <UserOnboardingPage /> },
       { path: "oauth/callback", element: <OAuthCallback /> },
       {
         path: "lightning",

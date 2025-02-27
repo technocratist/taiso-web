@@ -171,6 +171,25 @@ public class InitLoader implements CommandLineRunner {
 
         // 사용자 저장 후 ID가 할당됨
         userRepository.saveAndFlush(user2);
+
+        // UserDetailEntity 저장
+        UserDetailEntity userDetail2 = UserDetailEntity.builder()
+                .userNickname("수달")
+                .bio("자기소개를 입력해주세요.")
+                .FTP(134)
+                .gender(UserDetailEntity.Gender.valueOf("남자"))
+                .level(UserDetailEntity.Level.valueOf("초보자"))
+                .birthDate(LocalDate.now())
+                .fullName("송종근")
+                .phoneNumber("010-1102-4567")
+                .height(158)
+                .weight(48)
+                .FTP(140)
+                .user(user2)  // user 객체를 연결
+                .build();
+
+        // userDetail 저장
+        userDetailRepository.save(userDetail2);
         
         
      // 이미 생성된 번개 이벤트 lightningEntity를 활용하여 신청대기 상태의 번개 참가 유저 생성

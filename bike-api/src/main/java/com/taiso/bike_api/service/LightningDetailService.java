@@ -36,6 +36,9 @@ public class LightningDetailService {
     @Autowired
     ClubRepository clubRepository;
 
+    @Autowired
+    LightningUserRepository lightningUserRepository;
+
     // 번개 수정 화면에 기존 정보 뿌리기
     public LightningDetailUpdateGetResponseDTO getUpdateLightningDetail(Long lightningId,
                                          Authentication authentication) {
@@ -145,6 +148,8 @@ public class LightningDetailService {
         LightningEntity temp = lightningDetailRepository.findById(lightningId)
                 .orElseThrow(() -> new NoSuchElementException("존재하지 않는 번개입니다."));
 
+        log.info("번개 아이디 : {}", temp.getLightningId());
+
         // 태그 String 빌드
         Set<String> tagNames = temp.getTags().stream()
                 .map(LightningTagCategoryEntity::getName) // name 필드를 꺼내서 String으로 매핑
@@ -172,9 +177,9 @@ public class LightningDetailService {
         LightningDetailClubDTO clubDTO = null;
 
         // 번개 루트 빌드 (존재할때만)
-        if (temp.getRoute() != null) {
+
             RouteEntity route = temp.getRoute();
-            log.info("번개 루트 : {}",route);
+            log.info("번개 루트 : {}",route.getRouteId().toString());
 
                 // 번개 루트 포인트 빌드 (존재할때만)
                 List<RoutePointDTO> routePointDTOs = new ArrayList<>();
@@ -198,37 +203,52 @@ public class LightningDetailService {
                     .fileType(temp.getRoute().getFileType().toString())
                     .routePoints(routePointDTOs)
                     .build();
-        }
+
+            log.info("DTO 빌드 후 루트이름 : {}", routeDTO.getRouteName());
+
 
         // 번개에 연결된 클럽정보 빌드 (존재할때만)
+        log.info("클럽여부 : {}",temp.getIsClubOnly());
         if (temp.getIsClubOnly()) {
             Optional<ClubEntity> temp3 = clubRepository.findById(temp.getClubId());
-            if (temp3.isEmpty()) {
-                throw new NoSuchElementException("존재하지 않는 클럽 입니다.");
-            }
             // 빌드
             clubDTO = LightningDetailClubDTO.builder()
                     .clubId(temp3.get().getClubId())
                     .clubName(temp3.get().getClubName())
                     .build();
+
+            log.info("DTO 빌드 후 클럽이름 : {}", clubDTO.getClubName());
         }
 
         // 번개 참여자 빌드
         List<LightningDetailMemberDTO> memberDTOs = new ArrayList<>();
-        for (LightningUserEntity entity : temp.getLightningUsers()) {
-            // 유저별 디테일 정보 조회
-            Long memberId = entity.getUser().getUserId();
-            Optional<UserDetailEntity> user = userDetailRepository.findByUserId(memberId);
-            //빌드
-            LightningDetailMemberDTO build = LightningDetailMemberDTO.builder()
-                    .lightningUserId(entity.getLightningUserId())
-                    .participantStatus(entity.getParticipantStatus().name())
-                    .role(entity.getRole().name())
-                    .memberNickname(user.get().getUserNickname())
-                    .memberProfileImg(user.get().getUserProfileImg())
-                    .build();
-            memberDTOs.add(build);
-        }
+        log.info("번개 아이디 : {}", temp.getLightningId());
+        List<LightningUserEntity> members = lightningUserRepository.findAllByLightning_LightningId(temp.getLightningId());
+
+            for (LightningUserEntity entity : members) {
+                log.info("멤버 리스트에서 한명씩 추출 : {}", entity.getUser().getUserId());
+                // 유저별 디테일 정보 조회
+                Long memberId = entity.getUser().getUserId();
+                log.info("멤버의 아이디 : {}", memberId);
+                Optional<UserDetailEntity> user = userDetailRepository.findByUserId(memberId);
+                log.info("멤버의 디테일 Entity : {}", user.toString());
+
+                UserDetailEntity member = user.get();
+
+                log.info("멤버의 디테일 : {}", member.toString());
+                //빌드
+                LightningDetailMemberDTO build = LightningDetailMemberDTO.builder()
+                        .lightningUserId(entity.getLightningUserId())
+                        .participantStatus(entity.getParticipantStatus().name())
+                        .role(entity.getRole().name())
+                        .memberNickname(member.getUserNickname())
+                        .memberProfileImg(member.getUserProfileImg())
+                        .build();
+                memberDTOs.add(build);
+            }
+            log.info("멤버 빌드 완료");
+
+            log.info("최종직전: {}", temp);
 
         // entity -> dto
         LightningDetailGetResponseDTO lightningDetailGetResponseDTO = LightningDetailGetResponseDTO.builder()
@@ -259,6 +279,8 @@ public class LightningDetailService {
                 .member(memberDTOs)
                 .lightningTag(tagNames)
                 .build();
+
+        log.info("최종 DTO: {}", lightningDetailGetResponseDTO);
 
         return lightningDetailGetResponseDTO;
     }

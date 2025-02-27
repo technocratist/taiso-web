@@ -13,6 +13,8 @@ import NotFoundErrorPage from "./pages/error/NotFoundErrorPage";
 import LightningPage from "./pages/LightningPage";
 import LightningPostPage from "./pages/lightning/LightningPostPage";
 import RoutePostPage from "./pages/route/RoutePostPage";
+import LightningDetailPage from "./pages/lightning/LightningDetailPage";
+
 
 const router = createBrowserRouter([
   {

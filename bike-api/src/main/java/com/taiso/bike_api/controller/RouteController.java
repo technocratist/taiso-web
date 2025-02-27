@@ -52,6 +52,7 @@ public class RouteController {
         }
 
         RouteDetailResponseDTO route = routeService.getRouteById(routeId, userEmail);
+
         return ResponseEntity.status(HttpStatus.OK).body(route);
     }
 

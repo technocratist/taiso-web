@@ -31,7 +31,6 @@ function LightningList() {
   // 비동기 데이터 불러오기
   const fetchLightningList = async () => {
     try {
-      // 서비스 설정 필요
       setIsLoading(true);
       const data = await lightningService.getLightningList(
         page,
@@ -50,7 +49,7 @@ function LightningList() {
         setHasMore(true);
       }
     } catch (err) {
-      // navigate("/error");
+      navigate("/error");
     } finally {
       setIsLoading(false);
     }
@@ -72,7 +71,7 @@ function LightningList() {
   };
 
   // 날짜 포멧팅
-  const formatDate = (date) => {
+  const formatDate = (date: string | number | Date) => {
     const options = {
       month: "long",
       day: "numeric",
@@ -87,10 +86,8 @@ function LightningList() {
       .replace("오후", "");
   };
 
-  // 선택용 날짜/요일 출력
-
   return (
-    <div className="flex flex-col ">
+    <div className="flex flex-col">
       <div className="divider">lightning</div>
       <div className="flex flex-wrap justify-center gap-2">
         {lightningList.map((lightning) => (
@@ -127,34 +124,39 @@ function LightningList() {
                 </div>
               </div>
               <div className="card-actions justify-end">
-                {(() => {
-                  switch (lightning.status) {
-                    case "모집":
-                      return (
-                        <button className="btn btn-outline btn-success w-[200px]">
-                          번개 참가
-                        </button>
-                      );
-                    case "마감":
-                      return (
-                        <button className="btn btn-outline btn-error w-[200px]">
-                          번개 마감
-                        </button>
-                      );
-                    case "종료":
-                      return (
-                        <button className="btn w-[200px]" disabled>
-                          번개 종료
-                        </button>
-                      );
-                    default:
-                      return (
-                        <button className="btn w-[200px]" disabled>
-                          번개 종료
-                        </button>
-                      );
-                  }
-                })()}
+                <Link
+                  to={`/lightning/${lightning.lightningId}`}
+                  className="group"
+                >
+                  {(() => {
+                    switch (lightning.status) {
+                      case "모집":
+                        return (
+                          <button className="btn btn-outline btn-success w-[200px]">
+                            번개 참가
+                          </button>
+                        );
+                      case "마감":
+                        return (
+                          <button className="btn btn-outline btn-error w-[200px]">
+                            번개 마감
+                          </button>
+                        );
+                      case "종료":
+                        return (
+                          <button className="btn w-[200px]" disabled>
+                            번개 종료
+                          </button>
+                        );
+                      default:
+                        return (
+                          <button className="btn w-[200px]" disabled>
+                            번개 종료
+                          </button>
+                        );
+                    }
+                  })()}
+                </Link>
               </div>
             </div>
           </div>

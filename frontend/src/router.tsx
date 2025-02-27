@@ -14,6 +14,7 @@ import RouteDetailPage from "./pages/route/RouteDetailPage";
 import NotFoundErrorPage from "./pages/error/NotFoundErrorPage";
 import LightningPage from "./pages/LightningPage";
 import LightningPostPage from "./pages/lightning/LightningPostPage";
+import LightningDetailPage from "./pages/lightning/LightningDetailPage";
 
 const router = createBrowserRouter([
   {
@@ -40,7 +41,7 @@ const router = createBrowserRouter([
             children: [
               { path: "", element: <LightningPage /> },
               { path: "post", element: <LightningPostPage /> },
-              // { path: ":lightningId", element: <LightningDetailPage /> },
+              { path: ":lightningId", element: <LightningDetailPage /> },
             ],
           },
           {

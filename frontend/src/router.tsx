@@ -16,6 +16,8 @@ import RoutePostPage from "./pages/route/RoutePostPage";
 import LightningDetailPage from "./pages/lightning/lightningDetailPage";
 import AuthRoute from "./AuthRoute";
 import UserOnboardingPage from "./pages/auth/UserOnboardingPage";
+import UserDetailPage from "./pages/UserDetailPage";
+import UserAccountPage from "./pages/UserAccountPage";
 
 const router = createBrowserRouter([
   {
@@ -24,7 +26,10 @@ const router = createBrowserRouter([
     children: [
       // 인증 없이 접근 가능한 페이지들
       { path: "", element: <MainPage /> },
+
+      //온보딩 테스트 페이지
       { path: "onboarding", element: <UserOnboardingPage /> },
+
       { path: "oauth/callback", element: <OAuthCallback /> },
       {
         path: "lightning",
@@ -45,6 +50,10 @@ const router = createBrowserRouter([
         path: "club",
         children: [{ path: "", element: <ClubPage /> }],
       },
+      {
+        path: "user",
+        children: [{ path: ":userId", element: <UserDetailPage /> }],
+      },
       // 인증 후에만 접근 가능한 post 관련 페이지들
       {
         element: <ProtectedRoute />,
@@ -56,6 +65,16 @@ const router = createBrowserRouter([
           {
             path: "route",
             children: [{ path: "post", element: <RoutePostPage /> }],
+          },
+          {
+            path: "user",
+            children: [
+              { path: "me/account", element: <UserAccountPage /> },
+              // { path: "me/lightning-reservation", element: <UserLightningPage /> },
+              // { path: "me/club", element: <UserClubPage /> },
+              // { path: "me/route", element: <UserRoutePage /> },
+              // { path: "me/bookmark", element: <UserBookmarkPage /> },
+            ],
           },
         ],
       },

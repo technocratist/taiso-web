@@ -63,10 +63,5 @@ public class LightningDetailGetResponseDTO {
     private List<LightningDetailMemberDTO> member;
 
     // 번개 태그
-    private Long tagId;
     private Set<String> lightningTag;
-
-
-
-
 }

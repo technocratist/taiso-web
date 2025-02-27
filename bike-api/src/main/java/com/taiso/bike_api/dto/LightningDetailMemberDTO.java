@@ -18,6 +18,4 @@ public class LightningDetailMemberDTO {
     private String memberNickname;
     private String memberProfileImg;
 
-
-
 }

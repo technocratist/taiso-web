@@ -1,26 +1,19 @@
 package com.taiso.bike_api.service;
 
-import java.util.NoSuchElementException;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
+import com.taiso.bike_api.domain.*;
+import com.taiso.bike_api.dto.*;
+import com.taiso.bike_api.exception.UserNotFoundException;
+import com.taiso.bike_api.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
-import com.taiso.bike_api.domain.LightningEntity;
-import com.taiso.bike_api.domain.LightningTagCategoryEntity;
-import com.taiso.bike_api.dto.LightningDetailGetResponseDTO;
-import com.taiso.bike_api.dto.LightningDetailUpdateGetResponseDTO;
-import com.taiso.bike_api.dto.LightningDetailUpdateRequestDTO;
 import com.taiso.bike_api.exception.LightningFullMemberException;
 import com.taiso.bike_api.exception.LightningNotFoundException;
 import com.taiso.bike_api.exception.NotPermissionException;
-import com.taiso.bike_api.repository.LightningDetailRepository;
-import com.taiso.bike_api.repository.LightningTagCategoryRepository;
-import com.taiso.bike_api.repository.UserRepository;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -36,6 +29,12 @@ public class LightningDetailService {
 
     @Autowired
     LightningTagCategoryRepository lightningTagCategoryRepository;
+
+    @Autowired
+    UserDetailRepository userDetailRepository;
+
+    @Autowired
+    ClubRepository clubRepository;
 
     // 번개 수정 화면에 기존 정보 뿌리기
     public LightningDetailUpdateGetResponseDTO getUpdateLightningDetail(Long lightningId,
@@ -140,54 +139,127 @@ public class LightningDetailService {
     }
 
     // 번개 디테일 조회
-public LightningDetailGetResponseDTO getLightningDetail(Long lightningId) {
+    public LightningDetailGetResponseDTO getLightningDetail(Long lightningId) {
 
-    // DB에서 번개를 찾아옴
-    Optional<LightningEntity> temp = lightningDetailRepository.findById(lightningId);
+        // DB에서 번개를 찾아옴
+        LightningEntity temp = lightningDetailRepository.findById(lightningId)
+                .orElseThrow(() -> new NoSuchElementException("존재하지 않는 번개입니다."));
 
-    // 번개 미존재 처리
-    if (!temp.isPresent()) {
-        throw new LightningNotFoundException("존재하지 않는 번개 입니다.");
+        // 태그 String 빌드
+        Set<String> tagNames = temp.getTags().stream()
+                .map(LightningTagCategoryEntity::getName) // name 필드를 꺼내서 String으로 매핑
+                .collect(Collectors.toSet());
+
+        // 번개 생성자 조회
+        Long creatorId = temp.getCreatorId();
+        log.info("번개 생성자 아이디 : {}",creatorId);
+
+        // 번개 생성자 디테일 조회
+        UserDetailEntity creatorDetail = userRepository.findById(temp.getCreatorId())
+                .flatMap(user -> userDetailRepository.findById(user.getUserId()))
+                .orElseThrow(() -> new UserNotFoundException("존재하지 않는 유저입니다."));
+
+        // 번개 생성자 DTO 생성
+        LightningDetailCreatorDTO creatorDTO = LightningDetailCreatorDTO.builder()
+                .userId(creatorDetail.getUserId())
+                .creatorNickname(creatorDetail.getUserNickname())
+                .creatorProfileImg(creatorDetail.getUserProfileImg())
+                .build();
+        log.info("번개 생성자 디테일 : {}",creatorDTO);
+
+        // 먼저 routeDTO와 clubDTO를 선언 (초기값은 null-> 값이 없을 수도 있으니까)
+        LightningDetailRouteDTO routeDTO = null;
+        LightningDetailClubDTO clubDTO = null;
+
+        // 번개 루트 빌드 (존재할때만)
+        if (temp.getRoute() != null) {
+            RouteEntity route = temp.getRoute();
+            log.info("번개 루트 : {}",route);
+
+                // 번개 루트 포인트 빌드 (존재할때만)
+                List<RoutePointDTO> routePointDTOs = new ArrayList<>();
+                for (RoutePointEntity entity : route.getRoutePoints()) {
+                    RoutePointDTO build = RoutePointDTO.builder()
+                            .route_point_id(String.valueOf(entity.getRoutePointId()))
+                            .sequence(entity.getSequence())
+                            .latitude(entity.getLatitude().floatValue())
+                            .longitude(entity.getLongitude().floatValue())
+                            .elevation(entity.getElevation().floatValue())
+                            .build();
+                    routePointDTOs.add(build);
+                }
+            // 번개 루트 Entity -> DTO (존재할때만)
+            routeDTO = LightningDetailRouteDTO.builder()
+                    .routeId(temp.getRoute().getRouteId())
+                    .routeName(temp.getRoute().getRouteName())
+                    .routeImgId(temp.getRoute().getRouteImgId())
+                    .originalFilePath(temp.getRoute().getOriginalFilePath())
+                    .fileName(temp.getRoute().getFileName())
+                    .fileType(temp.getRoute().getFileType().toString())
+                    .routePoints(routePointDTOs)
+                    .build();
+        }
+
+        // 번개에 연결된 클럽정보 빌드 (존재할때만)
+        if (temp.getIsClubOnly()) {
+            Optional<ClubEntity> temp3 = clubRepository.findById(temp.getClubId());
+            if (temp3.isEmpty()) {
+                throw new NoSuchElementException("존재하지 않는 클럽 입니다.");
+            }
+            // 빌드
+            clubDTO = LightningDetailClubDTO.builder()
+                    .clubId(temp3.get().getClubId())
+                    .clubName(temp3.get().getClubName())
+                    .build();
+        }
+
+        // 번개 참여자 빌드
+        List<LightningDetailMemberDTO> memberDTOs = new ArrayList<>();
+        for (LightningUserEntity entity : temp.getLightningUsers()) {
+            // 유저별 디테일 정보 조회
+            Long memberId = entity.getUser().getUserId();
+            Optional<UserDetailEntity> user = userDetailRepository.findByUserId(memberId);
+            //빌드
+            LightningDetailMemberDTO build = LightningDetailMemberDTO.builder()
+                    .lightningUserId(entity.getLightningUserId())
+                    .participantStatus(entity.getParticipantStatus().name())
+                    .role(entity.getRole().name())
+                    .memberNickname(user.get().getUserNickname())
+                    .memberProfileImg(user.get().getUserProfileImg())
+                    .build();
+            memberDTOs.add(build);
+        }
+
+        // entity -> dto
+        LightningDetailGetResponseDTO lightningDetailGetResponseDTO = LightningDetailGetResponseDTO.builder()
+                .lightningId(temp.getLightningId())
+                .title(temp.getTitle())
+                .description(temp.getDescription())
+                .eventDate(temp.getEventDate())
+                .duration(temp.getDuration())
+                .createdAt(temp.getCreatedAt())
+                .updatedAt(temp.getUpdatedAt())
+                .status(temp.getStatus().name())
+                .capacity(temp.getCapacity())
+                .latitude(temp.getLatitude())
+                .longitude(temp.getLongitude())
+                .gender(temp.getGender().name())
+                .level(temp.getLevel().name())
+                .bikeType(temp.getBikeType().name())
+                .region(temp.getRegion().name())
+                .recruitType(temp.getRecruitType().name())
+                .distance(temp.getDistance())
+                .address(temp.getAddress())
+                .creatorId(temp.getCreatorId())
+                .creator(creatorDTO)
+                .route(routeDTO)
+                .isClubOnly(temp.getIsClubOnly())
+                .club(clubDTO)
+                .lightningUserId(temp.getLightningId())
+                .member(memberDTOs)
+                .lightningTag(tagNames)
+                .build();
+
+        return lightningDetailGetResponseDTO;
     }
-
-    // 태그를 String 형태로 변환
-    Set<String> tagNames = temp.get().getTags().stream()
-            .map(LightningTagCategoryEntity::getName) // name 필드를 꺼내서 String으로 매핑
-            .collect(Collectors.toSet());
-
-    // entity -> dto
-    LightningEntity lightning = temp.get();
-
-    // route 객체가 null인지 체크 후 처리
-    Long routeId = null;
-    if (lightning.getRoute() != null) {
-        routeId = lightning.getRoute().getRouteId();
-    }
-
-    LightningDetailGetResponseDTO lightningDetailGetResponseDTO = LightningDetailGetResponseDTO.builder()
-            .lightningId(lightning.getLightningId())
-            .creatorId(lightning.getCreatorId())
-            .title(lightning.getTitle())
-            .description(lightning.getDescription())
-            .eventDate(lightning.getEventDate())
-            .duration(lightning.getDuration())
-            .createdAt(lightning.getCreatedAt())
-            .status(lightning.getStatus().toString())
-            .capacity(lightning.getCapacity())
-            .latitude(lightning.getLatitude())
-            .longitude(lightning.getLongitude())
-            .gender(lightning.getGender().toString())
-            .level(lightning.getLevel().toString())
-            .recruitType(lightning.getRecruitType().toString())
-            .bikeType(lightning.getBikeType().toString())
-            .region(lightning.getRegion().toString())
-            .distance(lightning.getDistance())
-            .routeId(routeId)
-            .address(lightning.getAddress())
-            .isClubOnly(lightning.getIsClubOnly())
-            .lightningTag(tagNames)
-            .build();
-
-    return lightningDetailGetResponseDTO;
-}
 }

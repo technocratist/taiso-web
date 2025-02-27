@@ -3,6 +3,8 @@ package com.taiso.bike_api.dto;
 import com.taiso.bike_api.domain.RouteEntity;
 import lombok.*;
 
+import java.util.List;
+
 @Getter
 @Setter
 @Builder
@@ -19,6 +21,6 @@ public class LightningDetailRouteDTO {
     private String fileName;
     private String fileType;
 
-    private RoutePointDTO routePoints;
+    private List<RoutePointDTO> routePoints;
 
 }

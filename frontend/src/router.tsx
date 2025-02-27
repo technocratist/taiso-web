@@ -13,8 +13,11 @@ import NotFoundErrorPage from "./pages/error/NotFoundErrorPage";
 import LightningPage from "./pages/LightningPage";
 import LightningPostPage from "./pages/lightning/LightningPostPage";
 import RoutePostPage from "./pages/route/RoutePostPage";
-import LightningDetailPage from "./pages/lightning/LightningDetailPage";
-
+import LightningDetailPage from "./pages/lightning/lightningDetailPage";
+import AuthRoute from "./AuthRoute";
+import UserOnboardingPage from "./pages/auth/UserOnboardingPage";
+import UserDetailPage from "./pages/UserDetailPage";
+import UserAccountPage from "./pages/UserAccountPage";
 
 const router = createBrowserRouter([
   {
@@ -23,14 +26,16 @@ const router = createBrowserRouter([
     children: [
       // 인증 없이 접근 가능한 페이지들
       { path: "", element: <MainPage /> },
-      { path: "landing", element: <LandingPage /> },
-      { path: "login", element: <LoginPage /> },
-      { path: "register", element: <RegisterPage /> },
+
+      //온보딩 테스트 페이지
+      { path: "onboarding", element: <UserOnboardingPage /> },
+
       { path: "oauth/callback", element: <OAuthCallback /> },
       {
         path: "lightning",
         children: [
           { path: "", element: <LightningPage /> },
+          { path: ":lightningId", element: <LightningDetailPage /> },
           // 인증 필요한 post 라우트는 아래 ProtectedRoute에서 다룸
         ],
       },
@@ -45,6 +50,10 @@ const router = createBrowserRouter([
         path: "club",
         children: [{ path: "", element: <ClubPage /> }],
       },
+      {
+        path: "user",
+        children: [{ path: ":userId", element: <UserDetailPage /> }],
+      },
       // 인증 후에만 접근 가능한 post 관련 페이지들
       {
         element: <ProtectedRoute />,
@@ -57,8 +66,28 @@ const router = createBrowserRouter([
             path: "route",
             children: [{ path: "post", element: <RoutePostPage /> }],
           },
+          {
+            path: "user",
+            children: [
+              { path: "me/account", element: <UserAccountPage /> },
+              // { path: "me/lightning-reservation", element: <UserLightningPage /> },
+              // { path: "me/club", element: <UserClubPage /> },
+              // { path: "me/route", element: <UserRoutePage /> },
+              // { path: "me/bookmark", element: <UserBookmarkPage /> },
+            ],
+          },
         ],
       },
+    ],
+  },
+  // 로그인 등 인증로직 처리
+  {
+    path: "auth",
+    element: <AuthRoute />,
+    children: [
+      { path: "landing", element: <LandingPage /> },
+      { path: "login", element: <LoginPage /> },
+      { path: "register", element: <RegisterPage /> },
     ],
   },
   {

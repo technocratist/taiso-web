@@ -65,7 +65,7 @@ function DateCarousel({ range = 7, onDateChange }: DateCarouselProps) {
   };
 
   return (
-    <div className="flex items-center justify-center space-x-4">
+    <div className="flex items-center justify-center space-x-4 mt-4">
       {/* 왼쪽 화살표 버튼 (과거 이동) */}
       <button className="btn btn-circle no-animation" onClick={handlePrev}>
         <svg

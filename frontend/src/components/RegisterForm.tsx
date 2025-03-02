@@ -16,6 +16,12 @@ function RegisterForm() {
   const [passwordConfirmError, setPasswordConfirmError] = useState<string>("");
   const [error, setError] = useState<string>("");
 
+  // 중복 체크 관련 상태: null은 아직 체크 안함, true면 사용가능, false면 중복
+  const [isEmailAvailable, setIsEmailAvailable] = useState<boolean | null>(
+    null
+  );
+  const [emailDuplicateError, setEmailDuplicateError] = useState<string>("");
+
   const [loading, setLoading] = useState(false);
 
   // 인풋 터치 여부
@@ -30,16 +36,15 @@ function RegisterForm() {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const passwordRegex = /^(?=.*[a-zA-Z])(?=.*[0-9]).{8,25}$/;
 
-  // 인풋 스타일 (서버 에러 존재 시 우선 에러 스타일 적용)
+  // 이메일 인풋 스타일: 에러가 있으면 input-error, 중복 체크 성공 시에만 input-success 적용
   const emailInputClass = `input input-bordered w-full flex items-center gap-2 ${
-    error
+    error || emailDuplicateError
       ? "input-error"
-      : emailTouched && email.length > 0
-      ? emailRegex.test(email)
-        ? "input-success"
-        : "input-error"
+      : isEmailAvailable === true
+      ? "input-success"
       : ""
   }`;
+
   const passwordInputClass = `input input-bordered w-full flex items-center gap-2 ${
     error
       ? "input-error"
@@ -59,6 +64,7 @@ function RegisterForm() {
       : ""
   }`;
 
+  // 회원가입 제출 처리
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -103,6 +109,32 @@ function RegisterForm() {
     }
   };
 
+  // 이메일 중복 체크 함수 (백엔드 API: 중복이면 true, 아니면 false)
+  const checkEmail = async () => {
+    // 이메일 포맷 검증 후 체크 진행
+    if (!emailRegex.test(email)) {
+      setEmailDuplicateError("유효한 이메일 주소를 입력해 주세요!");
+      setIsEmailAvailable(false);
+      return;
+    }
+    try {
+      const isDuplicate = await authService.checkEmail(email);
+      if (isDuplicate) {
+        // 중복이면 사용 불가
+        setIsEmailAvailable(false);
+        setEmailDuplicateError("이미 등록된 이메일입니다.");
+      } else {
+        // 중복이 아니면 사용 가능
+        setIsEmailAvailable(true);
+        setEmailDuplicateError("");
+      }
+    } catch (err: any) {
+      console.error(err);
+      setIsEmailAvailable(false);
+      setEmailDuplicateError("이메일 중복 확인에 실패했습니다.");
+    }
+  };
+
   return (
     <form
       onSubmit={handleSubmit}
@@ -111,40 +143,61 @@ function RegisterForm() {
       <label className="label text-sm text-gray-500 mr-auto" htmlFor="email">
         이메일
       </label>
-      <label className={emailInputClass}>
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 16 16"
-          fill="currentColor"
-          className="h-4 w-4 opacity-70"
+      {/* 이메일 인풋과 중복 체크 버튼을 같은 행에 배치 */}
+      <div className="flex items-center gap-2 w-full">
+        <label className={emailInputClass}>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 16 16"
+            fill="currentColor"
+            className="h-4 w-4 opacity-70"
+          >
+            <path d="M2.5 3A1.5 1.5 0 0 0 1 4.5v.793c.026.009.051.02.076.032L7.674 8.51c.206.1.446.1.652 0l6.598-3.185A.755.755 0 0 1 15 5.293V4.5A1.5 1.5 0 0 0 13.5 3h-11Z" />
+            <path d="M15 6.954 8.978 9.86a2.25 2.25 0 0 1-1.956 0L1 6.954V11.5A1.5 1.5 0 0 0 2.5 13h11a1.5 1.5 0 0 0 1.5-1.5V6.954Z" />
+          </svg>
+          <input
+            id="email"
+            placeholder="이메일"
+            value={email}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              // 사용자가 이메일을 수정하면 중복체크 결과 초기화
+              setIsEmailAvailable(null);
+              setEmailDuplicateError("");
+              if (emailError && emailRegex.test(e.target.value)) {
+                setEmailError("");
+              }
+            }}
+            onBlur={() => {
+              setEmailTouched(true);
+              if (email.length > 0 && !emailRegex.test(email)) {
+                setEmailError("유효한 이메일 주소를 입력해 주세요!");
+              } else {
+                setEmailError("");
+              }
+            }}
+            className="w-full"
+          />
+        </label>
+        <button
+          type="button"
+          onClick={checkEmail}
+          disabled={!email}
+          className="btn "
         >
-          <path d="M2.5 3A1.5 1.5 0 0 0 1 4.5v.793c.026.009.051.02.076.032L7.674 8.51c.206.1.446.1.652 0l6.598-3.185A.755.755 0 0 1 15 5.293V4.5A1.5 1.5 0 0 0 13.5 3h-11Z" />
-          <path d="M15 6.954 8.978 9.86a2.25 2.25 0 0 1-1.956 0L1 6.954V11.5A1.5 1.5 0 0 0 2.5 13h11a1.5 1.5 0 0 0 1.5-1.5V6.954Z" />
-        </svg>
-        <input
-          id="email"
-          placeholder="이메일"
-          value={email}
-          onChange={(e) => {
-            setEmail(e.target.value);
-            if (emailError && emailRegex.test(e.target.value)) {
-              setEmailError("");
-            }
-          }}
-          onBlur={() => {
-            setEmailTouched(true);
-            if (email.length > 0 && !emailRegex.test(email)) {
-              setEmailError("유효한 이메일 주소를 입력해 주세요!");
-            } else {
-              setEmailError("");
-            }
-          }}
-          className="w-full"
-        />
-      </label>
-      {emailError && (
+          중복 체크
+        </button>
+      </div>
+      {/* 에러 메시지가 있으면 하나의 스팬에 표시 */}
+      {(emailError || emailDuplicateError) && (
         <span className="mt-2 text-sm text-red-400 text-left w-full">
-          {emailError}
+          {emailError || emailDuplicateError}
+        </span>
+      )}
+      {/* 에러가 없고, 중복 체크에 성공한 경우 성공 메시지 표시 */}
+      {!emailError && !emailDuplicateError && isEmailAvailable && (
+        <span className="mt-2 text-sm text-green-400 text-left w-full">
+          사용 가능한 이메일입니다.
         </span>
       )}
 

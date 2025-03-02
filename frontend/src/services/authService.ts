@@ -60,6 +60,10 @@ const authCheck = async (): Promise<void> => {
   return await get("/auth/me");
 };
 
+const checkEmail = async (email: string): Promise<boolean> => {
+  return await get(`/auth/check-email?email=${email}`);
+};
+
 export default {
   login,
   register,
@@ -67,4 +71,5 @@ export default {
   authTest,
   kakaoLogin,
   authCheck,
+  checkEmail,
 };

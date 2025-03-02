@@ -1,7 +1,6 @@
 package com.taiso.bike_api.controller;
 
 import java.util.List;
-import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -16,7 +15,7 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.taiso.bike_api.domain.LightningEntity.LightningStatus;
+import com.taiso.bike_api.domain.LightningUserEntity.ParticipantStatus;
 import com.taiso.bike_api.dto.UserDetailRequestDTO;
 import com.taiso.bike_api.dto.UserDetailResponseDTO;
 import com.taiso.bike_api.dto.UserLightningsGetResponseDTO;
@@ -73,7 +72,7 @@ public class UserController {
 
     @GetMapping("/users/me/lightnings")
     public ResponseEntity<List<UserLightningsGetResponseDTO>> getUserLightnings(
-        @RequestParam(name = "status") LightningStatus status
+        @RequestParam(name = "status") List<ParticipantStatus> status
         , @AuthenticationPrincipal String userEmail) {
         return ResponseEntity.status(HttpStatus.OK).body(userService.getUserLightnings(status, userEmail));
     }

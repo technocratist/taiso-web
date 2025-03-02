@@ -6,6 +6,7 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.taiso.bike_api.domain.LightningEntity;
+import com.taiso.bike_api.domain.LightningEntity.LightningStatus;
 import com.taiso.bike_api.domain.LightningUserEntity;
 import com.taiso.bike_api.domain.LightningUserEntity.ParticipantStatus;
 import com.taiso.bike_api.domain.UserEntity;
@@ -21,8 +22,8 @@ public interface LightningUserRepository extends JpaRepository<LightningUserEnti
 
     List<LightningUserEntity> findAllByLightning_LightningId(Long lightningId);
 
-    List<LightningUserEntity> findByUserAndStatus(UserEntity user, ParticipantStatus status);
-
     Optional<UserEntity> findByLightning(LightningEntity lightning);
+
+    List<LightningUserEntity> findByUserAndStatusIn(UserEntity user, List<ParticipantStatus> status);
 
 }

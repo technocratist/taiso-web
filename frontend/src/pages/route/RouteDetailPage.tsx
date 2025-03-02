@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import AltitudeChart from "../../components/AltitudeChart";
 import KakaoMapRoute from "../../components/KakaoMap";
 import { useAuthStore } from "../../stores/useAuthStore";
+import RouteViewer from "../../components/RouteViewer";
 
 function RouteDetailPage() {
   const { routeId } = useParams();
@@ -65,13 +66,7 @@ function RouteDetailPage() {
 
   return (
     <div className="flex flex-col mt-2 gap-2 md:w-full w-[90%]">
-      {routeDetail && (
-        <KakaoMapRoute
-          key={routeDetail.routeId}
-          routePoints={routeDetail.routePoint}
-        />
-      )}
-      {routeDetail && <AltitudeChart routePoints={routeDetail.routePoint} />}
+      <RouteViewer routePoints={routeDetail?.routePoint} />
       <div className="text-4xl font-bold ">{routeDetail?.routeName}</div>
       <div className="flex items-center gap-2 mt-4">
         {routeDetail?.tag.map((tag, index) => (

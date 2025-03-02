@@ -92,7 +92,7 @@ function RouteList({
             key={route.routeId}
             className="group"
           >
-            <div className="bg-base-100 w-full cursor-pointer hover:bg-base-200 p-3 rounded-2xl relative">
+            <div className="bg-base-100 w-full cursor-pointer p-3 rounded-2xl relative">
               <svg
                 data-slot="icon"
                 fill="none"

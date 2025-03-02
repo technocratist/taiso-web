@@ -1,5 +1,7 @@
 package com.taiso.bike_api.service;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -20,6 +22,7 @@ import com.taiso.bike_api.dto.UserLightningsGetResponseLightningDTO;
 import com.taiso.bike_api.dto.UserLightningsGetResponseTagsDTO;
 import com.taiso.bike_api.dto.UserLightningsGetResponseUsersDTO;
 import com.taiso.bike_api.exception.EmailAlreadyExistsException;
+import com.taiso.bike_api.exception.UserLightningsGetInvalidStatusException;
 import com.taiso.bike_api.exception.UserNotFoundException;
 import com.taiso.bike_api.repository.LightningUserRepository;
 import com.taiso.bike_api.repository.UserDetailRepository;
@@ -103,10 +106,16 @@ public class UserService {
         UserEntity user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new UserNotFoundException("존재하지 않는 사용자입니다."));
 
+        // 비정상적인 status: 완료와 승인이 함께 제시된다거나 하는 경우
+        if (status.stream().anyMatch(s -> s.equals(ParticipantStatus.완료))
+                && status.stream().anyMatch(s -> List.of(ParticipantStatus.승인, ParticipantStatus.신청대기, ParticipantStatus.탈퇴).contains(s))) {
+            throw new UserLightningsGetInvalidStatusException("잘못된 참가상태조건 요청입니다.");
+        }
+
         // 예약/완료 번개 리스트 조회
         // 예약인 경우 ParticipantStatus 신청대기, 승인, 탈퇴
         // 완료인 경우 ParticipantStatus 완료
-        List<LightningUserEntity> lightningUserEntityList = lightningUserRepository.findByUserAndStatusIn(user, status);
+        List<LightningUserEntity> lightningUserEntityList = lightningUserRepository.findByUserAndParticipantStatusIn(user, status);
 
         // LightningUserEntity 리스트를 UserLightningsGetResponseDTO 리스트로 변환
         // List라서 null인 경우에 stream을 제한하는 예외처리를 해야하려나?
@@ -122,11 +131,13 @@ public class UserService {
                                                                                                                                     .capacity(lightningUserEntity.getLightning().getCapacity())
                                                                                                                                     .build())
                                                                                     .users(UserLightningsGetResponseUsersDTO.builder()
-                                                                                                                            .userId(lightningUserRepository.findByLightning(lightningUserEntity.getLightning())
+                                                                                                                            .userId(lightningUserRepository.findByLightningAndParticipantStatusIn(
+                                                                                                                                lightningUserEntity.getLightning()
+                                                                                                                                , new ArrayList<>(Arrays.asList(ParticipantStatus.승인, ParticipantStatus.완료)))
                                                                                                                                                            .stream()
-                                                                                                                                                           .map(entity -> entity.getUserId())
-                                                                                                                                                           .collect(Collectors.toSet()))  
-                                                                                                                                                           .build())
+                                                                                                                                                           .map(entity -> entity.getUser().getUserId())
+                                                                                                                                                           .collect(Collectors.toSet()))
+                                                                                                                            .build())
                                                                                     .tags(UserLightningsGetResponseTagsDTO.builder()
                                                                                                                           .tags(lightningUserEntity.getLightning().getTags().stream().map(
                                                                                                                                tag -> tag.getName())

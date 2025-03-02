@@ -14,7 +14,6 @@ import lombok.ToString;
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString
-
 @Builder
 public class RouteResponseDTO {
 
@@ -26,6 +25,7 @@ public class RouteResponseDTO {
     private List<String> tag;         // not required field
     private Float distance;           // not required field (unit: km)
     private Float altitude;           // not required field (unit: m)
+    private String region;      // not required field (unit: m)
     private String distanceType;      // e.g., 단거리, 장거리, optional
     private String altitudeType;      // e.g., 클라이밍, 평지, optional
     private String roadType;          // e.g., 자전거 도로, 국도, optional

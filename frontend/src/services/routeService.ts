@@ -96,13 +96,14 @@ const getRouteList = async (
   page: number,
   size: number,
   sort: string,
+  region: string,
   distanceType: string,
   altitudeType: string,
   roadType: string,
-  tag: string[]
+  tags: string[]
 ): Promise<RouteListPageResponse> => {
   return await get(
-    `/routes/?page=${page}&size=${size}&sort=${sort}&distanceType=${distanceType}&altitudeType=${altitudeType}&roadType=${roadType}&tag=${tag}`
+    `/routes/?page=${page}&size=${size}&sort=${sort}&region=${region}&distanceType=${distanceType}&altitudeType=${altitudeType}&roadType=${roadType}&tag=${tags}`
   );
 };
 

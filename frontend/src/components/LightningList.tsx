@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 // 데이터 불러오기
 import lightningService, {
+  Lightning,
   LightningListResponse,
 } from "../services/lightningService";
 // 이미지 요청 관련
@@ -11,9 +12,8 @@ function LightningList() {
   const PAGE_SIZE = 8;
   // 로딩값
   const [isLoading, setIsLoading] = useState(false);
-  const [lightningList, setLightningList] = useState<LightningListResponse[]>(
-    []
-  );
+  const [showLoader, setShowLoader] = useState(false); // Add state for delayed loader
+  const [lightningList, setLightningList] = useState<Lightning[]>([]);
   // 페이지 관련 변경 값
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
@@ -30,15 +30,22 @@ function LightningList() {
 
   // 비동기 데이터 불러오기
   const fetchLightningList = async () => {
+    let loaderTimer: NodeJS.Timeout | null = null;
+
     try {
       setIsLoading(true);
+
+      // Set a timer to show loader after 300ms if the request is still ongoing
+      loaderTimer = setTimeout(() => {
+        setShowLoader(true);
+      }, 300);
+
       const data = await lightningService.getLightningList(
         page,
         PAGE_SIZE,
         sort
       );
       setIsLastPage(data.last);
-      // 페이지 0일 때는 초기화, 그렇지 않으면 기존 데이터에 추가
       setLightningList((prev) =>
         page === 0 ? data.content : [...prev, ...data.content]
       );
@@ -51,7 +58,12 @@ function LightningList() {
     } catch (err) {
       navigate("/error");
     } finally {
+      // Clear the timer if it exists
+      if (loaderTimer) {
+        clearTimeout(loaderTimer);
+      }
       setIsLoading(false);
+      setShowLoader(false);
     }
   };
 
@@ -59,6 +71,8 @@ function LightningList() {
   useEffect(() => {
     fetchLightningList();
   }, [page, sort]);
+
+  console.log(lightningList);
 
   const handleLoadMore = () => {
     setPage((prev) => prev + 1);
@@ -72,7 +86,7 @@ function LightningList() {
 
   // 날짜 포멧팅
   const formatDate = (date: string | number | Date) => {
-    const options = {
+    const options: Intl.DateTimeFormatOptions = {
       month: "long",
       day: "numeric",
       hour: "numeric",
@@ -86,85 +100,117 @@ function LightningList() {
       .replace("오후", "");
   };
 
-  // 선택용 날짜/요일 출력
+  const renderStatusButton = (status: string) => {
+    switch (status) {
+      case "모집":
+        return (
+          <button className="btn btn-outline btn-success sm:w-[150px] no-animation">
+            참가
+          </button>
+        );
+      case "마감":
+        return (
+          <button className="btn btn-outline btn-error sm:w-[150px] no-animation">
+            마감
+          </button>
+        );
+      case "종료":
+      default:
+        return (
+          <button className="btn sm:w-[150px] no-animation" disabled>
+            종료
+          </button>
+        );
+    }
+  };
 
   return (
     <div className="flex flex-col">
-      <div className="divider">lightning</div>
-      <div className="flex flex-wrap justify-center gap-2">
+      <div className="flex flex-wrap justify-center gap-2 mt-4">
         {lightningList.map((lightning) => (
-          <div
-            key={lightning.lightningId}
-            className="card card-side bg-base-100 shadow-xl w-full"
-          >
-            <figure>
-              <ImageWithSkeleton
-                src={lightning.routeImgId}
-                alt={lightning.title}
-              />
-            </figure>
-            <div className="card-body">
-              <div>
-                <p>
-                  {formatDate(lightning.eventDate)} ({lightning.duration}분)
-                </p>
-                <h2 className="card-title">{lightning.title}</h2>
-                <p>{lightning.address}</p>
-                <p>
-                  {lightning.capacity}/{lightning.capacity}명
-                </p>
-                <div>
-                  <div className="badge badge-primary badge-outline">
-                    {lightning.gender}
-                  </div>
-                  <div className="badge badge-primary badge-outline">
-                    {lightning.level}
-                  </div>
-                  <div className="badge badge-primary badge-outline">
-                    {lightning.bikeType}
+          <div key={lightning.lightningId} className="w-[90%]">
+            <Link to={`/lightning/${lightning.lightningId}`}>
+              <div className="bg-base-100 w-full flex items-center">
+                <figure className="size-40 flex items-center justify-center ml-4 relative">
+                  <ImageWithSkeleton
+                    src={lightning.routeImgId}
+                    alt={lightning.title}
+                  />
+                </figure>
+                <div className="flex flex-col p-2 ml-6">
+                  <div className="flex flex-col ">
+                    <div className="text-xs text-gray-500">
+                      {formatDate(lightning.eventDate)} ({lightning.duration}분)
+                    </div>
+                    <div className="text-lg font-semibold">
+                      {lightning.title}
+                    </div>
+                    <div className="text-sm text-gray-500 flex items-center gap-1">
+                      <svg
+                        data-slot="icon"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                        xmlns="http://www.w3.org/2000/svg"
+                        aria-hidden="true"
+                        className="size-4"
+                      >
+                        <path
+                          clip-rule="evenodd"
+                          fill-rule="evenodd"
+                          d="m9.69 18.933.003.001C9.89 19.02 10 19 10 19s.11.02.308-.066l.002-.001.006-.003.018-.008a5.741 5.741 0 0 0 .281-.14c.186-.096.446-.24.757-.433.62-.384 1.445-.966 2.274-1.765C15.302 14.988 17 12.493 17 9A7 7 0 1 0 3 9c0 3.492 1.698 5.988 3.355 7.584a13.731 13.731 0 0 0 2.273 1.765 11.842 11.842 0 0 0 .976.544l.062.029.018.008.006.003ZM10 11.25a2.25 2.25 0 1 0 0-4.5 2.25 2.25 0 0 0 0 4.5Z"
+                        ></path>
+                      </svg>
+                      {lightning.address}
+                    </div>
+                    <div className="text-sm text-gray-500 flex items-center gap-1 ">
+                      <svg
+                        data-slot="icon"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                        xmlns="http://www.w3.org/2000/svg"
+                        aria-hidden="true"
+                        className="size-4"
+                      >
+                        <path d="M10 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM3.465 14.493a1.23 1.23 0 0 0 .41 1.412A9.957 9.957 0 0 0 10 18c2.31 0 4.438-.784 6.131-2.1.43-.333.604-.903.408-1.41a7.002 7.002 0 0 0-13.074.003Z"></path>
+                      </svg>
+                      {lightning.capacity}/{lightning.capacity}명
+                    </div>
+                    <div className="flex flex-wrap gap-1 mt-2">
+                      <div className="badge badge-primary badge-outline">
+                        {lightning.gender}
+                      </div>
+                      <div className="badge badge-primary badge-outline">
+                        {lightning.level}
+                      </div>
+                      <div className="badge badge-primary badge-outline">
+                        {lightning.bikeType}
+                      </div>
+                      {lightning.tags.map((tag, index) => (
+                        <div
+                          key={index}
+                          className="badge badge-primary badge-outline"
+                        >
+                          {tag}
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
+                <div className="p-4 mt-auto ml-auto flex items-center justify-center">
+                  <Link
+                    to={`/lightning/${lightning.lightningId}`}
+                    className="group"
+                  >
+                    {renderStatusButton(lightning.status)}
+                  </Link>
+                </div>
               </div>
-              <div className="card-actions justify-end">
-                <Link
-                  to={`/lightning/${lightning.lightningId}`}
-                  className="group"
-                >
-                  {(() => {
-                    switch (lightning.status) {
-                      case "모집":
-                        return (
-                          <button className="btn btn-outline btn-success w-[200px]">
-                            번개 참가
-                          </button>
-                        );
-                      case "마감":
-                        return (
-                          <button className="btn btn-outline btn-error w-[200px]">
-                            번개 마감
-                          </button>
-                        );
-                      case "종료":
-                        return (
-                          <button className="btn w-[200px]" disabled>
-                            번개 종료
-                          </button>
-                        );
-                      default:
-                        return (
-                          <button className="btn w-[200px]" disabled>
-                            번개 종료
-                          </button>
-                        );
-                    }
-                  })()}
-                </Link>
-              </div>
-            </div>
+            </Link>
+            <div className="divider w-full -my-2"></div>
           </div>
         ))}
       </div>
-      {isLoading && (
+      {isLoading && showLoader && (
         <div className="flex w-full justify-center mt-4">
           <div className="loading loading-dots loading-lg"></div>
         </div>

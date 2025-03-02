@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.taiso.bike_api.dto.KakaoAuthResultDTO;
@@ -168,6 +169,14 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
         return ResponseEntity.status(HttpStatus.OK).body(null);
+    }
+
+
+    // 회원가입 중복 체크
+    @GetMapping("/check-email")
+    @Operation(summary = "이메일 중복 체크", description = "이메일 중복 체크")
+    public ResponseEntity<Boolean> checkEmail(@RequestParam(name = "email") String email) {
+        return ResponseEntity.status(HttpStatus.OK).body(userService.checkEmail(email));
     }
 
 }

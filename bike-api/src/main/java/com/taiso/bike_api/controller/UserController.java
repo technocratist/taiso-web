@@ -5,7 +5,11 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+<<<<<<< HEAD
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+=======
+import org.springframework.security.core.Authentication;
+>>>>>>> main
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -18,9 +22,15 @@ import org.springframework.web.multipart.MultipartFile;
 import com.taiso.bike_api.domain.LightningUserEntity.ParticipantStatus;
 import com.taiso.bike_api.dto.UserDetailRequestDTO;
 import com.taiso.bike_api.dto.UserDetailResponseDTO;
+<<<<<<< HEAD
 import com.taiso.bike_api.dto.UserLightningsGetResponseDTO;
 import com.taiso.bike_api.service.UserDetailService;
 import com.taiso.bike_api.service.UserService;
+=======
+import com.taiso.bike_api.dto.UserLightningReviewResponseDTO;
+import com.taiso.bike_api.service.UserDetailService;
+import com.taiso.bike_api.service.UserReviewService;
+>>>>>>> main
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -36,6 +46,9 @@ public class UserController {
 
     @Autowired
     private UserDetailService userDetailService;
+    
+    @Autowired
+    private UserReviewService userReviewService;
 
     @Autowired
     private UserService userService;
@@ -70,6 +83,7 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.CREATED).body(userDetailResponseDTO);
     }
 
+<<<<<<< HEAD
     @GetMapping("/users/me/lightnings")
     public ResponseEntity<List<UserLightningsGetResponseDTO>> getUserLightnings(
         @RequestParam(name = "status") List<ParticipantStatus> status
@@ -77,4 +91,21 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.OK).body(userService.getUserLightnings(status, userEmail));
     }
     
+=======
+    
+    // 리뷰 목록 출력 - 내가 작성한 회원 리뷰 조회
+    @GetMapping("/lightnings/reviews")
+    @Operation(summary = "내 페이지 정보 조회", description = "회원 프로필 페이지 정보 조회")
+//    public void reviews(
+    public ResponseEntity<List<UserLightningReviewResponseDTO>> reviews(
+			Authentication authentication
+    		) {
+    	List<UserLightningReviewResponseDTO> response = userReviewService.myLightningReviews(authentication);
+
+    	
+//    	log.info("Controller response == {}",response);
+    	return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+>>>>>>> main
 }

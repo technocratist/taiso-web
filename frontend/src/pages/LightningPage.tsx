@@ -7,14 +7,14 @@ import { useState } from "react";
 function LightningPage() {
   const [selectedDate, setSelectedDate] = useState(new Date());
 
+  console.log(selectedDate);
+
   return (
     <div className="min-h-screen flex flex-col">
       <MainNavbar />
-      <Link to="/lightning/post" className="btn">
-        루트 등록 test
-      </Link>
+
       <DateCarousel onDateChange={(date) => setSelectedDate(date)} />
-      <div>{selectedDate?.toDateString()}</div>
+      {/* <div>{selectedDate?.toDateString()}</div> */}
       <div className="flex-1 w-full mx-auto ">
         <div className="fixed bottom-8 right-10 z-50">
           {/*번개 생성 버튼*/}
@@ -31,7 +31,17 @@ function LightningPage() {
             </svg>
           </Link>
         </div>
-
+        <div className="flex justify-start mb-4 gap-2">
+          <div className="badge badge-primary badge-outline badge-lg text-sm cursor-pointer hover:bg-primary hover:text-white">
+            랭킹순
+          </div>
+          <div className="badge badge-primary badge-outline badge-lg text-sm cursor-pointer hover:bg-primary hover:text-white">
+            최신순
+          </div>
+          <div className="badge badge-primary badge-outline badge-lg text-sm cursor-pointer hover:bg-primary hover:text-white">
+            태그
+          </div>
+        </div>
         <LightningList />
       </div>
     </div>

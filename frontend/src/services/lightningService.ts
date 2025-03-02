@@ -1,34 +1,34 @@
-import { post, get, del } from "../api/request";
+import { post, get } from "../api/request";
 
 export interface LightningGetRequest {
-  gender: String;
-  level: String;
-  bikeType: String;
-  region: String;
-  tags: String[];
+  gender: string;
+  level: string;
+  bikeType: string;
+  region: string;
+  tags: string[];
 }
 
 // ResponseComponent 타입 정의
-export interface ResponseComponent {
+export interface Lightning {
   lightningId: number;
   creatorId: number;
-  title: String;
-  eventDate: String;
+  title: string;
+  eventDate: string;
   duration: number;
-  createdAt: String;
-  status: String;
+  createdAt: string;
+  status: string;
   capacity: number;
-  gender: String;
-  level: String;
-  bikeType: String;
-  tags: String[];
-  address: String;
-  routeImgId: String;
+  gender: string;
+  level: string;
+  bikeType: string;
+  tags: string[];
+  address: string;
+  routeImgId: string;
 }
 
 // LightningGetResponse 타입 정의
 export interface LightningListResponse {
-  content: ResponseComponent[];
+  content: Lightning[];
   pageNumber: number;
   pageSize: number;
   totalPages: number;
@@ -37,9 +37,9 @@ export interface LightningListResponse {
 }
 
 export interface LightningPostRequest {
-  title: String;
-  description: String;
-  eventDate: String;
+  title: string;
+  description: string;
+  eventDate: string;
   duration: number;
   capacity: number;
   latitude: number;
@@ -63,42 +63,40 @@ export interface LightningPostResponse {
 }
 
 export interface LightningDetailGetResponse {
-    lightningId: number;
-    creatorId: number;
+  lightningId: number;
+  creatorId: number;
 
+  title: string;
+  description: string;
+  eventDate: string;
+  duration: number;
+  createdAt: string;
+  status: string;
+  capacity: number;
+  latitude: number;
+  longitude: number;
 
-    title: String;
-    description: String;
-    eventDate: String;
-    duration: number;
-    createdAt: String;
-    status: String;
-    capacity: number;
-    latitude: number;
-    longitude: number;
+  gender: string;
+  level: string;
+  bikeType: string;
+  region: string;
+  recruitType: string;
 
-    gender: String;
-    level: String;
-    bikeType: String;
-    region: String;
-    recruitType: String;
+  distance: number;
+  routeId: number;
+  address: string;
+  routeImgId: string;
+  // 클럽 관련
+  isClubOnly: boolean;
+  clubId: number;
 
-    distance: number;
-    routeId: number;
-    address: String;
+  // 번개 참여자
+  lightningUserId: number;
 
-    // 클럽 관련
-    isClubOnly: Boolean;
-    clubId: number;
-
-    // 번개 참여자
-    lightningUserId: number;
-
-    // 번개 태그
-    tagId: number;
-    lightningTag: String[];
-    }
-
+  // 번개 태그
+  tagId: number;
+  lightningTag: string[];
+}
 
 const createLightning = async (
   payload: LightningPostRequest

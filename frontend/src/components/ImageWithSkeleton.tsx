@@ -11,7 +11,7 @@ function ImageWithSkeleton({ src, alt }: { src: string; alt: string }) {
         src={src}
         alt={alt}
         className={`object-cover w-full h-full transition-all duration-200 transform group-hover:scale-105  ${
-          loaded ? "opacity-100" : "opacity-0"
+          loaded ? "opacity-100" : "opacity-30"
         }`}
         onLoad={() => setLoaded(true)}
       />

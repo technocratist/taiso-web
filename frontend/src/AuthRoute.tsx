@@ -1,18 +1,19 @@
 import { Navigate, Outlet } from "react-router";
 import { useAuthStore } from "./stores/useAuthStore";
-import Navbar from "./components/Navbar";
+import AuthNavbar from "./components/AuthNavbar";
 
 function AuthRoute() {
   const { isAuthenticated } = useAuthStore();
   // 인증되어있는 경우 메인 페이지로 이동
   if (isAuthenticated) {
+    console.log("isAuthenticated", isAuthenticated);
     return <Navigate to="/" />;
   }
   return (
-    <>
-      <Navbar />
+    <div className="flex flex-col items-center justify-center max-w-screen-lg mx-auto">
+      <AuthNavbar />
       <Outlet />
-    </>
+    </div>
   );
 }
 

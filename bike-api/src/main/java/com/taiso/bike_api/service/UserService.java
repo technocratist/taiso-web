@@ -97,7 +97,6 @@ public class UserService {
         }
     }
 
-
     public List<UserLightningsGetResponseDTO> getUserLightnings(List<ParticipantStatus> status, String userEmail) {
 
         // 사용자 존재여부 확인
@@ -140,5 +139,10 @@ public class UserService {
         return userLightningsGetResponseDTOList;
     }
 
+    // 이메일 중복 체크
+    public boolean checkEmail(String email) {
+        Optional<UserEntity> user = userRepository.findByEmail(email);
+        return user.isPresent();
+    }
     
 } 

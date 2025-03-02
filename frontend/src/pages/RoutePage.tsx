@@ -26,7 +26,7 @@ const distanceTags: string[] = ["단거리", "중거리", "장거리"];
 
 const altitudeTags: string[] = ["마운틴", "힐리", "평지"];
 
-const roadTypeTags: string[] = ["산길", "공도", "자전거 도로"];
+const roadTypeTags: string[] = ["산길", "공도", "자전거도로"];
 function RoutePage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const sort: string = searchParams.get("sort") || "createdAt";
@@ -113,16 +113,16 @@ function RoutePage() {
   const getSortLink = (newSort: string): string => {
     const params = new URLSearchParams(searchParams.toString()); // 클론 생성
     params.set("sort", newSort);
-    return `/route/?${params.toString()}`;
+    return `/route?${params.toString()}`;
   };
 
   return (
     <div className="flex flex-col w-full">
       <MainNavbar />
       <div className="flex-1 mx-auto w-full">
-        <div className="flex items-center">
+        <div className="flex items-center mb-2">
           {/* 데이지UI 탭 컴포넌트를 이용한 정렬 UI */}
-          <div role="tablist" className="tabs tabs-boxed w-fit ml-8">
+          <div role="tablist" className="tabs tabs-boxed w-fit sm:ml-8 ml-4">
             <Link
               role="tab"
               to={getSortLink("createdAt")}

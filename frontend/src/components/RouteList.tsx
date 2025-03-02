@@ -22,11 +22,11 @@ function RouteList({
 }: RouteListProps) {
   const PAGE_SIZE = 8;
   const [isLoading, setIsLoading] = useState(false);
+  const [showLoader, setShowLoader] = useState(false);
   const [routeList, setRouteList] = useState<RouteListResponse[]>([]);
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const navigate = useNavigate();
-
   const [isLastPage, setIsLastPage] = useState(false);
 
   // sort prop이 바뀌면 페이지와 목록을 초기화
@@ -37,8 +37,15 @@ function RouteList({
   }, [sort]);
 
   const fetchRouteList = async () => {
+    let loaderTimer: NodeJS.Timeout | null = null;
+
     try {
       setIsLoading(true);
+      // 요청이 300ms 이상 걸리면 loader 표시
+      loaderTimer = setTimeout(() => {
+        setShowLoader(true);
+      }, 300);
+
       const data = await routeService.getRouteList(
         page,
         PAGE_SIZE,
@@ -53,16 +60,16 @@ function RouteList({
       setRouteList((prev) =>
         page === 0 ? data.content : [...prev, ...data.content]
       );
-      if (data.content.length < PAGE_SIZE) {
-        setHasMore(false);
-      } else {
-        setHasMore(true);
-      }
+      setHasMore(data.content.length >= PAGE_SIZE);
     } catch (error) {
       console.error(error);
       navigate("/error");
     } finally {
+      if (loaderTimer) {
+        clearTimeout(loaderTimer);
+      }
       setIsLoading(false);
+      setShowLoader(false);
     }
   };
 
@@ -76,15 +83,16 @@ function RouteList({
   };
 
   return (
-    <div className="flex flex-col">
-      <div className="flex flex-wrap justify-center gap-2">
+    <div className="flex flex-col w-[95%] mx-auto">
+      {/* grid layout 적용: 모바일은 1열, sm은 2열, md는 3열, lg는 4열 */}
+      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 sm:gap-4">
         {routeList.map((route) => (
           <Link
             to={`/route/${route.routeId}`}
             key={route.routeId}
             className="group"
           >
-            <div className="bg-base-100 w-60 cursor-pointer hover:bg-base-200 p-3 rounded-2xl relative">
+            <div className="bg-base-100 w-full cursor-pointer hover:bg-base-200 p-3 rounded-2xl relative">
               <svg
                 data-slot="icon"
                 fill="none"
@@ -144,7 +152,7 @@ function RouteList({
           </Link>
         ))}
       </div>
-      {isLoading && (
+      {isLoading && showLoader && (
         <div className="flex w-full justify-center mt-4">
           <div className="loading loading-dots loading-lg"></div>
         </div>

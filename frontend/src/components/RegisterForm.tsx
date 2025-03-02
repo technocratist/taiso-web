@@ -25,7 +25,6 @@ function RegisterForm() {
   const [loading, setLoading] = useState(false);
 
   // 인풋 터치 여부
-  const [emailTouched, setEmailTouched] = useState(false);
   const [passwordTouched, setPasswordTouched] = useState(false);
   const [passwordConfirmTouched, setPasswordConfirmTouched] = useState(false);
 
@@ -169,7 +168,6 @@ function RegisterForm() {
               }
             }}
             onBlur={() => {
-              setEmailTouched(true);
               if (email.length > 0 && !emailRegex.test(email)) {
                 setEmailError("유효한 이메일 주소를 입력해 주세요!");
               } else {
@@ -196,7 +194,7 @@ function RegisterForm() {
       )}
       {/* 에러가 없고, 중복 체크에 성공한 경우 성공 메시지 표시 */}
       {!emailError && !emailDuplicateError && isEmailAvailable && (
-        <span className="mt-2 text-sm text-green-400 text-left w-full">
+        <span className="mt-2 text-sm text-green-500 text-left w-full">
           사용 가능한 이메일입니다.
         </span>
       )}

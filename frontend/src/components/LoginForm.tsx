@@ -17,7 +17,6 @@ function LoginForm() {
 
   // 인풋 터치 여부 추적
   const [emailTouched, setEmailTouched] = useState(false);
-  const [passwordTouched, setPasswordTouched] = useState(false);
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -141,7 +140,6 @@ function LoginForm() {
             setPassword(e.target.value);
             if (loginFailed) setLoginFailed(false);
           }}
-          onBlur={() => setPasswordTouched(true)}
           className="w-full"
         />
       </label>

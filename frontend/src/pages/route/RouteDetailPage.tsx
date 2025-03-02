@@ -65,8 +65,15 @@ function RouteDetailPage() {
 
   return (
     <div className="flex flex-col mt-2 gap-2 md:w-full w-[90%]">
-      <div className="text-4xl font-bold">{routeDetail?.routeName}</div>
-      <div className="flex items-center gap-1">
+      {routeDetail && (
+        <KakaoMapRoute
+          key={routeDetail.routeId}
+          routePoints={routeDetail.routePoint}
+        />
+      )}
+      {routeDetail && <AltitudeChart routePoints={routeDetail.routePoint} />}
+      <div className="text-4xl font-bold ">{routeDetail?.routeName}</div>
+      <div className="flex items-center gap-2 mt-4">
         {routeDetail?.tag.map((tag, index) => (
           <div key={index} className="badge badge-outline badge-primary">
             {tag}
@@ -82,7 +89,12 @@ function RouteDetailPage() {
           {routeDetail?.roadType}
         </div>
       </div>
-      <div className="flex items-center gap-1 hover:bg-base-200 p-1 rounded-md w-fit">
+      <div
+        className="flex items-center gap-1 hover:bg-base-200 p-1 rounded-md w-fit"
+        onClick={() =>
+          window.open(`${routeDetail?.originalFilePath}`, "_blank")
+        }
+      >
         <svg
           data-slot="icon"
           fill="currentColor"
@@ -95,13 +107,9 @@ function RouteDetailPage() {
         </svg>
         <div className="text-sm link">{routeDetail?.fileName}</div>
       </div>
-      {routeDetail && (
-        <KakaoMapRoute
-          key={routeDetail.routeId}
-          routePoints={routeDetail.routePoint}
-        />
-      )}
-      {routeDetail && <AltitudeChart routePoints={routeDetail.routePoint} />}
+      <div>설명: {routeDetail?.description}</div>
+      <div>고도: {routeDetail?.altitude}</div>
+      <div>거리: {routeDetail?.distance}</div>
 
       <div className="flex items-center justify-center gap-1">
         <button
@@ -152,9 +160,6 @@ function RouteDetailPage() {
           </button>
         </div>
       )}
-      <div>{routeDetail?.altitude}</div>
-      <div>{routeDetail?.description}</div>
-      <div>{routeDetail?.distance}</div>
     </div>
   );
 }

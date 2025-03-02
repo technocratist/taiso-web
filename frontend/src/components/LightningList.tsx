@@ -12,6 +12,7 @@ function LightningList() {
   const PAGE_SIZE = 8;
   // 로딩값
   const [isLoading, setIsLoading] = useState(false);
+  const [showLoader, setShowLoader] = useState(false); // Add state for delayed loader
   const [lightningList, setLightningList] = useState<Lightning[]>([]);
   // 페이지 관련 변경 값
   const [page, setPage] = useState(0);
@@ -29,8 +30,16 @@ function LightningList() {
 
   // 비동기 데이터 불러오기
   const fetchLightningList = async () => {
+    let loaderTimer: NodeJS.Timeout | null = null;
+
     try {
       setIsLoading(true);
+
+      // Set a timer to show loader after 300ms if the request is still ongoing
+      loaderTimer = setTimeout(() => {
+        setShowLoader(true);
+      }, 300);
+
       const data = await lightningService.getLightningList(
         page,
         PAGE_SIZE,
@@ -49,7 +58,12 @@ function LightningList() {
     } catch (err) {
       navigate("/error");
     } finally {
+      // Clear the timer if it exists
+      if (loaderTimer) {
+        clearTimeout(loaderTimer);
+      }
       setIsLoading(false);
+      setShowLoader(false);
     }
   };
 
@@ -109,15 +123,6 @@ function LightningList() {
         );
     }
   };
-
-  if (isLoading) {
-    return (
-      <div className="flex w-full justify-center mt-4">
-        <div className="loading loading-dots loading-lg"></div>
-      </div>
-    );
-  }
-  // 선택용 날짜/요일 출력
 
   return (
     <div className="flex flex-col">
@@ -205,7 +210,7 @@ function LightningList() {
           </div>
         ))}
       </div>
-      {isLoading && (
+      {isLoading && showLoader && (
         <div className="flex w-full justify-center mt-4">
           <div className="loading loading-dots loading-lg"></div>
         </div>

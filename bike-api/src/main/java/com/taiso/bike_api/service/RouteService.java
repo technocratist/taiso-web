@@ -1,5 +1,6 @@
 package com.taiso.bike_api.service;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -184,90 +185,88 @@ public class RouteService {
         }
     }
 
-    /** 
-      @param page 페이지 번호
-      @param size 페이지 크기
-      @param sort 정렬 기준
-      @param distanceType 거리 유형
-      @param altitudeType 고도 유형
-      @param roadType 도로 유형
-      @param tag 태그
-      @return RouteListResponseDTO 루트 리스트 응답 DTO
-      루트 리스트 조회
-    */
-    public RouteListResponseDTO getRouteList(int page, int size, String sort,
-                                             String distanceType, String altitudeType,
-                                             String roadType, String[] tag) {
-        // 정렬 기준 설정
-        Sort sortObj = Sort.unsorted();
-        if (!sort.isEmpty()) {
-            sortObj = Sort.by(sort).ascending();
-        }
-        // 페이지 요청 생성
-        Pageable pageable = PageRequest.of(page, size, sortObj);
+    // tag 필터링을 위한 Specification 생성 메서드
+private Specification<RouteEntity> buildTagSpecification(String[] tags) {
+    return (root, query, cb) -> {
+        Join<RouteEntity, RouteTagCategoryEntity> tagsJoin = root.join("tags", JoinType.INNER);
+        CriteriaBuilder.In<String> inClause = cb.in(tagsJoin.get("name"));
+        // 유효한 태그(널이 아니고 빈 문자열이 아닌 값)만 in절에 추가
+        Arrays.stream(tags)
+              .filter(tag -> tag != null && !tag.isEmpty())
+              .forEach(inClause::value);
+        return inClause;
+    };
+}
 
-        // 루트 리스트 조회 조건 설정 (specification 활용 참고)
-        Specification<RouteEntity> spec = Specification.where(null);
-
-        // 거리 유형 조건 설정 
-        if (distanceType != null && !distanceType.isEmpty()) {
-            spec = spec.and((root, query, cb) ->
-                    cb.equal(root.get("distanceType"), distanceType));
-        }
-        if (altitudeType != null && !altitudeType.isEmpty()) {
-            spec = spec.and((root, query, cb) ->
-                    cb.equal(root.get("altitudeType"), altitudeType));
-        }
-        if (roadType != null && !roadType.isEmpty()) {
-            spec = spec.and((root, query, cb) ->
-                    cb.equal(root.get("roadType"), roadType));
-        }
-        if (tag != null && tag.length > 0 && !tag[0].isEmpty()) {
-            spec = spec.and((root, query, cb) -> {
-                Join<RouteEntity, RouteTagCategoryEntity> tagsJoin = root.join("tags", JoinType.INNER);
-                CriteriaBuilder.In<String> inClause = cb.in(tagsJoin.get("name"));
-                for (String t : tag) {
-                    inClause.value(t);
-                }
-                return inClause;
-            });
-        }
-
-        // 루트 리스트 페이징 처리 
-        // 페이징의 경우 레포지토리에서 직접 재정의 하지 않아도, 레포지토리에서 제공하는 findAll 메소드를 사용하여 페이징 처리 가능
-        // spec의 경우에도 마찬가지로 레포지토리에서 JpaSpecificationExecutor 인터페이스를 직접 상속하여 사용 가능
-        Page<RouteEntity> routePage = routeRepository.findAll(spec, pageable);
-
-        // 루트 리스트 응답 DTO 생성
-        List<RouteResponseDTO> routeResponseDTO = routePage.getContent().stream()
-                .map(route -> new RouteResponseDTO(
-                        route.getRouteId(),
-                        route.getRouteImgId(),
-                        route.getUserId(),
-                        route.getRouteName(),
-                        route.getLikeCount(),
-                        route.getTags().stream()
-                                .map(RouteTagCategoryEntity::getName)
-                                .collect(Collectors.toList()),
-                        route.getDistance() != null ? route.getDistance().floatValue() : null,
-                        route.getAltitude() != null ? route.getAltitude().floatValue() : null,
-                        route.getDistanceType() != null ? route.getDistanceType().toString() : null,
-                        route.getAltitudeType() != null ? route.getAltitudeType().toString() : null,
-                        route.getRoadType() != null ? route.getRoadType().toString() : null,
-                        route.getCreatedAt() != null ? route.getCreatedAt().toString() : null
-                ))
-                .collect(Collectors.toList());
-                
-
-        return RouteListResponseDTO.builder()
-                .content(routeResponseDTO)
-                .pageNo(routePage.getNumber() + 1)
-                .pageSize(routePage.getSize())
-                .totalElements(routePage.getTotalElements())
-                .totalPages(routePage.getTotalPages())
-                .last(routePage.isLast())
-                .build();
+public RouteListResponseDTO getRouteList(int page, int size, String sort,
+                                         String region, String distanceType,
+                                         String altitudeType, String roadType, String[] tag) {
+    // 정렬 기준 설정
+    Sort sortObj = Sort.unsorted();
+    if (sort != null && !sort.isEmpty()) {
+        sortObj = Sort.by(sort).descending();
     }
+    // 페이지 요청 생성
+    Pageable pageable = PageRequest.of(page, size, sortObj);
+
+    // 루트 리스트 조회 조건 설정
+    Specification<RouteEntity> spec = Specification.where(null);
+
+    // 거리, 고도, 도로 유형 조건 설정
+    if (region != null && !region.isEmpty()) {
+        spec = spec.and((root, query, cb) ->
+                cb.equal(root.get("region"), region));
+    }
+    if (distanceType != null && !distanceType.isEmpty()) {
+        spec = spec.and((root, query, cb) ->
+                cb.equal(root.get("distanceType"), distanceType));
+    }
+    if (altitudeType != null && !altitudeType.isEmpty()) {
+        spec = spec.and((root, query, cb) ->
+                cb.equal(root.get("altitudeType"), altitudeType));
+    }
+    if (roadType != null && !roadType.isEmpty()) {
+        spec = spec.and((root, query, cb) ->
+                cb.equal(root.get("roadType"), roadType));
+    }
+    // 태그 조건이 유효한 경우 별도 메서드로 생성한 Specification 추가
+    if (tag != null && Arrays.stream(tag).anyMatch(t -> t != null && !t.isEmpty())) {
+        spec = spec.and(buildTagSpecification(tag));
+    }
+
+    // 페이징 처리 및 결과 조회
+    Page<RouteEntity> routePage = routeRepository.findAll(spec, pageable);
+
+    // 응답 DTO 생성
+    List<RouteResponseDTO> routeResponseDTO = routePage.getContent().stream()
+            .map(route -> new RouteResponseDTO(
+                    route.getRouteId(),
+                    route.getRouteImgId(),
+                    route.getUserId(),
+                    route.getRouteName(),
+                    route.getLikeCount(),
+                    route.getTags().stream()
+                            .map(RouteTagCategoryEntity::getName)
+                            .collect(Collectors.toList()),
+                    route.getDistance() != null ? route.getDistance().floatValue() : null,
+                    route.getAltitude() != null ? route.getAltitude().floatValue() : null,
+                    route.getRegion() != null ? route.getRegion().toString() : null,
+                    route.getDistanceType() != null ? route.getDistanceType().toString() : null,
+                    route.getAltitudeType() != null ? route.getAltitudeType().toString() : null,
+                    route.getRoadType() != null ? route.getRoadType().toString() : null,
+                    route.getCreatedAt() != null ? route.getCreatedAt().toString() : null
+            ))
+            .collect(Collectors.toList());
+
+    return RouteListResponseDTO.builder()
+            .content(routeResponseDTO)
+            .pageNo(routePage.getNumber() + 1)
+            .pageSize(routePage.getSize())
+            .totalElements(routePage.getTotalElements())
+            .totalPages(routePage.getTotalPages())
+            .last(routePage.isLast())
+            .build();
+}
     
     /** 
       @param routeId 루트 아이디

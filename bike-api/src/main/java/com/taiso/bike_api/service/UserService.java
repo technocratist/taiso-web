@@ -85,5 +85,14 @@ public class UserService {
         }
     }
 
+
+
+
+    // 이메일 중복 체크
+    public boolean checkEmail(String email) {
+        Optional<UserEntity> user = userRepository.findByEmail(email);
+        return user.isPresent();
+    }
+
     
 } 

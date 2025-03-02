@@ -1,12 +1,11 @@
 import React from "react";
 import {
-  LineChart,
-  Line,
+  AreaChart,
+  Area,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   ResponsiveContainer,
 } from "recharts";
 
@@ -20,37 +19,95 @@ interface RoutePoint {
 
 interface AltitudeChartProps {
   routePoints: RoutePoint[];
+  onPointHover: (point: RoutePoint | null) => void;
 }
 
-const AltitudeChart: React.FC<AltitudeChartProps> = ({ routePoints }) => {
-  // 안전하게 정렬하여 사용 (props를 직접 수정하지 않도록 복사)
+// 도(degree)를 라디안(radian)으로 변환
+const toRad = (value: number) => (value * Math.PI) / 180;
+
+// 하버사인 공식을 이용해 두 좌표 간 거리를 미터 단위로 계산
+const computeDistance = (
+  lat1: number,
+  lon1: number,
+  lat2: number,
+  lon2: number
+) => {
+  const R = 6371000; // 지구 반지름 (미터)
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(toRad(lat1)) *
+      Math.cos(toRad(lat2)) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+};
+
+const AltitudeChart: React.FC<AltitudeChartProps> = ({
+  routePoints,
+  onPointHover,
+}) => {
+  // sequence 순서대로 정렬
   const sortedPoints = [...routePoints].sort((a, b) => a.sequence - b.sequence);
+
+  // 누적 거리를 계산하여 킬로미터 단위(소수점 2자리)로 변환해 distance 프로퍼티 추가
+  let cumulativeDistance = 0;
+  const processedPoints = sortedPoints.map((point, index) => {
+    if (index > 0) {
+      const prev = sortedPoints[index - 1];
+      cumulativeDistance += computeDistance(
+        prev.latitude,
+        prev.longitude,
+        point.latitude,
+        point.longitude
+      );
+    }
+    const kmDistance = +(cumulativeDistance / 1000).toFixed(2);
+    return { ...point, distance: kmDistance };
+  });
 
   return (
     <div className="my-6">
-      <h3 className="text-xl font-semibold mb-2">Altitude Chart</h3>
+      <h3 className="text-xl font-semibold mb-2">고도표</h3>
       <ResponsiveContainer width="100%" height={100}>
-        <LineChart
-          data={sortedPoints}
+        <AreaChart
+          data={processedPoints}
           margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+          onMouseMove={(e: any) => {
+            if (e && e.activePayload && e.activePayload[0]) {
+              onPointHover(e.activePayload[0].payload);
+            } else {
+              onPointHover(null);
+            }
+          }}
         >
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis
-            dataKey="sequence"
-            label={{ value: "Sequence", position: "insideBottom", offset: -5 }}
+            dataKey="distance"
+            label={{
+              value: "Distance (km)",
+              position: "insideBottom",
+              offset: -5,
+            }}
           />
           <YAxis
-            label={{ value: "Elevation", angle: -90, position: "insideLeft" }}
+            label={{
+              value: "Elevation (m)",
+              angle: -90,
+              position: "insideLeft",
+            }}
           />
           <Tooltip />
-          <Legend />
-          <Line
+          <Area
             type="monotone"
             dataKey="elevation"
             stroke="#8884d8"
-            activeDot={{ r: 8 }}
+            fill="grey"
+            fillOpacity={0.5}
           />
-        </LineChart>
+        </AreaChart>
       </ResponsiveContainer>
     </div>
   );

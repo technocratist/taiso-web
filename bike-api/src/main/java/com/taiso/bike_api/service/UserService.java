@@ -17,6 +17,7 @@ import com.taiso.bike_api.repository.UserDetailRepository;
 import com.taiso.bike_api.repository.UserRepository;
 import com.taiso.bike_api.repository.UserRoleRepository;
 import com.taiso.bike_api.repository.UserStatusRepository;
+import com.taiso.bike_api.util.RandomNickNameGenerator;
 
 import jakarta.transaction.Transactional;
 
@@ -61,9 +62,12 @@ public class UserService {
             UserEntity savedUser = userRepository.save(user);
             userRepository.flush();
 
+            String randomNickname = RandomNickNameGenerator.generate();
+
             // 신규: 가입된 사용자에 대한 user detail 레코드를 생성하고 연결
             UserDetailEntity userDetail = UserDetailEntity.builder()
                     .user(savedUser)
+                    .userNickname(randomNickname)
                     // 필요에 따라 추가 필드 설정 (예: 기본값 등)
                     .build();
             userDetailRepository.save(userDetail);

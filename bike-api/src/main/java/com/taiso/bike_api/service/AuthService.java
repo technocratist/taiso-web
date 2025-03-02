@@ -14,16 +14,17 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 import com.taiso.bike_api.config.KakaoProperties;
-import com.taiso.bike_api.domain.UserEntity;
 import com.taiso.bike_api.domain.UserDetailEntity;
-import com.taiso.bike_api.dto.KakaoUserInfoDTO;
+import com.taiso.bike_api.domain.UserEntity;
 import com.taiso.bike_api.dto.KakaoAuthResultDTO;
+import com.taiso.bike_api.dto.KakaoUserInfoDTO;
 import com.taiso.bike_api.exception.KakaoAuthenticationException;
+import com.taiso.bike_api.repository.UserDetailRepository;
 import com.taiso.bike_api.repository.UserRepository;
 import com.taiso.bike_api.repository.UserRoleRepository;
 import com.taiso.bike_api.repository.UserStatusRepository;
-import com.taiso.bike_api.repository.UserDetailRepository;
 import com.taiso.bike_api.security.JwtTokenProvider;
+import com.taiso.bike_api.util.RandomNickNameGenerator;
 
 @Service
 public class AuthService {
@@ -77,9 +78,15 @@ public class AuthService {
                     UserEntity savedUser = userRepository.save(newUser);
                     userRepository.flush(); // 필요에 따라 flush 수행
 
+                    // 랜덤 닉네임 생성
+                    String randomNickname = RandomNickNameGenerator.generate();
+                    
+
+                    System.out.println("randomNickname: " + randomNickname);
                     // 신규 가입된 사용자에 대한 user detail 레코드 생성 및 연결
                     UserDetailEntity userDetail = UserDetailEntity.builder()
                             .user(savedUser)
+                            .userNickname(randomNickname) // 랜덤 닉네임 설정
                             // 추가 필드가 필요하면 설정
                             .build();
                     userDetailRepository.save(userDetail);

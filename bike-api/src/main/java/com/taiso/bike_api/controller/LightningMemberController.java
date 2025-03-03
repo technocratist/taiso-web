@@ -23,7 +23,7 @@ public class LightningMemberController {
     private LightningMemberService lightningMemberService;
 
 	@PostMapping("{lightningId}/participants")
-  @Operation(summary = "번개 참가 및 참가 신청", description = "번개에 현재 사용자 참가 및 참가 신청 API")
+  	@Operation(summary = "번개 참가 및 참가 신청", description = "번개에 현재 사용자 참가 및 참가 신청 API")
 	public ResponseEntity<JoinParticipantsPostResponseDTO> joinLightning(
     		@PathVariable(name = "lightningId") Long lightningId,
 			Authentication authentication

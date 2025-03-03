@@ -17,8 +17,10 @@ import com.taiso.bike_api.config.KakaoProperties;
 import com.taiso.bike_api.domain.UserEntity;
 import com.taiso.bike_api.domain.UserDetailEntity;
 import com.taiso.bike_api.dto.KakaoUserInfoDTO;
+import com.taiso.bike_api.dto.UserInfoUpdateRequestDTO;
 import com.taiso.bike_api.dto.KakaoAuthResultDTO;
 import com.taiso.bike_api.exception.KakaoAuthenticationException;
+import com.taiso.bike_api.exception.UserNotFoundException;
 import com.taiso.bike_api.repository.UserRepository;
 import com.taiso.bike_api.repository.UserRoleRepository;
 import com.taiso.bike_api.repository.UserStatusRepository;
@@ -139,4 +141,16 @@ public class AuthService {
             throw new KakaoAuthenticationException("카카오로부터 사용자 정보를 받지 못했습니다.");
         }
     }
+
+    public void updateUserInfo(UserInfoUpdateRequestDTO requestDTO, String userEmail) {
+        // 사용자 존재여부 확인
+        UserEntity user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
+
+        // 현재 비밀번호 입력 검증
+        if (!jwtTokenProvider.validatePassword(requestDTO.getCurrentPwd(), user.getPassword())) {
+            throw new IllegalArgumentException("현재 비밀번호가 일치하지 않습니다.");
+        }
+    }
+
 }

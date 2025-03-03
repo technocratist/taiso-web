@@ -314,5 +314,12 @@ public class GlobalExceptionHandler {
         ErrorResponseDTO errorResponse = ErrorResponseDTO.makeErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST, request.getRequestURI());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
+
+    // 내 비밀번호변경 시 잘못된 현재 비밀번호를 입력한 경우의 예외처리
+    @ExceptionHandler(WrongPasswordException.class)
+    public ResponseEntity<ErrorResponseDTO> handleWrongPasswordException(WrongPasswordException ex, HttpServletRequest request) {
+        ErrorResponseDTO errorResponse = ErrorResponseDTO.makeErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST, request.getRequestURI());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+    }
     
 }

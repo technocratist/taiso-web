@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.taiso.bike_api.dto.KakaoAuthResultDTO;
 import com.taiso.bike_api.dto.LoginRequestDTO;
 import com.taiso.bike_api.dto.LoginResponseDTO;
+import com.taiso.bike_api.dto.PasswordUpdateRequestDTO;
 import com.taiso.bike_api.dto.RegisterRequestDTO;
 import com.taiso.bike_api.dto.RegisterResponseDTO;
 import com.taiso.bike_api.dto.UserInfoUpdateRequestDTO;
@@ -182,13 +183,29 @@ public class AuthController {
         return ResponseEntity.status(HttpStatus.OK).body(userService.checkEmail(email));
     }
 
+    // 내 회원정보수정(비밀번호 수정)
     @PatchMapping("/me")
-    @Operation(summary = "회원정보수정", description = "회원정보수정")
-    public ResponseEntity<Void> updateUserInfo(
-        @RequestBody UserInfoUpdateRequestDTO requestDTO
-        , @AuthenticationPrincipal String userEmail) {
-        userService.updateUserInfo(requestDTO, userEmail);
-        return ResponseEntity.status(HttpStatus.OK).build();
+    @Operation(summary = "내 비밀번호 수정", description = "내 비밀번호 수정")
+    public ResponseEntity<Void> updatePassword(
+        @RequestBody PasswordUpdateRequestDTO requestDTO
+        , @AuthenticationPrincipal String userEmail
+        , HttpServletResponse response) {
+
+        authService.updatePassword(requestDTO, userEmail);
+
+        String jwt = jwtTokenProvider.generateToken(userEmail);
+    
+        // JWT를 HttpOnly, Secure 쿠키에 저장 (환경에 따라 secure 옵션은 개발 시 false로 설정할 수 있음)
+        Cookie jwtCookie = new Cookie("jwt", jwt);
+        jwtCookie.setHttpOnly(true);      // 자바스크립트에서 접근 불가능
+        jwtCookie.setSecure(true);        // HTTPS 환경에서만 전송 (개발 환경이라면 false)
+        jwtCookie.setPath("/");           // 모든 경로에서 쿠키 접근 허용
+        jwtCookie.setMaxAge(60 * 10);       // 쿠키 유효기간 설정 (예: 1시간)
+    
+        // 응답 헤더에 쿠키 추가
+        response.addCookie(jwtCookie);
+
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).body(null);
     }
 
 }

@@ -30,7 +30,7 @@ public class ResponseComponentDTO {
     private LocalDateTime createdAt;
     private LightningStatus status;
     private Integer capacity;
-    // private Integer currentParticipants;
+    private Integer currentParticipants;
     private Gender gender;
     private Level level;
     private BikeType bikeType;

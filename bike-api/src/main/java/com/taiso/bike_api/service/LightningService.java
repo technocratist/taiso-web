@@ -193,7 +193,7 @@ public class LightningService {
                 spec = spec.and((root, query, criteriaBuilder) -> 
                     criteriaBuilder.equal(root.get("gender"), genderEnum));
             } catch (IllegalArgumentException e) {
-                // 잘못된 enum 값이면 무시
+                log.error("잘못된 성별 값: {}", e.getMessage());
             }
         }
         
@@ -204,7 +204,7 @@ public class LightningService {
                 spec = spec.and((root, query, criteriaBuilder) -> 
                     criteriaBuilder.equal(root.get("bikeType"), bikeTypeEnum));
             } catch (IllegalArgumentException e) {
-                // 잘못된 enum 값이면 무시
+                log.error("잘못된 자전거 타입 값: {}", e.getMessage());
             }
         }
         
@@ -215,7 +215,7 @@ public class LightningService {
                 spec = spec.and((root, query, criteriaBuilder) -> 
                     criteriaBuilder.equal(root.get("region"), regionEnum));
             } catch (IllegalArgumentException e) {
-                // 잘못된 enum 값이면 무시
+                log.error("잘못된 지역 값: {}", e.getMessage());
             }
         }
         
@@ -226,7 +226,7 @@ public class LightningService {
                 spec = spec.and((root, query, criteriaBuilder) -> 
                     criteriaBuilder.equal(root.get("level"), levelEnum));
             } catch (IllegalArgumentException e) {
-                // 잘못된 enum 값이면 무시
+                log.error("잘못된 레벨 값: {}", e.getMessage());
             }
         }
         
@@ -254,7 +254,6 @@ public class LightningService {
                 });
             } catch (Exception e) {
                 log.error("Date parsing error: {}", e.getMessage());
-                // 잘못된 날짜 형식이면 무시
             }
         }
         

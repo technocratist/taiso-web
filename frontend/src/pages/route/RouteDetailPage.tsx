@@ -1,8 +1,6 @@
 import { useNavigate, useParams } from "react-router";
 import routeService, { RouteDetailResponse } from "../../services/routeService";
 import { useEffect, useState } from "react";
-import AltitudeChart from "../../components/AltitudeChart";
-import KakaoMapRoute from "../../components/KakaoMap";
 import { useAuthStore } from "../../stores/useAuthStore";
 import RouteViewer from "../../components/RouteViewer";
 

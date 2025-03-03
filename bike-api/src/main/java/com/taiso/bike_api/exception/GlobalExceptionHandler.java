@@ -307,4 +307,12 @@ public class GlobalExceptionHandler {
         ErrorResponseDTO errorResponse = ErrorResponseDTO.makeErrorResponse(ex.getMessage(), HttpStatus.NOT_FOUND, request.getRequestURI());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
     }
+
+    // 내 예약/완료 번개 조회시 잘못된 참가상태조건을 요청했을 때의 예외처리
+    @ExceptionHandler(UserLightningsGetInvalidStatusException.class)
+    public ResponseEntity<ErrorResponseDTO> handleUserLightningsGetInvalidStatusException(UserLightningsGetInvalidStatusException ex, HttpServletRequest request) {
+        ErrorResponseDTO errorResponse = ErrorResponseDTO.makeErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST, request.getRequestURI());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+    }
+    
 }

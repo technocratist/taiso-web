@@ -139,4 +139,5 @@ public class AuthService {
             throw new KakaoAuthenticationException("카카오로부터 사용자 정보를 받지 못했습니다.");
         }
     }
+
 }

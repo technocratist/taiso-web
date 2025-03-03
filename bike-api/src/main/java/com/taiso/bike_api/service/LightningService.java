@@ -126,6 +126,8 @@ public class LightningService {
 
         LightningEntity savedLightning = lightningRepository.save(lightning);
 
+        // lightningUserRepository.save(lightningUser);
+
         return LightningPostResponseDTO.builder().lightningId(savedLightning.getLightningId()).build();
     }
 

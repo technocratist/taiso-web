@@ -15,6 +15,7 @@ import com.taiso.bike_api.domain.LightningUserEntity;
 import com.taiso.bike_api.domain.LightningUserEntity.ParticipantStatus;
 import com.taiso.bike_api.domain.UserDetailEntity;
 import com.taiso.bike_api.domain.UserEntity;
+import com.taiso.bike_api.dto.PasswordUpdateRequestDTO;
 import com.taiso.bike_api.dto.RegisterRequestDTO;
 import com.taiso.bike_api.dto.RegisterResponseDTO;
 import com.taiso.bike_api.dto.UserLightningsGetResponseDTO;
@@ -24,6 +25,7 @@ import com.taiso.bike_api.dto.UserLightningsGetResponseUsersDTO;
 import com.taiso.bike_api.exception.EmailAlreadyExistsException;
 import com.taiso.bike_api.exception.UserLightningsGetInvalidStatusException;
 import com.taiso.bike_api.exception.UserNotFoundException;
+import com.taiso.bike_api.exception.WrongPasswordException;
 import com.taiso.bike_api.repository.LightningUserRepository;
 import com.taiso.bike_api.repository.UserDetailRepository;
 import com.taiso.bike_api.repository.UserRepository;
@@ -154,6 +156,23 @@ public class UserService {
     public boolean checkEmail(String email) {
         Optional<UserEntity> user = userRepository.findByEmail(email);
         return user.isPresent();
+    }
+
+    @Transactional
+    public void updatePassword(PasswordUpdateRequestDTO requestDTO, String userEmail) {
+        // 유저 존재여부 확인
+        UserEntity user = userRepository.findByEmail(userEmail).orElseThrow(
+            () -> new UserNotFoundException("존재하지 않는 사용자입니다.")
+        );
+
+        // 기존 비밀번호입력 체크
+        if(!passwordEncoder.matches(requestDTO.getCurrentPwd(), user.getPassword())) {
+            throw new WrongPasswordException("잘못된 현재 비밀번호입니다.");
+        }
+
+        // 새 비밀번호로 세팅하기
+        user.setPassword(passwordEncoder.encode(requestDTO.getNewPwd()));
+
     }
     
 } 

@@ -25,4 +25,8 @@ public interface LightningUserRepository extends JpaRepository<LightningUserEnti
   
     List<LightningUserEntity> findAllByLightning_LightningId(Long lightningId);
 
+    
+    // 번개 ID로 참여자 수를 조회하는 메소드 추가
+    int countByLightning_LightningId(Long lightningId);
+
 }

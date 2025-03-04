@@ -111,12 +111,12 @@ function LightningPage() {
     setSearchParams(newParams);
   };
 
-  // 정렬 링크 생성 함수
-  const getSortLink = (newSort: string): string => {
-    const params = new URLSearchParams(searchParams.toString());
-    params.set("sort", newSort);
-    return `/lightning?${params.toString()}`;
-  };
+  // // 정렬 링크 생성 함수
+  // const getSortLink = (newSort: string): string => {
+  //   const params = new URLSearchParams(searchParams.toString());
+  //   params.set("sort", newSort);
+  //   return `/lightning?${params.toString()}`;
+  // };
 
   return (
     <div className="min-h-screen flex flex-col">

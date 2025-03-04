@@ -50,7 +50,7 @@ public class LightningController {
 //        return ResponseEntity.status(HttpStatus.OK).body(lightningService.getLightning(requestDTO, pageable));
 //    }
 
-    @GetMapping("/")
+    @GetMapping("")
     @Operation(summary = "번개 리스트 조회", description = "번개 리스트 조회 API")
     public ResponseEntity<LightningListResponseDTO> getLightningList(
               @RequestParam(name = "page", defaultValue = "0") int page

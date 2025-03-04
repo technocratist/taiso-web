@@ -8,6 +8,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -15,16 +16,22 @@ import org.springframework.web.client.RestTemplate;
 
 import com.taiso.bike_api.config.KakaoProperties;
 import com.taiso.bike_api.domain.UserDetailEntity;
+import com.taiso.bike_api.dto.KakaoUserInfoDTO;
+import com.taiso.bike_api.dto.UserPasswordUpdateRequestDTO;
 import com.taiso.bike_api.domain.UserEntity;
 import com.taiso.bike_api.dto.KakaoAuthResultDTO;
 import com.taiso.bike_api.dto.KakaoUserInfoDTO;
 import com.taiso.bike_api.exception.KakaoAuthenticationException;
+import com.taiso.bike_api.exception.UserNotFoundException;
+import com.taiso.bike_api.exception.WrongPasswordException;
 import com.taiso.bike_api.repository.UserDetailRepository;
 import com.taiso.bike_api.repository.UserRepository;
 import com.taiso.bike_api.repository.UserRoleRepository;
 import com.taiso.bike_api.repository.UserStatusRepository;
 import com.taiso.bike_api.security.JwtTokenProvider;
 import com.taiso.bike_api.util.RandomNickNameGenerator;
+
+import jakarta.transaction.Transactional;
 
 @Service
 public class AuthService {
@@ -36,6 +43,8 @@ public class AuthService {
     private final UserRoleRepository userRoleRepository;
     private final UserStatusRepository userStatusRepository;
     private final UserDetailRepository userDetailRepository;
+    private PasswordEncoder passwordEncoder;
+
 
     public AuthService(KakaoProperties kakaoProperties,
                        UserRepository userRepository,
@@ -146,4 +155,22 @@ public class AuthService {
             throw new KakaoAuthenticationException("카카오로부터 사용자 정보를 받지 못했습니다.");
         }
     }
+
+    @Transactional
+    public void updatePassword(UserPasswordUpdateRequestDTO requestDTO, String userEmail) {
+        // 유저 존재여부 확인
+        UserEntity user = userRepository.findByEmail(userEmail).orElseThrow(
+            () -> new UserNotFoundException("존재하지 않는 사용자입니다.")
+        );
+
+        // 기존 비밀번호입력 체크
+        if(!passwordEncoder.matches(requestDTO.getCurrentPwd(), user.getPassword())) {
+            throw new WrongPasswordException("잘못된 현재비밀번호입니다.");
+        }
+
+        // 새 비밀번호로 세팅
+        user.setPassword(passwordEncoder.encode(requestDTO.getNewPwd()));
+
+    }
+
 }

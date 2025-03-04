@@ -9,7 +9,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,6 +23,7 @@ import com.taiso.bike_api.dto.LoginRequestDTO;
 import com.taiso.bike_api.dto.LoginResponseDTO;
 import com.taiso.bike_api.dto.RegisterRequestDTO;
 import com.taiso.bike_api.dto.RegisterResponseDTO;
+import com.taiso.bike_api.dto.UserPasswordUpdateRequestDTO;
 import com.taiso.bike_api.security.JwtTokenProvider;
 import com.taiso.bike_api.service.AuthService;
 import com.taiso.bike_api.service.UserService;
@@ -177,6 +180,31 @@ public class AuthController {
     @Operation(summary = "이메일 중복 체크", description = "이메일 중복 체크")
     public ResponseEntity<Boolean> checkEmail(@RequestParam(name = "email") String email) {
         return ResponseEntity.status(HttpStatus.OK).body(userService.checkEmail(email));
+    }
+
+    // 내 회원정보수정(비밀번호 수정)
+    @PatchMapping("/me")
+    @Operation(summary = "내 비밀번호 수정", description = "내 비밀번호 수정")
+    public ResponseEntity<Void> updatePassword(
+        @RequestBody UserPasswordUpdateRequestDTO requestDTO
+        , @AuthenticationPrincipal String userEmail
+        , HttpServletResponse response) {
+
+        authService.updatePassword(requestDTO, userEmail);
+
+        String jwt = jwtTokenProvider.generateToken(userEmail);
+    
+        // JWT를 HttpOnly, Secure 쿠키에 저장 (환경에 따라 secure 옵션은 개발 시 false로 설정할 수 있음)
+        Cookie jwtCookie = new Cookie("jwt", jwt);
+        jwtCookie.setHttpOnly(true);      // 자바스크립트에서 접근 불가능
+        jwtCookie.setSecure(true);        // HTTPS 환경에서만 전송 (개발 환경이라면 false)
+        jwtCookie.setPath("/");           // 모든 경로에서 쿠키 접근 허용
+        jwtCookie.setMaxAge(60 * 10);       // 쿠키 유효기간 설정 (예: 1시간)
+    
+        // 응답 헤더에 쿠키 추가
+        response.addCookie(jwtCookie);
+
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).body(null);
     }
 
 }

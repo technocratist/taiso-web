@@ -1,8 +1,4 @@
-import { useParams } from "react-router";
-
 function UserDetailPage() {
-  const { userId } = useParams();
-
   return (
     <div className="md:w-full max-w-screen-md rounded-xl w-[90%] mt-2 border-base-300 border-[1px] shadow-xl">
       <div className="flex flex-col relative">

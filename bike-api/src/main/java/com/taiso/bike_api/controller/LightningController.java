@@ -55,14 +55,23 @@ public class LightningController {
     public ResponseEntity<LightningListResponseDTO> getLightningList(
               @RequestParam(name = "page", defaultValue = "0") int page
             , @RequestParam(name = "size", defaultValue = "8") int size
+            , @RequestParam(name = "gender", defaultValue = "") String gender
+            , @RequestParam(name = "bikeType", defaultValue = "") String bikeType
+            , @RequestParam(name = "date", defaultValue = "") String date
+            , @RequestParam(name = "region", defaultValue = "") String region
+            , @RequestParam(name = "level", defaultValue = "") String level
+            , @RequestParam(name = "tags", defaultValue = "") String tags
             , @RequestParam(name = "sort", defaultValue = "") String sort) {
 
-        LightningListResponseDTO lightningListResponseDTO = lightningService.getLightningList(page, size, sort);
+        LightningListResponseDTO lightningListResponseDTO = lightningService.getLightningList(page, size, gender, bikeType, date, region, level, tags, sort);
 
         log.info("보내기 직전 : {}", lightningListResponseDTO);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(lightningListResponseDTO);
+        return ResponseEntity.status(HttpStatus.OK).body(lightningListResponseDTO);
     }
+
+
+
 
     @GetMapping("/{lightningId}/participation")
     @Operation(summary = "번개 참가 확인", description = "번개 참가 확인 API")

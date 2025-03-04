@@ -27,11 +27,16 @@ public interface LightningUserRepository extends JpaRepository<LightningUserEnti
   
     List<LightningUserEntity> findAllByLightning_LightningId(Long lightningId);
 
+    
+    // 번개 ID로 참여자 수를 조회하는 메소드 추가
+    int countByLightning_LightningId(Long lightningId);
+
     Optional<LightningUserEntity> findByLightning(LightningEntity lightning);
 
     List<LightningUserEntity> findByUserAndParticipantStatusIn(UserEntity user, List<ParticipantStatus> status);
 
     List<LightningUserEntity> findByLightningAndParticipantStatusIn(LightningEntity lightning,
             ArrayList<ParticipantStatus> arrayList);
+
 
 }

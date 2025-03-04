@@ -107,9 +107,17 @@ const createLightning = async (
 const getLightningList = async (
   page: number,
   size: number,
-  sort: string
+  sort: string,
+  gender: string,
+  bikeType: string,
+  level: string,
+  region: string,
+  tags: string[],
+  selectedDate: string
 ): Promise<LightningListResponse> => {
-  return await get(`/lightnings/?page=${page}&size=${size}&sort=${sort}`);
+  return await get(
+    `/lightnings/?page=${page}&size=${size}&sort=${sort}&gender=${gender}&bikeType=${bikeType}&level=${level}&region=${region}&tags=${tags}&date=${selectedDate}`
+  );
 };
 
 const getLightningDetail = async (

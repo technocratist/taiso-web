@@ -18,7 +18,7 @@ import com.taiso.bike_api.config.KakaoProperties;
 import com.taiso.bike_api.domain.UserEntity;
 import com.taiso.bike_api.domain.UserDetailEntity;
 import com.taiso.bike_api.dto.KakaoUserInfoDTO;
-import com.taiso.bike_api.dto.PasswordUpdateRequestDTO;
+import com.taiso.bike_api.dto.UserPasswordUpdateRequestDTO;
 import com.taiso.bike_api.dto.KakaoAuthResultDTO;
 import com.taiso.bike_api.exception.KakaoAuthenticationException;
 import com.taiso.bike_api.exception.UserNotFoundException;
@@ -149,7 +149,7 @@ public class AuthService {
     }
 
         @Transactional
-    public void updatePassword(PasswordUpdateRequestDTO requestDTO, String userEmail) {
+    public void updatePassword(UserPasswordUpdateRequestDTO requestDTO, String userEmail) {
         // 유저 존재여부 확인
         UserEntity user = userRepository.findByEmail(userEmail).orElseThrow(
             () -> new UserNotFoundException("존재하지 않는 사용자입니다.")
@@ -157,10 +157,10 @@ public class AuthService {
 
         // 기존 비밀번호입력 체크
         if(!passwordEncoder.matches(requestDTO.getCurrentPwd(), user.getPassword())) {
-            throw new WrongPasswordException("잘못된 현재 비밀번호입니다.");
+            throw new WrongPasswordException("잘못된 현재비밀번호입니다.");
         }
 
-        // 새 비밀번호로 세팅하기
+        // 새 비밀번호로 세팅
         user.setPassword(passwordEncoder.encode(requestDTO.getNewPwd()));
 
     }

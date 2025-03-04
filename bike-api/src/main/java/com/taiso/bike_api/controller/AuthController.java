@@ -21,10 +21,9 @@ import org.springframework.web.bind.annotation.RestController;
 import com.taiso.bike_api.dto.KakaoAuthResultDTO;
 import com.taiso.bike_api.dto.LoginRequestDTO;
 import com.taiso.bike_api.dto.LoginResponseDTO;
-import com.taiso.bike_api.dto.PasswordUpdateRequestDTO;
 import com.taiso.bike_api.dto.RegisterRequestDTO;
 import com.taiso.bike_api.dto.RegisterResponseDTO;
-import com.taiso.bike_api.dto.UserInfoUpdateRequestDTO;
+import com.taiso.bike_api.dto.UserPasswordUpdateRequestDTO;
 import com.taiso.bike_api.security.JwtTokenProvider;
 import com.taiso.bike_api.service.AuthService;
 import com.taiso.bike_api.service.UserService;
@@ -187,7 +186,7 @@ public class AuthController {
     @PatchMapping("/me")
     @Operation(summary = "내 비밀번호 수정", description = "내 비밀번호 수정")
     public ResponseEntity<Void> updatePassword(
-        @RequestBody PasswordUpdateRequestDTO requestDTO
+        @RequestBody UserPasswordUpdateRequestDTO requestDTO
         , @AuthenticationPrincipal String userEmail
         , HttpServletResponse response) {
 

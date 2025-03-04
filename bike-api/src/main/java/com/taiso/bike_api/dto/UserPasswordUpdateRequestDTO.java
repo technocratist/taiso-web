@@ -13,7 +13,7 @@ import lombok.ToString;
 @Setter
 @Getter
 @ToString
-public class PasswordUpdateRequestDTO {
+public class UserPasswordUpdateRequestDTO {
 
     @NotBlank
     @Pattern(regexp = "^(?=.*[a-zA-Z])(?=.*[0-9]).{8,25}$")
